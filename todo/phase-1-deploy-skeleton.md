@@ -16,16 +16,17 @@ This is safe pre-launch: the production URL is an obscure `*.workers.dev` addres
 
 ## Tasks
 
-1. Add the adapter: `pnpm astro add cloudflare`. In `astro.config.mjs` enable the platform proxy: `adapter: cloudflare({ platformProxy: { enabled: true } })`.
-2. **`wrangler.jsonc`**: worker `name: "portfolio-web"`, a current `compatibility_date`, and the main/assets wiring for an Astro-on-Workers static build. **Follow the current `@astrojs/cloudflare` README's Workers recipe exactly — do not improvise field names**; the adapter docs are the source of truth if they disagree with this doc (global gotcha 11).
-3. Run `wrangler types`; commit the generated env type file. Wire `App.Locals` runtime typing per the adapter docs (`src/env.d.ts`).
-4. Local verification loop: `pnpm build && pnpm wrangler dev` serves the built site from the Worker at `localhost:8787`. Add a `preview:worker` script for this if it earns its keep.
-5. `HUMAN:` in the Cloudflare dashboard: create the Worker via **Workers Builds** connected to `github.com/nmhernandez10/portfolio-web`:
-   - Production branch: `main`. Build command: `pnpm build`. Deploy command: per the Workers Builds Astro guide (usually `pnpm wrangler deploy`).
+1. [x] Add the adapter: `pnpm astro add cloudflare`. ~~In `astro.config.mjs` enable the platform proxy: `adapter: cloudflare({ platformProxy: { enabled: true } })`.~~ **Deviation (gotcha 11):** `@astrojs/cloudflare` v14.2.3 has no `platformProxy` option and no successor — its `Options` type is `imageService` / `sessionKVBindingName` / `imagesBindingName` / `prerenderEnvironment` / `experimental` plus a few `@cloudflare/vite-plugin` passthroughs. The adapter now runs the real `workerd` runtime in `astro dev` through that Vite plugin, so the proxy option is obsolete. Config is plain `cloudflare()`.
+2. [x] **`wrangler.jsonc`**: worker `name: "portfolio-web"`, a current `compatibility_date` (`2026-08-15`, matching the installed `workerd@1.20260815.1`). **Deviation (gotcha 11):** no main/assets wiring is written by hand — v14 supplies `main`, the `ASSETS` binding and the asset directory itself, and emits the real deploy config to `dist/client/wrangler.json`. Because the site is fully static, that generated config has no `main` at all: it deploys as an assets-only Worker.
+3. [x] Run `wrangler types`; commit the generated env type file (`worker-configuration.d.ts`). Wire `App.Locals` runtime typing per the adapter (`src/env.d.ts`). **Deviation (gotcha 11):** the pre-v14 `Runtime<Env>` generic is gone — `Runtime` is now `{ cfContext: ExecutionContext }` and the package ships the `App.Locals` declaration itself, so `src/env.d.ts` is one line: `/// <reference types="@astrojs/cloudflare/types.d.ts" />`.
+4. [x] Local verification loop: `pnpm build && pnpm wrangler dev` serves the built site from the Worker at `localhost:8787`. Added as the `preview:worker` script — it earns its keep as the one-command loop every later phase verifies with.
+5. [ ] `HUMAN:` in the Cloudflare dashboard: create the Worker via **Workers Builds** connected to `github.com/nmhernandez10/portfolio-web`:
+   - Production branch: `main`. Build command: `pnpm build`. Deploy command: `pnpm wrangler deploy` (verified by `--dry-run`: wrangler follows the build-time redirect in `.wrangler/deploy/config.json` to `dist/client/wrangler.json`, so no `-c` flag is needed — but the deploy must run after the build, in the same workspace).
    - Enable **non-production branch builds** (preview URLs) and **PR comments**.
    - Confirm the build image respects `packageManager` (pnpm) and the Node version.
-6. Push `dev`, open a PR — confirm the preview URL appears as a PR comment and serves the placeholder. Merge — confirm the production `*.workers.dev` URL updates.
-7. Record both URLs in the `todo/README.md` status table. Amend `CLAUDE.md`: deploy model (Workers Builds, branch mapping), `wrangler dev` local loop, and that GH Actions never deploys.
+   - Note: the deploy provisions a `SESSION` KV namespace and an `IMAGES` binding — adapter defaults, not chosen here. See "Open question" below.
+6. [ ] Push `dev`, open a PR — confirm the preview URL appears as a PR comment and serves the placeholder. Merge — confirm the production `*.workers.dev` URL updates.
+7. [ ] Record both URLs in the `todo/README.md` status table. ~~Amend `CLAUDE.md`~~ `AGENTS.md` amended: new **Deploy** section (Workers Builds branch mapping, build/deploy commands, the generated-config rule, GH Actions never deploys) plus `preview:worker` in Commands. URLs still to record.
 
 ## Verification
 
@@ -39,7 +40,14 @@ This is safe pre-launch: the production URL is an obscure `*.workers.dev` addres
 - The `@astrojs/cloudflare` + wrangler surface moves fast — trust `pnpm wrangler dev` and current docs over any field name written here.
 - Preview versions of a single Worker **share the production Worker's secrets and vars**. Acceptable now (there are none); becomes relevant in phase 5 — the plan is a test Resend key until launch.
 - `.wrangler/` must already be gitignored (phase 0); verify before committing.
-- If Workers Builds and local wrangler versions drift, pin `wrangler` as a devDependency so builds are reproducible.
+- If Workers Builds and local wrangler versions drift, pin `wrangler` as a devDependency so builds are reproducible. Done: `wrangler` is a devDependency (it is also a peer dependency of the adapter).
+- `pnpm` wanted to add `@astrojs/cloudflare@14.2.3` and `@astrojs/internal-helpers@0.10.4` to `minimumReleaseAgeExclude` during the install. Removed — the lockfile passes the supply-chain policy without the exclusions, and `AGENTS.md` forbids disabling that policy.
+- `workerd` needs its postinstall script; it is allowlisted in `pnpm-workspace.yaml` alongside `esbuild`. Without it the install exits non-zero and `astro add` aborts before patching `astro.config.mjs`.
+- The build output moved: static assets are now under `dist/client/` (`dist/server/` is empty while the site is fully static).
+
+## Open question (for the phase 5 author, or sooner)
+
+The adapter defaults every Astro session to Cloudflare KV, so the generated deploy config always carries `kv_namespaces: [{ binding: "SESSION" }]` and `images: { binding: "IMAGES" }`. On first deploy Cloudflare auto-provisions both, even though this site is static and phase 5's contact endpoint is a stateless POST that needs neither. Suppressing them means `session: false` and an `imageService` choice in `astro.config.mjs` — deliberately not done here, because it is a content decision beyond this phase's scope. Decide before the custom domain attaches in phase 7.
 
 ## Definition of Done
 

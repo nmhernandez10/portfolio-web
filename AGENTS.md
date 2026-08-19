@@ -37,8 +37,9 @@ docs/brand.md              phase 7: brand laws migrated from the skill
 ## Commands
 
 - `pnpm dev` — dev server at `localhost:4321`
-- `pnpm build` — production build to `dist/`
+- `pnpm build` — production build to `dist/` (`dist/client` is the deployed asset directory)
 - `pnpm preview` — serve the build
+- `pnpm preview:worker` — build, then serve it from the real Worker runtime at `localhost:8787`
 - `pnpm check` — `astro check && tsc --noEmit`
 - `pnpm format` / `pnpm format:check` — Prettier write / verify
 
@@ -48,6 +49,16 @@ docs/brand.md              phase 7: brand laws migrated from the skill
 - Work on `dev`; phases merge to `main` via PR with a **merge commit — never squash** (`dev` is long-lived; squashing causes phantom-diff conflicts).
 - CI (`.github/workflows/ci.yml`, job id `ci`) is the quality gate: format check, `pnpm check`, build. It never deploys; Cloudflare Workers Builds deploys from git.
 - Run `pnpm format` before every commit so new files pass the CI format gate.
+
+## Deploy
+
+GitHub Actions owns quality, Cloudflare owns delivery — Actions never deploys.
+
+- Cloudflare **Workers Builds** deploys from git: `main` → production, every other branch and PR → a preview URL posted as a PR comment. Single Worker, `portfolio-web`.
+- Build command `pnpm build`, deploy command `pnpm wrangler deploy`. Deploy reads the generated `dist/client/wrangler.json` (wrangler follows the redirect written to `.wrangler/deploy/config.json` at build time), so build before deploy.
+- `wrangler.jsonc` holds only `name` and `compatibility_date`. `@astrojs/cloudflare` supplies `main`, the `ASSETS` binding and the asset directory — do not restate them.
+- Local loop: `pnpm preview:worker` (or `pnpm build && pnpm wrangler dev`) serves the built site from workerd at `localhost:8787`. `pnpm dev` also runs on workerd via the adapter's Vite plugin.
+- After changing `wrangler.jsonc`, rerun `pnpm wrangler types` and commit `worker-configuration.d.ts`.
 
 ## Design laws (non-negotiable)
 

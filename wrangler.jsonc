@@ -1,0 +1,8 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "portfolio-web",
+  // Matches the installed workerd (1.20260815.1); bump alongside wrangler upgrades.
+  "compatibility_date": "2026-08-15",
+  // main, the ASSETS binding and the asset directory are supplied by
+  // @astrojs/cloudflare v14 — do not restate them here.
+}

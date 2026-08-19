@@ -17,7 +17,7 @@ Take the repo from zero commits to a committed, tooling-complete Astro 7 + React
 Progress note (2026-08-19): all file work is done (Astro 7 latest per user decision — see `todo/README.md`; `AGENTS.md` is the canonical agent doc, `CLAUDE.md` imports it). Commits, pushes, CI runs, and branch protection are pending — they happen in the commit/review step.
 
 1. [x] **`.gitignore`** — at minimum: `node_modules/`, `dist/`, `.astro/`, `.wrangler/`, `.dev.vars`, `.env`, `.env.*`, `*.log`, `.DS_Store`.
-2. [ ] **Baseline commit on `main`**: `.gitignore` + `todo/` + the existing `assets/` and `.claude/` directories, verbatim. Message: `chore: repo baseline — plan, assets, gitignore`.
+2. [x] **Baseline commit on `main`**: `.gitignore` + `todo/` + the existing `assets/` and `.claude/` directories, verbatim. Message: `chore: repo baseline — plan, assets, gitignore`.
 3. [x] **Scaffold**: `pnpm create astro@latest` (minimal template, TypeScript strict, no sample content), merged into the repo root. Add:
    - `@astrojs/react` + `react` + `react-dom` (v19) and `@astrojs/sitemap` (configured but inert until phase 7).
    - `astro.config.mjs` with `site` and the react + sitemap integrations.
@@ -37,7 +37,7 @@ Progress note (2026-08-19): all file work is done (Astro 7 latest per user decis
    - The design laws list: gold text `#A6762A` never `#E3B23C`; no Google Fonts in production; no emoji or exclamation marks in copy; sentence case; content never depends on JS; white surfaces only on cards; 8px radius only on inputs; no orange, no gradients, no Inter.
    - Pointer to the design source of truth (the skill paths, until phase 7 replaces them with `docs/brand.md`).
 8. [x] **CI**: `.github/workflows/ci.yml` — on `pull_request` and on `push` to `main` and `dev`: checkout → setup pnpm + Node from `.nvmrc` with pnpm cache → `pnpm install --frozen-lockfile` → `pnpm format:check` → `pnpm check` → `pnpm build`.
-9. [ ] **Branches**: push `main`; create and push `dev` from it.
+9. [ ] **Branches**: push `main`; create and push `dev` from it. (`dev` is pushed; `main` is still local only, so GitHub's default branch is `dev` and must be reset to `main` when it lands.)
 10. [ ] `HUMAN:` in GitHub settings, enable branch protection on `main`: require the CI check to pass before merging (the required check is the job id `ci`). (Optionally require PRs.)
 
 ## Verification
