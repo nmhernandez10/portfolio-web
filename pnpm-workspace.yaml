@@ -1,0 +1,3 @@
+# pnpm 11 blocks postinstall scripts by default; esbuild needs its native binary install to run.
+allowBuilds:
+  esbuild: true
