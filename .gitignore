@@ -1,0 +1,30 @@
+# build output
+dist/
+
+# generated types
+.astro/
+
+# dependencies
+node_modules/
+
+# cloudflare
+.wrangler/
+.dev.vars
+
+# environment variables
+.env
+.env.*
+
+# local tooling
+.trio.json
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# macOS
+.DS_Store
+
+# jetbrains
+.idea/

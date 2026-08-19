@@ -1,0 +1,62 @@
+:root{
+  /* --- Families --- */
+  --font-display:"Space Grotesk","Helvetica Neue",Helvetica,sans-serif;
+  --font-body:"Space Grotesk","Helvetica Neue",Helvetica,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+
+  /* --- Scale: 1.25 modular, 16px base --- */
+  --text-2xs:11px;
+  --text-xs:12px;
+  --text-sm:14px;
+  --text-base:16px;
+  --text-lg:20px;
+  --text-xl:25px;
+  --text-2xl:31px;
+  --text-3xl:39px;
+  --text-4xl:49px;
+  --text-5xl:61px;
+  --text-6xl:76px;
+  --text-7xl:96px;
+
+  /* --- Weights --- */
+  --weight-regular:400;
+  --weight-medium:500;
+  --weight-semibold:600;
+  --weight-bold:700;
+
+  /* --- Line heights --- */
+  --leading-tight:0.98;
+  --leading-display:1.06;
+  --leading-snug:1.25;
+  --leading-body:1.6;
+  --leading-relaxed:1.75;
+
+  /* --- Tracking --- */
+  --tracking-display:-0.03em;
+  --tracking-heading:-0.015em;
+  --tracking-body:0em;
+  --tracking-label:0.14em;
+  --tracking-mono:0.02em;
+
+  /* --- Semantic roles --- */
+  --type-hero-size:var(--text-6xl);
+  --type-hero-weight:var(--weight-semibold);
+  --type-hero-leading:var(--leading-tight);
+  --type-hero-tracking:var(--tracking-display);
+
+  --type-section-size:var(--text-3xl);
+  --type-title-size:var(--text-xl);
+  --type-body-size:var(--text-base);
+  --type-body-leading:var(--leading-body);
+  --type-caption-size:var(--text-sm);
+
+  /* Mono, uppercase, letterspaced: eyebrows, meta rows, kickers */
+  --type-label-family:var(--font-mono);
+  --type-label-size:var(--text-xs);
+  --type-label-weight:var(--weight-medium);
+  --type-label-tracking:var(--tracking-label);
+  --type-label-transform:uppercase;
+
+  --measure-prose:64ch;
+  --measure-lede:44ch;
+}
