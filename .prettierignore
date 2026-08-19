@@ -1,0 +1,6 @@
+dist
+.astro
+pnpm-lock.yaml
+
+# design source of truth must stay byte-verbatim until its phase-7 deletion
+.claude
