@@ -1,0 +1,15 @@
+---
+import { StatBlock } from "@/ui";
+import { profile } from "@/content";
+import Section from "./Section.astro";
+---
+
+<Section>
+  <div class="stats-grid">
+    {
+      profile.stats.map((stat) => (
+        <StatBlock value={stat.value} label={stat.label} />
+      ))
+    }
+  </div>
+</Section>

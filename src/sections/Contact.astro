@@ -1,0 +1,66 @@
+---
+import { Icon, TextLink } from "@/ui";
+import { profile } from "@/content";
+import Section from "./Section.astro";
+import { ContactForm } from "./ContactForm";
+
+const rows = [
+  {
+    icon: "mail",
+    set: "ui",
+    label: "Email",
+    value: profile.email,
+    href: `mailto:${profile.email}`,
+  },
+  {
+    icon: "map-pin",
+    set: "ui",
+    label: "Based in",
+    value: profile.location,
+    href: null,
+  },
+  {
+    icon: "github",
+    set: "tech",
+    label: "Code",
+    value: profile.github,
+    href: `https://${profile.github}`,
+  },
+] as const;
+
+const railIcon = { color: "var(--text-muted)", marginTop: 3 };
+---
+
+<Section id="contact">
+  <div class="contact-grid">
+    <ContactForm />
+    <div class="contact-rail">
+      {
+        rows.map((row) => (
+          <div class="contact-rail__row">
+            <Icon name={row.icon} set={row.set} size={16} style={railIcon} />
+            <div class="contact-rail__body">
+              <span class="label-mono">{row.label}</span>
+              {row.href ? (
+                <TextLink href={row.href}>{row.value}</TextLink>
+              ) : (
+                <span>{row.value}</span>
+              )}
+            </div>
+          </div>
+        ))
+      }
+      <div class="contact-rail__row">
+        <Icon name="file-text" size={16} style={railIcon} />
+        <div class="contact-rail__body">
+          <span class="label-mono">Resume</span>
+          <span class="contact-rail__links">
+            <TextLink href="/resume-backend.pdf">Backend</TextLink>
+            <span class="label-mono">·</span>
+            <TextLink href="/resume-fullstack.pdf">Full stack</TextLink>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</Section>

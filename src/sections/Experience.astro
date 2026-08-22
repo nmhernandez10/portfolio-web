@@ -1,0 +1,37 @@
+---
+import { TimelineItem } from "@/ui";
+import { profile } from "@/content";
+import Section from "./Section.astro";
+---
+
+<Section id="experience">
+  <div class="experience-grid">
+    <ol class="timeline">
+      {
+        profile.timeline.map((entry) => (
+          <TimelineItem
+            company={entry.company}
+            role={entry.role}
+            period={entry.period}
+            location={entry.location}
+            bullets={entry.bullets}
+            current={entry.current}
+            last={entry.last}
+          />
+        ))
+      }
+    </ol>
+    <div class="education">
+      <span class="label-mono">Education</span>
+      {
+        profile.education.map((entry) => (
+          <div class="education__item">
+            <span>{entry.degree}</span>
+            <span class="education__school">{entry.school}</span>
+            <span class="label-mono">{entry.period}</span>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</Section>

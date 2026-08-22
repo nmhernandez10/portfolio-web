@@ -1,9 +1,36 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>nicolasmateo.dev</title>
-  </head>
-  <body> nicolasmateo.dev — under construction </body>
-</html>
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { profile } from "@/content";
+import Header from "@/sections/Header.astro";
+import Hero from "@/sections/Hero.astro";
+import Stats from "@/sections/Stats.astro";
+import Work from "@/sections/Work.astro";
+import Experience from "@/sections/Experience.astro";
+import SkillSection from "@/sections/SkillSection.astro";
+import AICard from "@/sections/AICard.astro";
+import Contact from "@/sections/Contact.astro";
+import Footer from "@/sections/Footer.astro";
+
+const title = `${profile.fullName} — ${profile.role}`;
+const description =
+  "I lead technical design and delivery for a regulated mental-health platform — schema to shipped UI, owned end to end. Based in Bogotá, Colombia.";
+---
+
+<BaseLayout title={title} description={description}>
+  <Header />
+  <main id="main">
+    <Hero />
+    <Stats />
+    <Work />
+    <Experience />
+    <SkillSection id="backend" columns={2} groups={profile.skills.backend} />
+    <SkillSection
+      id="full-stack"
+      columns={3}
+      groups={profile.skills.fullStack}
+    />
+    <AICard />
+    <Contact />
+  </main>
+  <Footer />
+</BaseLayout>

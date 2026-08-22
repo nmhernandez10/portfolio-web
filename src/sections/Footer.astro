@@ -1,0 +1,17 @@
+---
+import { TextLink } from "@/ui";
+import { profile } from "@/content";
+import Wordmark from "./Wordmark.astro";
+---
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <Wordmark size={20} alt="" />
+    <div class="site-footer__links">
+      <TextLink href={`https://${profile.github}`} external>GitHub</TextLink>
+      <TextLink href={`https://${profile.linkedin}`} external>LinkedIn</TextLink
+      >
+      <span class="label-mono">Built in Bogotá</span>
+    </div>
+  </div>
+</footer>

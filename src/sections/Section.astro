@@ -1,0 +1,26 @@
+---
+import { SectionHeader } from "@/ui";
+import { sectionMeta } from "@/content";
+import type { SectionId } from "@/content";
+
+interface Props {
+  /** Omit for a section that carries no eyebrow, heading or anchor. */
+  id?: SectionId;
+}
+
+const { id } = Astro.props;
+const meta = id ? sectionMeta(id) : undefined;
+---
+
+<section id={id} class="section">
+  {
+    meta?.title && (
+      <SectionHeader
+        eyebrow={meta.eyebrow}
+        title={meta.title}
+        lede={meta.lede}
+      />
+    )
+  }
+  <div class="section-body"><slot /></div>
+</section>

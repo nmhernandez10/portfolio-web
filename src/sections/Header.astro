@@ -1,0 +1,31 @@
+---
+import { Button, ThemeToggle } from "@/ui";
+import { NAV } from "@/content";
+import Wordmark from "./Wordmark.astro";
+---
+
+<header class="site-header">
+  <div class="site-header__inner">
+    <Wordmark />
+    <nav class="site-nav" aria-label="Sections">
+      {
+        NAV.map((entry) => (
+          <a class="site-nav__link" href={`#${entry.id}`}>
+            {entry.nav}
+          </a>
+        ))
+      }
+    </nav>
+    <div class="site-header__actions">
+      <ThemeToggle />
+      <Button
+        as="a"
+        href="/resume-fullstack.pdf"
+        size="sm"
+        variant="secondary"
+        icon="download"
+        iconPosition="left">Resume</Button
+      >
+    </div>
+  </div>
+</header>

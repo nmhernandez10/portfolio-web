@@ -1,0 +1,46 @@
+---
+import { Picture } from "astro:assets";
+import { Button, Tag } from "@/ui";
+import { profile } from "@/content";
+import portrait from "@/assets/portrait.jpg";
+---
+
+<div class="hero">
+  <div class="hero__grid">
+    <div class="hero__copy">
+      <div class="hero__status">
+        <Tag tone="success" dot>Open to work</Tag>
+      </div>
+      <h1>{profile.hero[0]}<br />{profile.hero[1]}</h1>
+      <p class="hero__lede">{profile.lede}</p>
+      <div class="hero__actions">
+        <Button as="a" href="#work" icon="arrow-down">See selected work</Button>
+        <Button
+          as="a"
+          href="#contact"
+          variant="secondary"
+          icon="mail"
+          iconPosition="left">Get in touch</Button
+        >
+      </div>
+      <div class="hero__meta">
+        <span class="label-mono">{profile.location}</span>
+        <span class="label-mono">{profile.role}</span>
+      </div>
+    </div>
+    <div class="hero__media">
+      <Picture
+        src={portrait}
+        alt={profile.fullName}
+        widths={[480, 720, 956]}
+        sizes="(min-width: 1120px) 407px, 40vw"
+        formats={["avif", "webp"]}
+        fallbackFormat="jpg"
+        loading="eager"
+        fetchpriority="high"
+        class="hero__portrait"
+      />
+      <span class="hero__tab">Bogotá · Remote</span>
+    </div>
+  </div>
+</div>

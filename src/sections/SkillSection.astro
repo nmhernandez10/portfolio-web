@@ -1,0 +1,29 @@
+---
+import { SkillGroup } from "@/ui";
+import type { SectionId, SkillGroupContent } from "@/content";
+import Section from "./Section.astro";
+
+interface Props {
+  id: SectionId;
+  /** Chosen so each section fills its rows evenly: 4 groups in 2, 3 groups in 3. */
+  columns: 2 | 3;
+  groups: SkillGroupContent[];
+}
+
+const { id, columns, groups } = Astro.props;
+---
+
+<Section id={id}>
+  <div class:list={["skills-grid", `skills-grid--${columns}`]}>
+    {
+      groups.map((group) => (
+        <SkillGroup
+          title={group.title}
+          icon={group.icon}
+          iconSet={group.iconSet}
+          items={group.items}
+        />
+      ))
+    }
+  </div>
+</Section>

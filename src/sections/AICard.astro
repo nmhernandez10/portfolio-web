@@ -1,0 +1,37 @@
+---
+import { Card, Icon } from "@/ui";
+import { profile, sectionMeta } from "@/content";
+import Section from "./Section.astro";
+
+const { eyebrow } = sectionMeta("ai");
+---
+
+<Section id="ai">
+  <Card tone="accent" padding="lg">
+    <div class="ai-card__grid">
+      <div class="ai-card__head">
+        <span class="label-mono ai-card__eyebrow">
+          <Icon name="sparkles" size={14} />
+          {eyebrow}
+        </span>
+        <h2 class="ai-card__title">
+          Building the workflows my team uses to work with agents
+        </h2>
+      </div>
+      <ul class="ai-card__list">
+        {
+          profile.aiBullets.map((bullet) => (
+            <li class="ai-card__item">
+              <Icon
+                name="check"
+                size={16}
+                style={{ color: "var(--gold-700)", marginTop: 5 }}
+              />
+              <span>{bullet}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </Card>
+</Section>
