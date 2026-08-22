@@ -12,6 +12,8 @@ Astro 7 (latest, decided 2026-08-19, superseding the original "Astro 5" note), `
 
 Note: pnpm's `minimumReleaseAge` supply-chain policy (24h) is active on this machine. If an install rejects fresh releases, resolve with `pnpm clean --lockfile && pnpm install` (age-aware resolution) — do not disable the policy.
 
+That rebuild can add `minimumReleaseAgeExclude` entries to `pnpm-workspace.yaml`: when a package.json range only matches a release younger than the cutoff, pnpm grandfathers that exact version rather than downgrading it. Those entries are pnpm's own doing, not a policy override, and they stop being needed once the release ages past 24h — drop them on the next lockfile touch instead of letting them accumulate.
+
 ## Project map
 
 Target layout (later phases fill this in; see `todo/README.md` for the annotated version):

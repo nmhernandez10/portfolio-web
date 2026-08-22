@@ -8,7 +8,7 @@ This directory is the implementation plan for the portfolio. Each phase is one m
 | ----- | ------------------------------------------------------- | --- | ----------- | ----------- |
 | 0     | [Foundations](phase-0-foundations.md)                   | —   | In progress | —           |
 | 1     | [Deploy skeleton](phase-1-deploy-skeleton.md)           | —   | In progress | —           |
-| 2     | [UI kit](phase-2-ui-kit.md)                             | —   | Not started | —           |
+| 2     | [UI kit](phase-2-ui-kit.md)                             | —   | Implemented | —           |
 | 3     | [Content and page](phase-3-content-and-page.md)         | —   | Not started | —           |
 | 4     | [Interactivity](phase-4-interactivity.md)               | —   | Not started | —           |
 | 5     | [Contact endpoint](phase-5-contact-endpoint.md)         | —   | Not started | —           |

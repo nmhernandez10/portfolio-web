@@ -20,10 +20,10 @@ The design system lives in-app — tokens in `src/styles/tokens/`, 20 components
 
 ## Tasks
 
-1. **Tokens**: copy the 7 files to `src/styles/tokens/`. Rewrite `fonts.css` to a comment-only pointer ("fonts are self-hosted via @fontsource imports in BaseLayout.astro") — the Google Fonts `@import` must not survive. Create `src/styles/global.css` importing the tokens in the skill's `styles.css` order (fonts, colors, typography, spacing, shape, motion, base).
-2. **Fonts**: `pnpm add @fontsource-variable/space-grotesk @fontsource-variable/jetbrains-mono`. Create a minimal `src/layouts/BaseLayout.astro` (head, `global.css`, the two font imports, `<slot/>`). Confirm the font-family names emitted by fontsource match the token stacks (`"Space Grotesk"`, `"JetBrains Mono"`); if fontsource registers `"Space Grotesk Variable"`, update the two `--font-*` token values accordingly and note it in the commit.
-3. **Icons**: copy `icons/ui/` (30 files) and `icons/tech/` (14 files) to `public/icons/ui/` and `public/icons/tech/`.
-4. **Components** — port in dependency order to `src/ui/<group>/<Name>.tsx`:
+1. [x] **Tokens**: copy the 7 files to `src/styles/tokens/`. Rewrite `fonts.css` to a comment-only pointer ("fonts are self-hosted via @fontsource imports in BaseLayout.astro") — the Google Fonts `@import` must not survive. Create `src/styles/global.css` importing the tokens in the skill's `styles.css` order (fonts, colors, typography, spacing, shape, motion, base).
+2. [x] **Fonts**: `pnpm add @fontsource-variable/space-grotesk @fontsource-variable/jetbrains-mono`. Create a minimal `src/layouts/BaseLayout.astro` (head, `global.css`, the two font imports, `<slot/>`). Confirm the font-family names emitted by fontsource match the token stacks (`"Space Grotesk"`, `"JetBrains Mono"`); if fontsource registers `"Space Grotesk Variable"`, update the `--font-*` token values accordingly and note it in the commit. **Done:** fontsource registers both families with the `Variable` suffix, so all three `--font-*` declarations (two families) in `typography.css` were renamed.
+3. [x] **Icons**: copy `icons/ui/` (30 files) and `icons/tech/` (14 files) to `public/icons/ui/` and `public/icons/tech/`.
+4. [x] **Components** — port in dependency order to `src/ui/<group>/<Name>.tsx`:
    1. `core/Icon` first — change its default `base` from `"assets/icons"` to `"/icons"`; after this, callers never pass `iconBase`.
    2. Rest of `core/`: Button, IconButton, Tag, Card, Avatar, StatBlock.
    3. `forms/`: Input, Textarea, Select, Switch.
@@ -32,17 +32,17 @@ The design system lives in-app — tokens in `src/styles/tokens/`, 20 components
 
    Conversion checklist per component: fold the `.d.ts` into an exported `Props` interface; `JSX.Element` → `React.JSX.Element`/`ReactNode`; drop `import React` if only JSX is used; keep inline style objects referencing CSS variables exactly as authored (no CSS modules, no Tailwind); keep default prop values identical.
 
-5. **Barrel**: `src/ui/index.ts` re-exporting all 20.
-6. **`/kit` page**: `src/pages/kit.astro` using BaseLayout — every component, grouped by folder, showing every variant/size/tone/state enumerated in its `Props` unions (Button variants × sizes, Tag tones ± dot, Card tones, form fields in default/hint/error/disabled, TimelineItem current/past/last, etc.), plus a working `<ThemeToggle client:load>` at the top. This page is also the project's first hydration test.
+5. [x] **Barrel**: `src/ui/index.ts` re-exporting all 20.
+6. [x] **`/kit` page**: `src/pages/kit.astro` using BaseLayout — every component, grouped by folder, showing every variant/size/tone/state enumerated in its `Props` unions (Button variants × sizes, Tag tones ± dot, Card tones, form fields in default/hint/error/disabled, TimelineItem current/past/last, etc.), plus a working `<ThemeToggle client:load>` at the top. This page is also the project's first hydration test.
 
 ## Verification
 
-- `pnpm check` and `pnpm build` clean.
-- `diff -r src/styles/tokens .claude/skills/nicolas-mateo-design/design-system/tokens` → only `fonts.css` differs.
-- `ls public/icons/ui | wc -l` = 30; `ls public/icons/tech | wc -l` = 14.
-- `grep -r "fonts.googleapis" dist/` → empty. Network tab on `/kit` shows woff2 served from the site origin only.
-- Browser pass on `/kit`: all 20 components render; icons paint via mask (visible in both themes — flip the ThemeToggle live); focus rings match the DS (`0 0 0 2px #C9963A, 0 0 0 3px #F6E3AE`); compare against each component's `.prompt.md` rules.
-- Push `dev` → check `/kit` on the preview URL.
+- [x] `pnpm check` and `pnpm build` clean.
+- [x] `diff -r src/styles/tokens .claude/skills/nicolas-mateo-design/design-system/tokens` → only `fonts.css` differs, plus the three sanctioned `--font-*` family renames in `typography.css` (task 2). `src/styles/tokens/` is Prettier-ignored so the copy stays byte-verbatim.
+- [x] `ls public/icons/ui | wc -l` = 30; `ls public/icons/tech | wc -l` = 14.
+- [x] `grep -r "fonts.googleapis" dist/` → empty; 8 woff2 files emitted into `dist/` and the built `@font-face` rules name only the two self-hosted families.
+- [ ] Browser pass on `/kit`: all 20 components render; icons paint via mask (visible in both themes — flip the ThemeToggle live); focus rings match the DS (`0 0 0 2px #C9963A, 0 0 0 3px #F6E3AE`); compare against each component's `.prompt.md` rules. **Not done — no browser available in the implementation session.** Verified instead from the served HTML: all 20 sections render, every icon URL resolves under `/icons`, the ThemeToggle island carries `client="load"`, no `#E3B23C` is used as a text colour, no Button carries a shadow, and no hard-coded hex survives in component inline styles. The visual/both-themes pass still needs a human.
+- [ ] Push `dev` → check `/kit` on the preview URL. **Not done — this session does not commit or push.**
 
 ## Gotchas
 

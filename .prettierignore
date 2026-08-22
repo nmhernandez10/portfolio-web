@@ -7,3 +7,7 @@ worker-configuration.d.ts
 
 # design source of truth must stay byte-verbatim until its phase-7 deletion
 .claude
+
+# tokens are copied verbatim from the design system; formatting them would break
+# the phase-2 `diff -r src/styles/tokens` parity check
+src/styles/tokens

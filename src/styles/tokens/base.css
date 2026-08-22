@@ -1,0 +1,28 @@
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--surface-canvas);color:var(--text-body);font-family:var(--font-body);font-size:var(--type-body-size);line-height:var(--type-body-leading);letter-spacing:var(--tracking-body);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+h1,h2,h3,h4{margin:0;font-family:var(--font-display);color:var(--text-display);font-weight:var(--weight-semibold);letter-spacing:var(--tracking-heading);line-height:var(--leading-snug);text-wrap:balance}
+h1{font-size:var(--type-hero-size);line-height:var(--type-hero-leading);letter-spacing:var(--type-hero-tracking)}
+h2{font-size:var(--type-section-size);line-height:var(--leading-display)}
+h3{font-size:var(--type-title-size)}
+h4{font-size:var(--text-lg)}
+p{margin:0;text-wrap:pretty}
+a{color:var(--text-link);text-decoration:none;border-bottom:1px solid var(--accent-line);transition:color var(--duration-fast) var(--ease-out),border-color var(--duration-fast) var(--ease-out)}
+a:hover{color:var(--text-link-hover);border-bottom-color:var(--accent-press)}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:none;box-shadow:var(--ring-focus-strong),var(--ring-focus);border-radius:var(--radius-xs)}
+code,kbd,samp,pre{font-family:var(--font-mono);font-size:.92em}
+::selection{background:var(--gold-200);color:var(--ink-0)}
+hr{border:none;border-top:var(--border-hairline);margin:var(--space-12) 0}
+img{max-width:100%;display:block}
+button{font:inherit}
+small{font-size:var(--text-sm)}
+::placeholder{color:var(--text-muted)}
+
+/* Mono uppercase label — the brand's most repeated typographic device */
+.label-mono{font-family:var(--type-label-family);font-size:var(--type-label-size);font-weight:var(--type-label-weight);letter-spacing:var(--type-label-tracking);text-transform:var(--type-label-transform);color:var(--text-muted)}
+
+/* Scroll reveal: opt-in twice over. The hidden state only applies once the host
+   marks the root .reveal-ready, so content is never hidden by CSS alone. */
+.reveal-ready .reveal{opacity:0;transform:translateY(var(--reveal-offset));transition:var(--transition-reveal)}
+.reveal.is-in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}.reveal-ready .reveal{opacity:1;transform:none}}
