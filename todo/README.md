@@ -9,7 +9,7 @@ This directory is the implementation plan for the portfolio. Each phase is one m
 | 0     | [Foundations](phase-0-foundations.md)                   | —   | In progress | —           |
 | 1     | [Deploy skeleton](phase-1-deploy-skeleton.md)           | —   | In progress | —           |
 | 2     | [UI kit](phase-2-ui-kit.md)                             | —   | Implemented | —           |
-| 3     | [Content and page](phase-3-content-and-page.md)         | —   | Not started | —           |
+| 3     | [Content and page](phase-3-content-and-page.md)         | —   | Implemented | —           |
 | 4     | [Interactivity](phase-4-interactivity.md)               | —   | Not started | —           |
 | 5     | [Contact endpoint](phase-5-contact-endpoint.md)         | —   | Not started | —           |
 | 6     | [Responsive and quality](phase-6-responsive-quality.md) | —   | Not started | —           |
@@ -39,17 +39,18 @@ Phases add their own items on top of this.
 
 ## Stack and architecture (locked — do not revisit)
 
-- **Astro 7 (latest; supersedes the original "Astro 5" — decided with the user 2026-08-19) + React 19 islands, TypeScript strict, pnpm.** Keep every dependency on its latest compatible release; where phase docs assumed Astro 5 semantics, current official docs win. Static-first: React components without a `client:` directive render to HTML and ship zero JS. Exactly three islands hydrate: `ThemeToggle` (`client:load`), `LensToggle` (`client:load`), `ContactForm` (`client:visible`).
+- **Astro 7 (latest; supersedes the original "Astro 5" — decided with the user 2026-08-19) + React 19 islands, TypeScript strict, pnpm.** Keep every dependency on its latest compatible release; where phase docs assumed Astro 5 semantics, current official docs win. Static-first: sections are `.astro` and ship zero JS. Exactly two islands hydrate: `ThemeToggle` (`client:load`, phase 4) and `ContactForm` (`client:visible`, phase 5).
 - **Cloudflare Workers + static assets** via `@astrojs/cloudflare`. Deploys by **Workers Builds** (git-connected): `main` → production, every other branch/PR → preview URL. GitHub Actions is the quality gate only (it never deploys). Custom domain `nicolasmateo.dev` attaches in phase 7.
 - **UI kit is an in-app module**: `src/styles/tokens/` + `src/ui/`, ported from the design skill and fully independent of it. The skill is deleted in phase 7 after a parity check.
 - **Layout**:
   ```
   src/
     styles/tokens/*.css      7 token files (fonts.css rewritten to a pointer comment)
-    styles/global.css        imports tokens in skill order + site utilities (lens visibility, responsive)
+    styles/sections.css      page layout, one class block per page section
+    styles/global.css        imports tokens in skill order, then sections + site utilities
     ui/{core,forms,navigation,content}/*.tsx   20 components; index.ts barrel
-    content/{types.ts,profile.ts}              typed port of prototype/data.js
-    sections/*.tsx           one component per page section + the three islands
+    content/{types,profile,sections}.ts        data + page manifest; index.ts barrel
+    sections/*.astro         one component per page section (+ ContactForm.tsx island)
     layouts/BaseLayout.astro head, fonts, theme script, reveal script
     pages/index.astro  kit.astro  404.astro  api/contact.ts
     scripts/reveal.ts        vanilla IntersectionObserver module
@@ -60,8 +61,8 @@ Phases add their own items on top of this.
     favicon.svg  robots.txt  og.png
   docs/brand.md              phase 7: brand laws migrated from the skill
   ```
-- **.astro/.tsx split**: `.astro` only for pages, the layout, and the header/footer shells (an island cannot hydrate inside a non-hydrated React tree). Everything visual is React `.tsx` rendered statically.
-- **Lens toggle** (`be`/`fs`): dual render, not a store. Both variants of every swap point are in the static HTML; `data-lens="be"` on `<html>` + CSS (`[data-lens="be"] [data-lens-panel="fs"] { display: none }`) picks one. The island only sets `document.documentElement.dataset.lens`. No persistence — `be` is the canonical first story.
+- **.astro/.tsx split**: `src/sections/` is `.astro`; a section is `.tsx` only if it is, or becomes, a hydrated island (an island cannot hydrate inside a non-hydrated React tree, and `astro:assets` is unavailable to React). React is reserved for the kit and for islands.
+- **Lens toggle — removed 2026-08-22.** The design skill still specifies a Backend ↔ Full stack switch that dual-rendered every swap point behind `data-lens` on `<html>`. It was replaced, with the user, by one page that says everything at once: `03 / BACKEND` and `04 / FULL STACK` are their own sections, the two résumés' copy is merged rather than switched, and the positioning label is **Senior Software Engineer**. Nothing in the build reads `data-lens`; phase 4 is two behaviors, not three.
 - **Theme**: inline `is:inline` head script before paint (localStorage → `prefers-color-scheme` → light) sets `data-theme` on `<html>`; the ThemeToggle island syncs from the attribute and writes attribute + localStorage.
 - **Reveal**: vanilla `src/scripts/reveal.ts` binding the `.reveal` / `.reveal-ready` / `.is-in` contract that already exists in `tokens/base.css`. Observer `rootMargin: "-40px"`, 900ms reveal-everything fallback, reduced-motion bail.
 - **Fonts**: `@fontsource-variable/space-grotesk` + `@fontsource-variable/jetbrains-mono`, self-hosted via the bundler. The Google Fonts `@import` must never reach production.
@@ -84,7 +85,7 @@ Until the skill is deleted (phase 7), all visual/behavioral numbers come from:
 3. **Islands can't nest in static React trees** — anything hydrated must be slotted from a `.astro` file, hence the `.astro` header/footer shells.
 4. **Google Fonts must not ship**: verify `grep -r "fonts.googleapis" dist/` is empty in every phase that builds.
 5. **Gold contrast law**: gold _text_ is always `--gold-700` `#A6762A`; `#E3B23C` is fill-only. Stated twice in the spec; non-negotiable.
-6. **Content never depends on JS**: default lens `be` and all nine sections must exist in static HTML; `reveal-ready` is added only after the observer exists; the 900ms fallback is mandatory.
+6. **Content never depends on JS**: all ten sections must exist in static HTML; `reveal-ready` is added only after the observer exists; the 900ms fallback is mandatory.
 7. **Icon needs public URLs**: the Icon component paints SVGs via CSS `mask`; bundler-hashed `src/assets` paths break it. Icons live in `public/icons/`.
 8. **Resume filenames**: the source PDFs have spaces and `í`. Only the URL-safe copies in `public/` are served; the originals are removed once migrated.
 9. **Copy is law**: BRAND-GUIDE voice rules (first person, numbers not adjectives, sentence case, no emoji, no exclamation marks, em dash with spaces, `·` separators, accents in _Bogotá_/_Nicolás_) apply to every string, including form errors and the 404 page.

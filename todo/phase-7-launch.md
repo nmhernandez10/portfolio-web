@@ -10,7 +10,7 @@ SEO/meta complete, performance audited against budgets, hardening done, `nicolas
 
 - Canonical `https://nicolasmateo.dev/`; full OG + Twitter card set (title, description in brand voice, `og:image`).
 - `@astrojs/sitemap` active (installed in phase 0), **excluding `/kit`**; `public/robots.txt` allowing all + sitemap URL.
-- Person JSON-LD: `name` (Nicolás Mateo Hernández Rojas), `alternateName` (Nicolás Mateo), `url`, `jobTitle` from the `be` lens role, `sameAs` (GitHub, LinkedIn from the content module), `address` Bogotá, Colombia.
+- Person JSON-LD: `name` (Nicolás Mateo Hernández Rojas), `alternateName` (Nicolás Mateo), `url`, `jobTitle` from `profile.role`, `sameAs` (GitHub, LinkedIn from the content module), `address` Bogotá, Colombia.
 - `<meta name="robots" content="noindex">` on `/kit`.
 - Meta descriptions finalized per BRAND-GUIDE voice (numbers, not adjectives).
 
@@ -49,7 +49,7 @@ Parity checklist; every box must pass before deleting anything:
 - [ ] `public/icons`: 30 ui + 14 tech.
 - [ ] Every string in `prototype/data.js` exists in `src/content/profile.ts` (scripted spot-check: grep a sample of distinctive strings from each top-level key).
 - [ ] Portrait and both resumes migrated and served.
-- [ ] **`docs/brand.md` written**: condensed from BRAND-GUIDE.md + the skill README — voice rules, visual laws, anti-patterns, iconography rules, the token digest, and the interaction contracts (lens/theme/reveal). This is the post-skill design reference.
+- [ ] **`docs/brand.md` written**: condensed from BRAND-GUIDE.md + the skill README — voice rules, visual laws, anti-patterns, iconography rules, the token digest, and the interaction contracts (theme/reveal — the lens toggle was removed in phase 3). This is the post-skill design reference.
 - [ ] `CLAUDE.md` design pointers updated to `docs/brand.md` (skill paths removed).
 
 Then: `git rm -r .claude/skills/nicolas-mateo-design` (and `assets/` if any originals remain — phase 3 should have removed them). `todo/` is **kept** as the historical record; mark all statuses Done.
@@ -58,7 +58,7 @@ Then: `git rm -r .claude/skills/nicolas-mateo-design` (and `assets/` if any orig
 
 - `HUMAN:` rotate `RESEND_API_KEY` to the production key (`wrangler secret put`); update `.dev.vars` locally.
 - `HUMAN:` attach the `nicolasmateo.dev` custom domain to the Worker in the dashboard; confirm DNS + TLS. (Requires the domain zoned in the Cloudflare account.)
-- Final production smoke on `https://nicolasmateo.dev`: both themes, both lenses, reveal, resume downloads, one real contact send received, `/404`, sitemap + robots fetchable, OG card renders in a link-preview validator.
+- Final production smoke on `https://nicolasmateo.dev`: both themes, reveal, both resume downloads, one real contact send received, `/404`, sitemap + robots fetchable, OG card renders in a link-preview validator.
 
 ## Verification
 

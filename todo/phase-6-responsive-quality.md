@@ -8,9 +8,9 @@ Close the prototype's one known gap — it is designed at 1280px and not respons
 
 - Responsive rules live as media queries in `global.css` targeting section-level class hooks. **Component files are not forked** — the kit components use inline styles and stay as-is; layout is the sections' concern. Where a section's inline grid style can't be overridden cleanly, move that one declaration to a class in `global.css` (preferred over `!important`).
 - Breakpoints per the spec:
-  - **< 960px**: every `7fr/5fr`, `7fr/4fr`, 3-col and 2-col grid collapses to one column; portrait first, full width, still 4:5. Stats: 2×2 (judgment call — recorded here) until 720, then single column.
-  - **< 720px**: hero heading 76 → 49px, section headings 39 → 31px, gutters 40 → 20px, header nav behind a menu button (`/icons/ui/menu.svg`).
-- **Mobile nav: a styled `<details>/<summary>` panel — zero JS**, honoring the site's ethos and working without hydration. `summary` shows the menu glyph (swap to `x` via `details[open]` CSS); the open panel lists the four anchor links; a small inline enhancement may close it on link tap, but it must be fully usable without it. Not a fourth React island.
+  - **< 960px**: every `7fr/5fr`, `7fr/4fr`, `.skills-grid--3`, `.skills-grid--2` and `.work-grid` collapses to one column; portrait first, full width, still 4:5. Stats: 2×2 (judgment call — recorded here) until 720, then single column.
+  - **< 720px**: hero heading 76 → 49px (override `--type-hero-size`; the hero `<h1>` takes its size from `tokens/base.css`, not a section class), section headings 39 → 31px, gutters 40 → 20px, header nav behind a menu button (`/icons/ui/menu.svg`).
+- **Mobile nav: a styled `<details>/<summary>` panel — zero JS**, honoring the site's ethos and working without hydration. `summary` shows the menu glyph (swap to `x` via `details[open]` CSS); the open panel lists the five anchor links; a small inline enhancement may close it on link tap, but it must be fully usable without it. Not a third React island.
 - **Test harness**: Playwright + `@axe-core/playwright`. Two specs: `e2e/smoke.spec.ts`, `e2e/a11y.spec.ts`. Runs in CI after build against `astro preview`. Contact-endpoint tests only exercise validation-error and honeypot paths — **CI must never send real email**.
 
 ## Tasks
@@ -19,14 +19,14 @@ Close the prototype's one known gap — it is designed at 1280px and not respons
 2. **Mobile nav** as decided; keep the ThemeToggle visible outside the collapsed menu.
 3. **Accessibility pass** (checklist — fix everything found):
    - Landmarks: `header` / `nav` / `main` / `footer`; skip link (from phase 3) actually focuses `main`.
-   - Exactly one `<h1>` in the accessibility tree (the hidden lens variant is `display:none` — confirm), logical heading order below it.
-   - Toggles: SegmentedToggle and ThemeToggle expose accessible names, roles, and state (follow the kit markup — `aria-pressed` or radiogroup semantics as authored); LensToggle announces its effect ("Show backend / full-stack focus").
+   - Exactly one `<h1>` in the accessibility tree, logical heading order below it.
+   - ThemeToggle exposes an accessible name, role and state (follow the kit markup as authored).
    - Form: every field labelled; errors tied via `aria-describedby`; honeypot `aria-hidden` and out of tab order.
    - Focus: visible DS ring on every interactive element, keyboard traversal of the whole page in order, `<details>` nav doesn't trap focus.
    - Contrast spot-checks: gold text is gold-700 (law); mono meta `#8B887C` on paper at its sizes; both themes.
    - Reduced-motion honored (phase 4 behavior re-verified).
 4. **Playwright**: `pnpm create playwright` (Chromium is enough) →
-   - `smoke.spec.ts`: page renders with all four anchor sections; lens toggle swaps hero h1 text and work title; theme toggle flips `data-theme` and persists across reload; resume links return 200; `POST /api/contact` with missing email → 400, with honeypot → ok:true (no send assertion is implicit — sandbox key anyway).
+   - `smoke.spec.ts`: page renders with all five anchor sections; theme toggle flips `data-theme` and persists across reload; both resume links return 200; `POST /api/contact` with missing email → 400, with honeypot → ok:true (no send assertion is implicit — sandbox key anyway).
    - `a11y.spec.ts`: axe scans of `/` in light **and** dark, and `/kit`; zero violations.
    - `pnpm test:e2e` script; CI job: build → run preview server → test (use Playwright's `webServer` config), with browser caching in the workflow.
 5. Amend `CLAUDE.md`: `pnpm test:e2e`, the no-real-email rule for tests, responsive class-hook convention.
