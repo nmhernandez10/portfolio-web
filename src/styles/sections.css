@@ -1,0 +1,314 @@
+/* Page layout, in page order. The UI kit styles itself inline and is never
+   forked; everything here is the sections' own structure, hooked by class so
+   phase 6 can add media queries without !important. Class hooks always sit on a
+   section-owned element — Astro strips `class` from framework components. */
+
+/* --- Section primitive ------------------------------------------------ */
+
+.section {
+  max-width: var(--container-max);
+  margin: var(--section-gap) auto 0;
+  padding: 0 var(--gutter-lg);
+}
+
+/* Offsets the body from its SectionHeader; self-cancels when there is none. */
+.section-body {
+  margin-top: var(--space-10);
+}
+.section-body:first-child {
+  margin-top: 0;
+}
+
+/* --- Wordmark (header + footer) --------------------------------------- */
+
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.wordmark__name {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.02em;
+  color: var(--text-display);
+}
+.wordmark--lg .wordmark__name {
+  font-size: var(--text-lg);
+}
+.wordmark__dot {
+  color: var(--accent-press);
+}
+
+/* --- 1. Sticky header -------------------------------------------------- */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in oklab, var(--surface-canvas) 86%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.site-header__inner {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 14px var(--gutter-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+}
+.site-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.site-nav {
+  display: flex;
+  gap: var(--space-6);
+}
+.site-nav__link {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid transparent;
+  padding-bottom: 2px;
+}
+
+/* --- 2. Hero ----------------------------------------------------------- */
+
+.hero {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: var(--space-20) var(--gutter-lg) 0;
+}
+.hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: var(--space-16);
+  align-items: center;
+}
+.hero__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+/* Wrapper keeps the inline-flex Tag from stretching in the flex column. */
+.hero__status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.hero__lede {
+  margin: 0;
+  max-width: 48ch;
+  font-size: var(--text-lg);
+  color: var(--text-secondary);
+}
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+.hero__meta {
+  display: flex;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+  margin-top: var(--space-4);
+}
+.hero__media {
+  position: relative;
+}
+.hero__media picture {
+  display: block;
+}
+.hero__portrait {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: 50% 20%;
+  border-radius: var(--radius-media);
+  border: 1px solid var(--border-subtle);
+}
+/* The one sanctioned 8px corner outside inputs — see AGENTS.md design laws. */
+.hero__tab {
+  position: absolute;
+  left: -1px;
+  bottom: -1px;
+  padding: 8px 12px;
+  background: var(--surface-canvas);
+  border-top: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
+  border-top-right-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* --- 3. Stats ---------------------------------------------------------- */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-8);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-8);
+}
+
+/* --- 4. Selected work -------------------------------------------------- */
+
+.work-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-6);
+}
+
+/* --- 5. Experience ----------------------------------------------------- */
+
+.experience-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+  gap: var(--space-16);
+}
+.timeline {
+  margin: 0;
+  padding: 0;
+}
+.education {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+.education__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-4);
+}
+.education__school {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+/* --- 6/7. Backend and full stack --------------------------------------- */
+
+.skills-grid {
+  display: grid;
+  gap: var(--space-10) var(--space-8);
+}
+.skills-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.skills-grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* --- 8. AI engineering -------------------------------------------------- */
+
+.ai-card__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: var(--space-12);
+}
+.ai-card__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.ai-card__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--gold-700);
+}
+.ai-card__title {
+  margin: 0;
+  font-size: var(--text-2xl);
+}
+.ai-card__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.ai-card__item {
+  display: flex;
+  gap: var(--space-3);
+  color: var(--text-secondary);
+}
+
+/* --- 9. Contact --------------------------------------------------------- */
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: var(--space-16);
+}
+.contact-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+}
+.contact-form__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.contact-form__note {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.contact-rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+.contact-rail__row {
+  display: flex;
+  gap: var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-4);
+}
+.contact-rail__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.contact-rail__links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* --- 10. Footer ---------------------------------------------------------- */
+
+.site-footer {
+  border-top: 1px solid var(--border-subtle);
+  margin-top: var(--section-gap);
+}
+.site-footer__inner {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: var(--space-10) var(--gutter-lg) var(--space-16);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  justify-content: space-between;
+  align-items: center;
+}
+.site-footer__links {
+  display: flex;
+  gap: var(--space-6);
+  align-items: center;
+}

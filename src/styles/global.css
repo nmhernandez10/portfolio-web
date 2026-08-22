@@ -1,5 +1,6 @@
 /* Design system entry point. Import order is the design system's styles.css:
-   base.css comes last because it consumes tokens from every other file. */
+   base.css comes last because it consumes tokens from every other file.
+   sections.css follows it — page layout builds on the element resets. */
 @import url("./tokens/fonts.css");
 @import url("./tokens/colors.css");
 @import url("./tokens/typography.css");
@@ -7,3 +8,39 @@
 @import url("./tokens/shape.css");
 @import url("./tokens/motion.css");
 @import url("./tokens/base.css");
+@import url("./sections.css");
+
+/* Skip link: parked off-canvas until it takes focus, above the sticky header. */
+.skip-link {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--gutter-lg);
+  z-index: 30;
+  transform: translateY(-200%);
+  padding: 10px 16px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-body);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+.skip-link:focus {
+  transform: none;
+}
+
+/* Submitted but never seen or focused — the contact form's honeypot. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
