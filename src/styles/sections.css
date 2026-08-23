@@ -77,6 +77,12 @@
   border-bottom: 1px solid transparent;
   padding-bottom: 2px;
 }
+/* 0,2,0 is what it takes to beat the global `a:hover` hairline in base.css. */
+.site-nav__link:hover,
+.site-nav__link:focus-visible {
+  color: var(--text-body);
+  border-bottom: 1.5px solid var(--accent-line);
+}
 
 /* --- 2. Hero ----------------------------------------------------------- */
 
