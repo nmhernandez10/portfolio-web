@@ -271,9 +271,18 @@
   align-items: center;
   gap: var(--space-4);
 }
+.contact-form__status {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
 .contact-form__note {
   font-size: var(--text-sm);
   color: var(--text-muted);
+}
+.contact-form__error {
+  font-size: var(--text-sm);
+  color: var(--status-danger);
 }
 .contact-rail {
   display: flex;

@@ -26,7 +26,7 @@ src/
   styles/sections.css      page layout, one class block per page section
   styles/global.css        imports tokens in skill order, then sections + site utilities
   ui/{core,forms,navigation,content}/*.tsx   20 components; index.ts barrel
-  content/{types,profile,sections}.ts        data + page manifest; index.ts barrel
+  content/{types,profile,sections,contact}.ts  data, page manifest, form contract; index.ts barrel
   sections/*.astro         one component per page section (+ the .tsx islands)
   layouts/BaseLayout.astro head, fonts, theme script, reveal script
   pages/index.astro  kit.astro  404.astro  api/contact.ts
@@ -42,7 +42,7 @@ docs/brand.md              phase 7: brand laws migrated from the skill
 ### Layering rules
 
 - Dependencies run one way: `pages → layouts → sections → {ui, content} → styles`. `src/ui/` never imports `src/content/`; `src/content/` holds data only — no React, no styling, no imports from `src/ui/`.
-- `src/sections/` is `.astro`. A section file is `.tsx` only if it is, or becomes, a hydrated island — today that is `SiteThemeToggle.tsx` (phase 4, `client:load`) and `ContactForm.tsx` (phase 5 gives it `client:visible`). This keeps every section free to host an island without restructuring, and makes shipping JS by accident impossible.
+- `src/sections/` is `.astro`. A section file is `.tsx` only if it is, or becomes, a hydrated island — today that is `SiteThemeToggle.tsx` (phase 4, `client:load`) and `ContactForm.tsx` (phase 5, `client:visible`). This keeps every section free to host an island without restructuring, and makes shipping JS by accident impossible.
 - The UI kit styles itself inline and is never forked. Section layout lives in `src/styles/sections.css` behind class hooks, so phase 6 can add media queries without `!important`.
 - A class hook always sits on a section-owned element, never on a kit component: Astro deletes `class` on framework components and the kit's frozen props have no `className`. Kit components take their own `style` prop instead (as the prototype does).
 
@@ -68,10 +68,28 @@ GitHub Actions owns quality, Cloudflare owns delivery — Actions never deploys.
 
 - Cloudflare **Workers Builds** deploys from git: `main` → production, every other branch and PR → a preview URL posted as a PR comment. Single Worker, `portfolio-web`.
 - Build command `pnpm build`, deploy command `pnpm wrangler deploy`. Deploy reads the generated `dist/client/wrangler.json` (wrangler follows the redirect written to `.wrangler/deploy/config.json` at build time), so build before deploy.
-- `wrangler.jsonc` holds only `name` and `compatibility_date`. `@astrojs/cloudflare` supplies `main`, the `ASSETS` binding and the asset directory — do not restate them.
+- `wrangler.jsonc` holds `name`, `compatibility_date`, the contact `vars` and the `secrets.required` declaration — nothing else. `@astrojs/cloudflare` supplies `main`, the `ASSETS` binding and the asset directory — do not restate them.
 - The adapter runs with `imageService: "compile"`, so `astro:assets` transforms run with sharp at build time and emit static files. Its default, `cloudflare-binding`, would defer every transform to a runtime Cloudflare Images binding and emit `/_image` URLs instead.
 - Local loop: `pnpm preview:worker` (or `pnpm build && pnpm wrangler dev`) serves the built site from workerd at `localhost:8787`. `pnpm dev` also runs on workerd via the adapter's Vite plugin.
 - After changing `wrangler.jsonc`, rerun `pnpm wrangler types` and commit `worker-configuration.d.ts`.
+
+## Environment
+
+Secrets are credentials, vars are configuration. Three keys, all consumed by `src/pages/api/contact.ts` — the only code in the repo that reads the environment.
+
+| key              | deployed                                                  | local       |
+| ---------------- | --------------------------------------------------------- | ----------- |
+| `EMAIL_FROM`     | `vars` in `wrangler.jsonc`                                | `.dev.vars` |
+| `EMAIL_TO`       | `vars` in `wrangler.jsonc`                                | `.dev.vars` |
+| `RESEND_API_KEY` | Worker secret — `pnpm wrangler secret put RESEND_API_KEY` | `.dev.vars` |
+
+- **Access is `import { env } from "cloudflare:workers"`.** `Astro.locals.runtime.env` was removed in `@astrojs/cloudflare` v14 and now throws at runtime; the type no longer carries it either, so `pnpm check` catches the mistake first.
+- **Local setup**: create `.dev.vars` (gitignored) with all three keys. Quote `EMAIL_FROM` — the display-name form contains spaces and angle brackets. Both `pnpm dev` and `pnpm wrangler dev` read it, because dev runs on real workerd.
+- `RESEND_API_KEY` is declared under `secrets.required` in `wrangler.jsonc` so `pnpm wrangler types` emits it without needing a `.dev.vars` present — CI has none. Rerun `wrangler types` after touching either block.
+- `EMAIL_FROM` reaches Resend verbatim, so `user@domain` and `Name <user@domain>` are both valid. It must stay on the verified domain — Resend cannot send from the Gmail address.
+- `EMAIL_TO` is the same inbox the contact rail advertises: it mirrors `profile.email` in `src/content/profile.ts`, and changing one without the other silently delivers to an inbox the page does not show. It stays a var (not an import) so environments can override the destination.
+- **Never log message bodies or submitter emails.** Worker logs carry status codes and outcomes only.
+- Preview versions share the production Worker's secrets, so the key stays a Resend test key until launch; rotation is a phase-7 task.
 
 ## Design laws (non-negotiable)
 

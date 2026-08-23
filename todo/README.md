@@ -11,7 +11,7 @@ This directory is the implementation plan for the portfolio. Each phase is one m
 | 2     | [UI kit](phase-2-ui-kit.md)                             | —   | Implemented | —           |
 | 3     | [Content and page](phase-3-content-and-page.md)         | —   | Implemented | —           |
 | 4     | [Interactivity](phase-4-interactivity.md)               | —   | Implemented | —           |
-| 5     | [Contact endpoint](phase-5-contact-endpoint.md)         | —   | Not started | —           |
+| 5     | [Contact endpoint](phase-5-contact-endpoint.md)         | —   | Implemented | —           |
 | 6     | [Responsive and quality](phase-6-responsive-quality.md) | —   | Not started | —           |
 | 7     | [Launch](phase-7-launch.md)                             | —   | Not started | —           |
 
@@ -49,7 +49,7 @@ Phases add their own items on top of this.
     styles/sections.css      page layout, one class block per page section
     styles/global.css        imports tokens in skill order, then sections + site utilities
     ui/{core,forms,navigation,content}/*.tsx   20 components; index.ts barrel
-    content/{types,profile,sections}.ts        data + page manifest; index.ts barrel
+    content/{types,profile,sections,contact}.ts  data + page manifest + form contract; index.ts barrel
     sections/*.astro         one component per page section (+ the .tsx islands)
     layouts/BaseLayout.astro head, fonts, theme script, reveal script
     pages/index.astro  kit.astro  404.astro  api/contact.ts
