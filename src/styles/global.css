@@ -45,6 +45,121 @@
   border: 0;
 }
 
+/* The skip link's target. It is the whole page, so a ring around it says less
+   than the link that sent you there already did — but the focus must be real,
+   hence the tabindex in BaseLayout. */
+main[tabindex="-1"]:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+/* base.css:12 lists every focusable the design system knew about; it predates
+   the <details> nav, and `[tabindex]:focus-visible` does not match a bare
+   <summary>. Same ring, stated here because base.css stays byte-verbatim. */
+summary:focus-visible {
+  outline: none;
+  box-shadow: var(--ring-focus-strong), var(--ring-focus);
+  border-radius: var(--radius-xs);
+}
+
+/* --- Contrast ------------------------------------------------------------
+   Three light-theme roles miss WCAG AA at the 11-14px sizes they are used at.
+   Measured against the surfaces they actually land on:
+
+     --text-muted     #8B887C  3.40 canvas · 3.55 card · 3.20 sunken ·
+                               3.13 gold-100 · 3.03 paper-2
+     --status-success #6F7A44  4.00 on #EDF0E1
+     --status-danger  #B0503A  4.31 on #F7E7E1
+
+   Corrected below to 4.68-5.84 (paper-2 and paper-3 are the tight ones: the
+   Avatar fallback and the ProjectCard media placeholder both put muted text on
+   them), 5.23 and 4.89. These override the *semantic*
+   roles, not the palette ramp (--ink-3, --olive-500, --clay-500), so the base
+   colours keep their meaning and only the text uses move. Overrides rather than
+   token edits because tokens/*.css stays byte-verbatim for the phase-7 diff.
+
+   Dark measures clean and is left alone. Gold text stays #A6762A by design law
+   (AGENTS.md) despite measuring 3.53-4.00; e2e/a11y.spec.ts exempts exactly
+   those nodes from the contrast rule and nothing else. Revisit in phase 7 with
+   docs/brand.md.
+
+   :not() rather than [data-theme="light"] so the fix also holds with no
+   attribute at all (JS disabled), and scoped rather than bare :root because a
+   bare :root here would out-order colors.css's [data-theme="dark"] block and
+   silently break the dark theme. */
+:root:not([data-theme="dark"]) {
+  --text-muted: #686559;
+  --status-success: #5e6738;
+  --status-danger: #a54830;
+}
+
+/* --- Responsive ----------------------------------------------------------
+   The prototype was designed at 1280px. Two breakpoints collapse it. Order is
+   load-bearing: both queries match on a phone and several rules collide at
+   equal specificity (.stats-grid 4 -> 2 -> 1, .contact-form 2 -> 1), so the
+   720px block must stay below the 960px one. */
+
+/* Narrow mode: every asymmetric split folds to one column, and the header
+   chrome goes with it. The design skill recommended moving the nav at 720, but
+   measured, the desktop header needs 915px (wordmark 170 + nav 421 +
+   actions 196 + gaps + gutters) and begins squeezing the wordmark below that —
+   at 720 it overflowed by 50px, iPad portrait included. Switching here instead
+   costs nothing: below 960 the page is already single-column, so the menu
+   button is the consistent chrome, and 960 leaves 45px of slack for font
+   metrics that differ from ours. One narrow-mode boundary, not three. */
+@media (width < 960px) {
+  .hero__grid,
+  .experience-grid,
+  .ai-card__grid,
+  .contact-grid,
+  .skills-grid,
+  .work-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* Portrait first, per the spec; .hero__portrait already holds the 4:5 crop. */
+  .hero__media {
+    order: -1;
+  }
+  /* 64px reads as a hole once the columns are stacked. */
+  .hero__grid {
+    gap: var(--space-10);
+  }
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  /* Nav moves behind the menu button and the resume follows it into the panel.
+     The theme toggle stays in the bar, and the header keeps its blur and
+     hairline — only the nav moves. */
+  .site-nav__bar,
+  .site-header__resume {
+    display: none;
+  }
+  .site-menu {
+    display: block;
+  }
+}
+
+@media (width < 720px) {
+  :root {
+    /* SectionHeader.tsx sets its font-size inline from --type-section-size, so
+       only a token override reaches section headings; the h1 reads
+       --type-hero-size through base.css. --gutter-lg flips all five call
+       sites — header, hero, sections, footer and the skip link — at once. */
+    --type-hero-size: var(--text-4xl);
+    --type-section-size: var(--text-2xl);
+    --gutter-lg: var(--gutter-sm);
+  }
+
+  .stats-grid,
+  .contact-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .site-header__inner {
+    gap: var(--space-3);
+  }
+}
+
 /* `reveal-ready` must never carry into print: an unrevealed section sits at
    opacity 0 and would print blank. Lives here rather than in tokens/base.css,
    which stays byte-verbatim for the phase-7 parity diff. */

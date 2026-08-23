@@ -187,7 +187,11 @@ const techMarks = ["postgresql", "react", "typescript", "docker", "nestjs"];
         {
           cardTones.map((tone) => (
             <Card tone={tone}>
-              <span class="label-mono">tone {tone}</span>
+              <span
+                class:list={["label-mono", tone === "inverse" && "on-inverse"]}
+              >
+                tone {tone}
+              </span>
               <p>
                 Structure comes from the hairline, so a card at rest carries no
                 shadow.
@@ -536,6 +540,13 @@ const techMarks = ["postgresql", "react", "typescript", "docker", "nestjs"];
     display: flex;
     flex-direction: column;
     gap: var(--space-16);
+  }
+
+  /* --text-muted is a light-surface role; on the inverse card it measures
+     2.91 (and 4.32 before phase 6 darkened it). The inverse surface has its
+     own text role — this demo just was not using it. */
+  .on-inverse {
+    color: var(--text-inverse);
   }
 
   .kit-head {

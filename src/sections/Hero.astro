@@ -33,7 +33,7 @@ import portrait from "@/assets/portrait.jpg";
         src={portrait}
         alt={profile.fullName}
         widths={[480, 720, 956]}
-        sizes="(min-width: 1120px) 407px, 40vw"
+        sizes="(min-width: 1120px) 407px, (min-width: 960px) 40vw, (min-width: 720px) calc(100vw - 80px), calc(100vw - 40px)"
         formats={["avif", "webp"]}
         fallbackFormat="jpg"
         loading="eager"
