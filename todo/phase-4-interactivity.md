@@ -17,21 +17,41 @@ The two behaviors the site still defines — theme toggle and scroll reveal — 
   3. Add `is-in` on first intersection, then `unobserve` that element.
   4. Run a 900ms `setTimeout` fallback that adds `is-in` to every `.reveal` regardless.
 
+> Two amendments agreed with the user during implementation. **(a)** The 900ms fallback is guarded on whether the observer ever reported, not unconditional: taken literally, "regardless" would reveal every section 900ms after load and the scroll reveal would never fire below the fold. The guarded form is what the prototype, the skill README ("if the observer never fires") and this doc's own verification bullet all describe. **(b)** Before adding `reveal-ready`, the script synchronously reveals any `.reveal` already at or above the fold line and does not observe it. The observer's first batch is asynchronous, and `.reveal-ready .reveal` carries the 520ms transition, so adding `reveal-ready` starts a _fade-out_ that the first batch has to interrupt — on a main thread busy hydrating the toggle that is a visible dip-and-recover. This keeps decision 2's ordering and makes "content is never hidden without an armed observer" literally true rather than true-modulo-one-async-hop; it is a deviation from decision 3's letter, since in-view elements get `is-in` without an intersection event.
+
 ## Tasks
 
-1. Implement both pieces above; replace the phase-3 inert header `ThemeToggle` with the island.
-2. Add `reveal` to the `.section-body` wrapper of every section below the hero — the hook already exists in `Section.astro`, so this is a prop, not new markup. The hero and header are visible immediately — no reveal.
-3. Nav link hover/active states (transparent 1px bottom border → `1.5px solid #E3B23C`, text → `#26251F`), CSS only, 140ms.
-4. Record the shipped-JS baseline: list `dist/client/_astro/*.js` sizes (expect the React runtime + one small island and nothing else) in the PR description — phase 7 budgets against it.
+1. [x] Implement both pieces above; replace the phase-3 inert header `ThemeToggle` with the island. **Done:** the kit component is untouched — persistence lives in a `src/sections/SiteThemeToggle.tsx` wrapper, which is both what the design system's own `ThemeToggle.prompt.md` prescribes and structurally required (Astro cannot pass `onChange` across an island boundary). `/kit` got the same island: once the head script lands, its bare uncontrolled toggle would start "light" on a dark page and take two clicks to leave dark.
+2. [x] Add `reveal` to the `.section-body` wrapper of every section below the hero — the hook already exists in `Section.astro`, so this is a prop, not new markup. The hero and header are visible immediately — no reveal. **Done as an unconditional class, not a prop** (agreed with the user): every `<Section>` is below the hero by construction, so a prop would be passed at all 6 call sites, omitted at none, and need a pass-through in `SkillSection.astro` purely to forward it. 7 rendered instances carry it.
+3. [x] Nav link hover/active states (transparent 1px bottom border → `1.5px solid #E3B23C`, text → `#26251F`), CSS only, 140ms. **Done** as `.site-nav__link:hover, :focus-visible` using `var(--text-body)` / `var(--accent-line)` rather than the literal hexes, which would pin the nav to light-theme colours inside `[data-theme="dark"]`. 0,2,0 is the specificity needed to beat the global `a:hover` (0,1,1) in `tokens/base.css`.
+4. [ ] Record the shipped-JS baseline: list `dist/client/_astro/*.js` sizes (expect the React runtime + one small island and nothing else) in the PR description — phase 7 budgets against it. **Measured, not yet in a PR** (no PR opened this phase):
+
+   | chunk                         |     raw |   gzip |
+   | ----------------------------- | ------: | -----: |
+   | `client.C1qLyNJj.js`          | 184,092 | 57,181 |
+   | `react.Q2GtEPr4.js`           |   7,607 |  2,936 |
+   | `SiteThemeToggle.zKSZalap.js` |   2,082 |  1,168 |
+   | **total**                     | 193,781 | 61,285 |
+
+   `reveal.ts` emits no chunk — Astro inlines it into each page as a deferred `<script type="module">`. Net change against the phase-3 build is **−24,346 B raw**: the old island entry was the `@/ui` barrel itself, so Rollup could not tree-shake it (26,428 B); entering through `SiteThemeToggle.tsx` prunes the unused 19 components.
 
 ## Verification (manual matrix — phase 6 automates it)
 
-- **Theme**: set dark, hard-reload — no flash of light theme; choice survives restart; system-dark with no stored choice → dark on first visit.
-- **No-JS**: with JS disabled, everything is visible immediately (`reveal-ready` never applied). Also block only `reveal.ts` in devtools — the 900ms fallback path can't help there, so confirm content was never hidden (no `reveal-ready` without the script).
-- **Reduced motion**: emulate `prefers-reduced-motion: reduce` → no animation, all content visible instantly.
-- **Reveal correctness**: elements animate once on first entry (scroll down, up, down — no re-animation); with the observer artificially broken (e.g. comment it out in devtools), the 900ms fallback reveals everything.
-- Bundle check: only the ThemeToggle island + runtime in `dist/client/_astro/`; no JS attributed to static sections.
-- All of the above re-checked on the `dev` preview URL.
+Static checks, all passing: `pnpm format:check`, `pnpm check` (0 errors / 0 warnings / 0 hints across 46 files), `pnpm build`, `grep -r "fonts.googleapis" dist/` empty, and the same page served from workerd via `wrangler dev` (200, invariants intact).
+
+Built-HTML checks, all passing: the `is:inline` theme script sits in `<head>` after the viewport meta and before `<title>` and the stylesheet link; `class="section-body reveal"` appears exactly 7 times; `reveal-ready` appears nowhere in shipped markup; one `client="load"` island per page; `.reveal.is-in`, the reduced-motion override and the print reset all follow `.reveal-ready .reveal{opacity:0}` in the bundled CSS, so the cascade resolves by source order as designed.
+
+The browser matrix below **still needs a human — no browser in the implementation session** (same limitation as phases 2 and 3):
+
+- [ ] **Theme**: set dark, hard-reload — no flash of light theme; choice survives restart; system-dark with no stored choice → dark on first visit.
+- [ ] **No-JS**: with JS disabled, everything is visible immediately (`reveal-ready` never applied). Also block only `reveal.ts` in devtools — the 900ms fallback path can't help there, so confirm content was never hidden (no `reveal-ready` without the script).
+- [ ] **Reduced motion**: emulate `prefers-reduced-motion: reduce` → no animation, all content visible instantly.
+- [ ] **Reveal correctness**: elements animate once on first entry (scroll down, up, down — no re-animation); with the observer artificially broken (e.g. comment it out in devtools), the 900ms fallback reveals everything.
+- [ ] **Slow-load reveal**: throttle to Slow 3G and scroll to Work before the module lands — no dip-out-and-back (the synchronous pre-pass case, see Decisions).
+- [ ] **Print**: print-preview the page with several sections unrevealed — nothing prints blank.
+- [ ] **Nav**: hover and keyboard-focus both swap the border to 1.5px gold and the text to ink, in both themes.
+- [x] Bundle check: only the ThemeToggle island + runtime in `dist/client/_astro/`; no JS attributed to static sections. (`reveal.ts` is inlined into the HTML rather than emitted as a chunk.)
+- [ ] All of the above re-checked on the `dev` preview URL.
 
 ## Gotchas
 
@@ -42,6 +62,8 @@ The two behaviors the site still defines — theme toggle and scroll reveal — 
 ## Definition of Done
 
 Inherited DoD, plus: the full manual matrix passes locally and on the preview URL; JS baseline recorded in the PR.
+
+**Not met yet** — the browser matrix and the preview-URL pass are outstanding, and no PR has been opened. Status is _Implemented_, not _Done_.
 
 ## Out of scope
 

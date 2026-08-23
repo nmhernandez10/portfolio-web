@@ -10,7 +10,7 @@ This directory is the implementation plan for the portfolio. Each phase is one m
 | 1     | [Deploy skeleton](phase-1-deploy-skeleton.md)           | —   | In progress | —           |
 | 2     | [UI kit](phase-2-ui-kit.md)                             | —   | Implemented | —           |
 | 3     | [Content and page](phase-3-content-and-page.md)         | —   | Implemented | —           |
-| 4     | [Interactivity](phase-4-interactivity.md)               | —   | Not started | —           |
+| 4     | [Interactivity](phase-4-interactivity.md)               | —   | Implemented | —           |
 | 5     | [Contact endpoint](phase-5-contact-endpoint.md)         | —   | Not started | —           |
 | 6     | [Responsive and quality](phase-6-responsive-quality.md) | —   | Not started | —           |
 | 7     | [Launch](phase-7-launch.md)                             | —   | Not started | —           |
@@ -39,7 +39,7 @@ Phases add their own items on top of this.
 
 ## Stack and architecture (locked — do not revisit)
 
-- **Astro 7 (latest; supersedes the original "Astro 5" — decided with the user 2026-08-19) + React 19 islands, TypeScript strict, pnpm.** Keep every dependency on its latest compatible release; where phase docs assumed Astro 5 semantics, current official docs win. Static-first: sections are `.astro` and ship zero JS. Exactly two islands hydrate: `ThemeToggle` (`client:load`, phase 4) and `ContactForm` (`client:visible`, phase 5).
+- **Astro 7 (latest; supersedes the original "Astro 5" — decided with the user 2026-08-19) + React 19 islands, TypeScript strict, pnpm.** Keep every dependency on its latest compatible release; where phase docs assumed Astro 5 semantics, current official docs win. Static-first: sections are `.astro` and ship zero JS. Exactly two islands hydrate: `SiteThemeToggle` (`client:load`, phase 4, wrapping the kit's unmodified `ThemeToggle`) and `ContactForm` (`client:visible`, phase 5).
 - **Cloudflare Workers + static assets** via `@astrojs/cloudflare`. Deploys by **Workers Builds** (git-connected): `main` → production, every other branch/PR → preview URL. GitHub Actions is the quality gate only (it never deploys). Custom domain `nicolasmateo.dev` attaches in phase 7.
 - **UI kit is an in-app module**: `src/styles/tokens/` + `src/ui/`, ported from the design skill and fully independent of it. The skill is deleted in phase 7 after a parity check.
 - **Layout**:
@@ -50,7 +50,7 @@ Phases add their own items on top of this.
     styles/global.css        imports tokens in skill order, then sections + site utilities
     ui/{core,forms,navigation,content}/*.tsx   20 components; index.ts barrel
     content/{types,profile,sections}.ts        data + page manifest; index.ts barrel
-    sections/*.astro         one component per page section (+ ContactForm.tsx island)
+    sections/*.astro         one component per page section (+ the .tsx islands)
     layouts/BaseLayout.astro head, fonts, theme script, reveal script
     pages/index.astro  kit.astro  404.astro  api/contact.ts
     scripts/reveal.ts        vanilla IntersectionObserver module
@@ -63,7 +63,7 @@ Phases add their own items on top of this.
   ```
 - **.astro/.tsx split**: `src/sections/` is `.astro`; a section is `.tsx` only if it is, or becomes, a hydrated island (an island cannot hydrate inside a non-hydrated React tree, and `astro:assets` is unavailable to React). React is reserved for the kit and for islands.
 - **Lens toggle — removed 2026-08-22.** The design skill still specifies a Backend ↔ Full stack switch that dual-rendered every swap point behind `data-lens` on `<html>`. It was replaced, with the user, by one page that says everything at once: `03 / BACKEND` and `04 / FULL STACK` are their own sections, the two résumés' copy is merged rather than switched, and the positioning label is **Senior Software Engineer**. Nothing in the build reads `data-lens`; phase 4 is two behaviors, not three.
-- **Theme**: inline `is:inline` head script before paint (localStorage → `prefers-color-scheme` → light) sets `data-theme` on `<html>`; the ThemeToggle island syncs from the attribute and writes attribute + localStorage.
+- **Theme**: inline `is:inline` head script before paint (localStorage → `prefers-color-scheme` → light) sets `data-theme` on `<html>`; the `SiteThemeToggle` island syncs from the attribute and writes attribute + localStorage.
 - **Reveal**: vanilla `src/scripts/reveal.ts` binding the `.reveal` / `.reveal-ready` / `.is-in` contract that already exists in `tokens/base.css`. Observer `rootMargin: "-40px"`, 900ms reveal-everything fallback, reduced-motion bail.
 - **Fonts**: `@fontsource-variable/space-grotesk` + `@fontsource-variable/jetbrains-mono`, self-hosted via the bundler. The Google Fonts `@import` must never reach production.
 - **Contact**: one on-demand route `POST /api/contact` (`prerender = false`) in the same Worker. Resend via plain `fetch` (no SDK). Config via environment: `EMAIL_FROM` / `EMAIL_TO` as `vars` in `wrangler.jsonc`, `RESEND_API_KEY` as a Worker secret, all three in gitignored `.dev.vars` locally. Honeypot only; Turnstile is a documented follow-up if spam appears.
