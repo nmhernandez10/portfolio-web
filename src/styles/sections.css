@@ -59,12 +59,27 @@
   justify-content: space-between;
   gap: var(--space-6);
 }
+/* Unconditional, not scoped to a breakpoint: the wordmark is the header's only
+   elastic child, so letting it ellipsis is what guarantees no viewport can ever
+   scroll sideways — including before the webfonts load, and on a platform whose
+   fallback metrics are wider than ours. It never engages when there is room.
+   min-width is needed on both boxes: .wordmark__name is itself a flex item and
+   would otherwise refuse to shrink below its intrinsic width. */
+.site-header .wordmark {
+  min-width: 0;
+}
+.site-header .wordmark__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .site-header__actions {
   display: flex;
   align-items: center;
   gap: var(--space-3);
 }
-.site-nav {
+.site-nav__bar {
   display: flex;
   gap: var(--space-6);
 }
@@ -82,6 +97,62 @@
 .site-nav__link:focus-visible {
   color: var(--text-body);
   border-bottom: 1.5px solid var(--accent-line);
+}
+
+/* Mobile menu: a zero-JS <details> disclosure. Everything below is the closed,
+   desktop-hidden default; the two display flips live with the other breakpoints
+   in global.css. */
+.site-menu {
+  display: none;
+}
+/* 36px, not the 44px WCAG 2.5.5 target: 2.5.8 AA only requires 24px, this
+   clears it, and matching the adjacent theme toggle's height keeps the two
+   controls level in the sticky bar. */
+.site-menu__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  color: var(--text-muted);
+  cursor: pointer;
+  list-style: none;
+}
+.site-menu__toggle::-webkit-details-marker {
+  display: none;
+}
+/* Painted the way the kit's Icon does it, but from CSS: Icon writes `mask`
+   inline, so details[open] could not swap the glyph without !important. */
+.site-menu__glyph {
+  width: 20px;
+  height: 20px;
+  background: currentColor;
+  -webkit-mask: url("/icons/ui/menu.svg") center / contain no-repeat;
+  mask: url("/icons/ui/menu.svg") center / contain no-repeat;
+}
+.site-menu[open] .site-menu__glyph {
+  -webkit-mask-image: url("/icons/ui/x.svg");
+  mask-image: url("/icons/ui/x.svg");
+}
+/* Positioned against the sticky .site-header, so the panel hangs below the bar
+   instead of stretching it. Opaque, because the header itself is translucent. */
+.site-menu__panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2) var(--gutter-lg) var(--space-4);
+  background: var(--surface-canvas);
+  border-bottom: 1px solid var(--border-subtle);
+}
+/* .site-nav__link sets no display of its own — it only blockifies in the bar
+   because that is a flex container. Here the flex column does it, so the
+   vertical padding actually builds a touch target — measured at 51px,
+   clearing the 44px WCAG 2.5.5 target. */
+.site-menu__panel .site-nav__link {
+  padding: var(--space-4) 0;
 }
 
 /* --- 2. Hero ----------------------------------------------------------- */

@@ -1,0 +1,44 @@
+---
+import { profile } from "@/content";
+import NavLinks from "./NavLinks.astro";
+
+/**
+ * The whole nav concern: the inline bar above 960px, and a zero-JS <details>
+ * disclosure below it. 960 is the narrow-mode boundary the grids already use;
+ * the desktop header needs 915px, so it cannot survive the 720 the design skill
+ * suggested (see the breakpoint block in global.css). Each copy is display:none
+ * on the wrong side of it, which takes it out of the accessibility tree and the
+ * tab order — so only one set of links is ever reachable.
+ *
+ * Both copies exist because the single-copy alternative (one <details> forced
+ * open at desktop) depends on ::details-content, and where that is missing the
+ * desktop nav disappears entirely. <summary> gives us the button role and the
+ * expanded state for free, with no ARIA and no hydration.
+ *
+ * The Resume link joins the panel because the header bar cannot fit it below
+ * 960px; above it, Header.astro renders the Resume button instead.
+ */
+---
+
+<nav class="site-nav" aria-label="Sections">
+  <div class="site-nav__bar"><NavLinks /></div>
+  <details class="site-menu">
+    <summary class="site-menu__toggle" aria-label="Menu">
+      <span class="site-menu__glyph"></span>
+    </summary>
+    <div class="site-menu__panel">
+      <NavLinks />
+      <a class="site-nav__link" href={profile.resumes.fullStack}>Resume</a>
+    </div>
+  </details>
+</nav>
+
+<script>
+  // Progressive enhancement only: an in-page jump leaves the panel covering the
+  // section it just scrolled to. Without this the menu still opens, closes and
+  // navigates — that is the point of <details>.
+  const menu = document.querySelector<HTMLDetailsElement>(".site-menu");
+  menu?.addEventListener("click", (event) => {
+    if ((event.target as HTMLElement).closest("a")) menu.open = false;
+  });
+</script>

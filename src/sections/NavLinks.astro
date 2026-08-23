@@ -1,0 +1,15 @@
+---
+import { NAV } from "@/content";
+
+// The five anchor links, rendered once here and mounted twice by SiteNav: in
+// the desktop bar and in the mobile menu panel. One source, so the two copies
+// can never drift.
+---
+
+{
+  NAV.map((entry) => (
+    <a class="site-nav__link" href={`#${entry.id}`}>
+      {entry.nav}
+    </a>
+  ))
+}
