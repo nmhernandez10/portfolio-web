@@ -2,6 +2,3 @@
 allowBuilds:
   esbuild: true
   workerd: true # Cloudflare Workers runtime, used by wrangler dev and the adapter build
-minimumReleaseAgeExclude:
-  - "@astrojs/cloudflare@14.2.3"
-  - "@astrojs/internal-helpers@0.10.4"

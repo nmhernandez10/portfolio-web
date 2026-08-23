@@ -11,3 +11,9 @@ worker-configuration.d.ts
 # tokens are copied verbatim from the design system; formatting them would break
 # the phase-2 `diff -r src/styles/tokens` parity check
 src/styles/tokens
+
+# e2e artifacts
+test-results
+playwright-report
+blob-report
+playwright/.cache
