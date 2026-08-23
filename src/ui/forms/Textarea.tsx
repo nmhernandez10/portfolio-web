@@ -19,6 +19,12 @@ export function Textarea({
 }: TextareaProps) {
   const [focus, setFocus] = useState(false);
   const fieldId = id || rest.name || undefined;
+  // Only one of hint/error renders at a time, so one id covers both. Written
+  // before {...rest} on the control so a caller-supplied value still wins.
+  const describedBy =
+    fieldId && (error || hint)
+      ? `${fieldId}-${error ? "error" : "hint"}`
+      : undefined;
   return (
     <label
       htmlFor={fieldId}
@@ -44,6 +50,7 @@ export function Textarea({
       ) : null}
       <textarea
         id={fieldId}
+        aria-describedby={describedBy}
         rows={rows}
         onFocus={() => setFocus(true)}
         onBlur={() => setFocus(false)}
@@ -66,6 +73,7 @@ export function Textarea({
       ></textarea>
       {hint && !error ? (
         <span
+          id={fieldId ? `${fieldId}-hint` : undefined}
           style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)" }}
         >
           {hint}
@@ -73,6 +81,7 @@ export function Textarea({
       ) : null}
       {error ? (
         <span
+          id={fieldId ? `${fieldId}-error` : undefined}
           style={{ fontSize: "var(--text-sm)", color: "var(--status-danger)" }}
         >
           {error}
