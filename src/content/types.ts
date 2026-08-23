@@ -56,6 +56,8 @@ export interface Profile {
   site: string;
   github: string;
   linkedin: string;
+  /** URL-safe copies in public/. The header and menu advertise the full-stack one. */
+  resumes: { backend: string; fullStack: string };
   /** The two hero lines, rendered with an explicit <br> between them. */
   hero: [string, string];
   lede: string;

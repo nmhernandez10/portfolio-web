@@ -18,6 +18,10 @@ export const profile: Profile = {
   site: "nicolasmateo.dev",
   github: "github.com/nmhernandez10",
   linkedin: "linkedin.com/in/nicohero",
+  resumes: {
+    backend: "/resume-backend.pdf",
+    fullStack: "/resume-fullstack.pdf",
+  },
 
   hero: ["Schema to shipped UI,", "owned end to end."],
   lede: "I lead technical design and delivery for a regulated mental-health platform — service and API design, relational data modeling and event-driven architecture, and the React and Flutter surfaces on top of them.",
