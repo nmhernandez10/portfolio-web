@@ -12,7 +12,7 @@ This directory is the implementation plan for the portfolio. Each phase is one m
 | 3     | [Content and page](phase-3-content-and-page.md)         | —   | Implemented | —           |
 | 4     | [Interactivity](phase-4-interactivity.md)               | —   | Implemented | —           |
 | 5     | [Contact endpoint](phase-5-contact-endpoint.md)         | —   | Implemented | —           |
-| 6     | [Responsive and quality](phase-6-responsive-quality.md) | —   | Not started | —           |
+| 6     | [Responsive and quality](phase-6-responsive-quality.md) | —   | Implemented | —           |
 | 7     | [Launch](phase-7-launch.md)                             | —   | Not started | —           |
 
 Dependencies are linear (each phase builds on the previous), with one exception: phases 4 and 5 are independent of each other and may run in either order.

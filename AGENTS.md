@@ -44,7 +44,9 @@ docs/brand.md              phase 7: brand laws migrated from the skill
 - Dependencies run one way: `pages → layouts → sections → {ui, content} → styles`. `src/ui/` never imports `src/content/`; `src/content/` holds data only — no React, no styling, no imports from `src/ui/`.
 - `src/sections/` is `.astro`. A section file is `.tsx` only if it is, or becomes, a hydrated island — today that is `SiteThemeToggle.tsx` (phase 4, `client:load`) and `ContactForm.tsx` (phase 5, `client:visible`). This keeps every section free to host an island without restructuring, and makes shipping JS by accident impossible.
 - The UI kit styles itself inline and is never forked. Section layout lives in `src/styles/sections.css` behind class hooks, so phase 6 can add media queries without `!important`.
-- A class hook always sits on a section-owned element, never on a kit component: Astro deletes `class` on framework components and the kit's frozen props have no `className`. Kit components take their own `style` prop instead (as the prototype does).
+- Breakpoints live in `src/styles/global.css`, below the `@import` block and in descending order — `< 960px` then `< 720px`. `< 960px` is narrow mode: the grids fold to one column **and** the header nav moves behind the menu button, because the desktop header measures 915px wide (wordmark 170 + nav 421 + actions 196 + gaps + gutters) and cannot survive to 720. One narrow-mode boundary, not two. That file is last in the cascade, so equal-specificity rules beat `sections.css`; the order between the two blocks is load-bearing, because several rules collide at equal specificity. Media queries group against base class hooks (`.skills-grid`, not both modifiers). Where the kit sets a property inline, a **token override** is the only lever — `--type-section-size`, `--gutter-lg`.
+- A class hook always sits on a section-owned element, never on a kit component: Astro deletes `class` on framework components and the kit's frozen props have no `className`. Kit components take their own `style` prop instead (as the prototype does). This applies to **hiding** as much as to layout — the kit writes `display` inline, so a stylesheet `display: none` aimed at a kit component loses. Wrap it (`.site-header__resume` is the worked example).
+- `BaseLayout` owns `<main id="main" tabindex="-1">` and pages fill the `header` / `footer` named slots. The skip link and its target live in one file on purpose: a page cannot ship without a main landmark, which is how `/kit` went three phases without one.
 
 ## Commands
 
@@ -54,6 +56,30 @@ docs/brand.md              phase 7: brand laws migrated from the skill
 - `pnpm preview:worker` — build, then serve it from the real Worker runtime at `localhost:8787`
 - `pnpm check` — `astro check && tsc --noEmit`
 - `pnpm format` / `pnpm format:check` — Prettier write / verify
+- `pnpm test:e2e` — build, then run the Playwright suite against it
+
+## Testing
+
+Two Playwright specs in `e2e/`, run against a real build on workerd via
+`astro preview`. Keep them few and load-bearing: this suite guards the page's
+static content, the two islands' behaviour, the contact endpoint and
+accessibility — it is not chasing coverage.
+
+- `e2e/smoke.spec.ts` — sections, theme toggle, résumés, endpoint, mobile menu.
+- `e2e/a11y.spec.ts` — axe over `/` light, `/` dark and `/kit`, zero violations.
+- Specs import from `src/content/` rather than restating ids, paths or topics,
+  so a manifest change fails a test instead of drifting past a stale copy.
+- axe scans run under `prefers-reduced-motion: reduce`. Without it `reveal.ts`
+  leaves everything below the fold at `opacity: 0` and axe silently scans little
+  more than the hero.
+- **Tests never send real email.** Only the validation-failure and honeypot
+  paths are exercised; both return before `send()`. CI writes a placeholder
+  `RESEND_API_KEY` so the guarantee is environmental, not incidental.
+- Browsers install explicitly (`pnpm exec playwright install chromium`) because
+  pnpm's `allowBuilds` allowlist blocks Playwright's postinstall. Do not add
+  `playwright` to that list.
+- CI runs `pnpm exec playwright test` directly after its own `pnpm build`, so
+  the build happens once; `pnpm test:e2e` builds first for local use.
 
 ## Git conventions
 
@@ -93,7 +119,8 @@ Secrets are credentials, vars are configuration. Three keys, all consumed by `sr
 
 ## Design laws (non-negotiable)
 
-- Gold text is always `#A6762A` (`--gold-700`); `#E3B23C` is fill-only, never text.
+- Gold text is always `#A6762A` (`--gold-700`); `#E3B23C` is fill-only, never text. It measures 3.53–4.00 against the surfaces it lands on, under WCAG AA at the sizes it is used; the law wins, and `e2e/a11y.spec.ts` exempts exactly those nodes from axe's contrast rule and nothing else. Revisit in phase 7 with `docs/brand.md`.
+- Three light-theme text roles were corrected to reach AA and are overridden in `global.css` under `:root:not([data-theme="dark"])`, not edited in `tokens/` (which stays byte-verbatim): `--text-muted` `#8B887C` → `#686559`, `--status-success` `#6F7A44` → `#5E6738`, `--status-danger` `#B0503A` → `#A54830`. Dark measures clean and is untouched. Scope any further override the same way — a bare `:root` in `global.css` out-orders `colors.css`'s `[data-theme="dark"]` block and silently breaks the dark theme.
 - No Google Fonts in production — fonts are self-hosted; verify `grep -r "fonts.googleapis" dist/` is empty.
 - Copy: first person, sentence case, numbers not adjectives, no emoji, no exclamation marks, em dash with spaces, `·` separators, accents kept in _Bogotá_ / _Nicolás_. Applies to every string including form errors and the 404 page.
 - Content never depends on JS: all ten sections exist in static HTML.
