@@ -1,5 +1,7 @@
 # Phase 5 — Contact endpoint
 
+> **Amended 2026-08-22 — the endpoint relocates in phase 6.1 (Pages migration).** The logic is unchanged but lives in `functions/api/contact.ts` as a Pages Function reading `context.env` — `cloudflare:workers` is Workers-only and goes with the adapter. Deviation 5's Astro origin check disappears with the adapter too and is hand-implemented in the Function with identical semantics. The outstanding DoD items retarget `pnpm preview` on 8788 and the Pages preview URL; remaining item 3 (`wrangler secret put`) is superseded by 6.1's per-environment dashboard secrets.
+
 ## Goal
 
 The contact form sends real email via Resend from the same Worker, with validation and spam protection — and still works with JavaScript disabled. May run before or after phase 4.

@@ -12,7 +12,7 @@ Close the prototype's one known gap — it is designed at 1280px and not respons
   - **< 720px**: hero heading 76 → 49px (override `--type-hero-size`; the hero `<h1>` takes its size from `tokens/base.css`, not a section class), section headings 39 → 31px, gutters 40 → 20px.
   - **Nav moves at 960, not 720** (corrected during implementation, with the user). The skill's 720 figure was prose, never measured: the desktop header needs 915px, so every width from 720 to 769 scrolled sideways — 768px, iPad portrait, included. Moving the nav with the grids at 960 leaves 45px of slack and gives the page a single narrow-mode boundary instead of two. `e2e/smoke.spec.ts` sweeps thirteen widths and asserts both no horizontal scroll and an un-truncated wordmark, so this cannot regress quietly.
 - **Mobile nav: a styled `<details>/<summary>` panel — zero JS**, honoring the site's ethos and working without hydration. `summary` shows the menu glyph (swap to `x` via `details[open]` CSS); the open panel lists the five anchor links; a small inline enhancement may close it on link tap, but it must be fully usable without it. Not a third React island.
-- **Test harness**: Playwright + `@axe-core/playwright`. Two specs: `e2e/smoke.spec.ts`, `e2e/a11y.spec.ts`. Runs in CI after build against `astro preview`. Contact-endpoint tests only exercise validation-error and honeypot paths — **CI must never send real email**.
+- **Test harness**: Playwright + `@axe-core/playwright`. Two specs: `e2e/smoke.spec.ts`, `e2e/a11y.spec.ts`. Runs in CI after build against `astro preview` (since phase 6.1: `wrangler pages dev` on 8788 — amended 2026-08-22). Contact-endpoint tests only exercise validation-error and honeypot paths — **CI must never send real email**.
 
 ## Tasks
 

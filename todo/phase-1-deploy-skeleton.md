@@ -1,5 +1,7 @@
 # Phase 1 — Deploy skeleton
 
+> **Superseded 2026-08-22 — delivery moved to Cloudflare Pages (phase 6.1).** The locked "Not Pages" decision below was reversed with the user: Pages' separate preview/production environments (vars and secrets both) won over a single Worker's shared ones, accepting that Pages is feature-frozen. Tasks 5–7 were never completed — the dashboard Worker exists but is broken and unused; phase 6.1's Pages project replaces them and phase 6.2 deletes the Worker. The adapter/wrangler skeleton from tasks 1–4 is dismantled in 6.1. The open question below is mooted: the adapter is gone, and 6.2 checks whether the KV namespace was ever provisioned. This doc stays as the historical record.
+
 ## Goal
 
 The placeholder site is live on a `*.workers.dev` URL, deployed automatically: pushes to `main` deploy production, pushes to `dev` (and PRs) produce preview URLs. The delivery pipeline exists **before** any real UI does, so every later phase is verified on the real Workers runtime.

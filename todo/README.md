@@ -4,18 +4,20 @@ This directory is the implementation plan for the portfolio. Each phase is one m
 
 ## Status
 
-| Phase | Title                                                   | PR  | Status      | Preview URL |
-| ----- | ------------------------------------------------------- | --- | ----------- | ----------- |
-| 0     | [Foundations](phase-0-foundations.md)                   | —   | In progress | —           |
-| 1     | [Deploy skeleton](phase-1-deploy-skeleton.md)           | —   | In progress | —           |
-| 2     | [UI kit](phase-2-ui-kit.md)                             | —   | Implemented | —           |
-| 3     | [Content and page](phase-3-content-and-page.md)         | —   | Implemented | —           |
-| 4     | [Interactivity](phase-4-interactivity.md)               | —   | Implemented | —           |
-| 5     | [Contact endpoint](phase-5-contact-endpoint.md)         | —   | Implemented | —           |
-| 6     | [Responsive and quality](phase-6-responsive-quality.md) | —   | Implemented | —           |
-| 7     | [Launch](phase-7-launch.md)                             | —   | Not started | —           |
+| Phase | Title                                                     | PR  | Status           | Preview URL |
+| ----- | --------------------------------------------------------- | --- | ---------------- | ----------- |
+| 0     | [Foundations](phase-0-foundations.md)                     | —   | In progress      | —           |
+| 1     | [Deploy skeleton](phase-1-deploy-skeleton.md)             | —   | Superseded (6.1) | —           |
+| 2     | [UI kit](phase-2-ui-kit.md)                               | —   | Implemented      | —           |
+| 3     | [Content and page](phase-3-content-and-page.md)           | —   | Implemented      | —           |
+| 4     | [Interactivity](phase-4-interactivity.md)                 | —   | Implemented      | —           |
+| 5     | [Contact endpoint](phase-5-contact-endpoint.md)           | —   | Implemented      | —           |
+| 6     | [Responsive and quality](phase-6-responsive-quality.md)   | —   | Implemented      | —           |
+| 6.1   | [Pages migration](phase-6.1-pages-migration.md)           | —   | Not started      | —           |
+| 6.2   | [Workers decommission](phase-6.2-workers-decommission.md) | —   | Not started      | —           |
+| 7     | [Launch](phase-7-launch.md)                               | —   | Not started      | —           |
 
-Dependencies are linear (each phase builds on the previous), with one exception: phases 4 and 5 are independent of each other and may run in either order.
+Dependencies are linear (each phase builds on the previous), with one exception: phases 4 and 5 are independent of each other and may run in either order. The Pages migration runs 6.1 → 6.2 between 6 and 7; phase 7 depends on both.
 
 ## How to execute a phase
 
@@ -40,7 +42,7 @@ Phases add their own items on top of this.
 ## Stack and architecture (locked — do not revisit)
 
 - **Astro 7 (latest; supersedes the original "Astro 5" — decided with the user 2026-08-19) + React 19 islands, TypeScript strict, pnpm.** Keep every dependency on its latest compatible release; where phase docs assumed Astro 5 semantics, current official docs win. Static-first: sections are `.astro` and ship zero JS. Exactly two islands hydrate: `SiteThemeToggle` (`client:load`, phase 4, wrapping the kit's unmodified `ThemeToggle`) and `ContactForm` (`client:visible`, phase 5).
-- **Cloudflare Workers + static assets** via `@astrojs/cloudflare`. Deploys by **Workers Builds** (git-connected): `main` → production, every other branch/PR → preview URL. GitHub Actions is the quality gate only (it never deploys). Custom domain `nicolasmateo.dev` attaches in phase 7.
+- **Cloudflare Pages, adapter-less** (decided with the user 2026-08-22, superseding phase 1's Workers decision — see the supersession note under that doc's H1; `@astrojs/cloudflare` dropped Pages support in v13 and Astro 7 requires v14, so no adapter can target Pages). `astro build` emits a plain static `dist/`; the contact endpoint is a hand-written Pages Function, `functions/api/contact.ts`. Pages git integration deploys: `main` → production, every other branch/PR → preview, with separate vars and secrets per environment. GitHub Actions is the quality gate only (it never deploys). Custom domain `nicolasmateo.dev` attaches in phase 7.
 - **UI kit is an in-app module**: `src/styles/tokens/` + `src/ui/`, ported from the design skill and fully independent of it. The skill is deleted in phase 7 after a parity check.
 - **Layout**:
   ```
@@ -52,13 +54,14 @@ Phases add their own items on top of this.
     content/{types,profile,sections,contact}.ts  data + page manifest + form contract; index.ts barrel
     sections/*.astro         one component per page section (+ the .tsx islands)
     layouts/BaseLayout.astro head, fonts, theme script, reveal script
-    pages/index.astro  kit.astro  404.astro  api/contact.ts
+    pages/index.astro  kit.astro  404.astro
     scripts/reveal.ts        vanilla IntersectionObserver module
     assets/portrait.jpg      optimized via astro:assets
+  functions/api/contact.ts   Pages Function: the contact endpoint (phase 6.1)
   public/
     icons/{ui,tech}/*.svg    30 + 14 (Icon uses CSS mask → must be plain public URLs)
     resume-backend.pdf  resume-fullstack.pdf   URL-safe renames
-    favicon.svg  robots.txt  og.png
+    favicon.svg  robots.txt  og.png  _headers
   docs/brand.md              phase 7: brand laws migrated from the skill
   ```
 - **.astro/.tsx split**: `src/sections/` is `.astro`; a section is `.tsx` only if it is, or becomes, a hydrated island (an island cannot hydrate inside a non-hydrated React tree, and `astro:assets` is unavailable to React). React is reserved for the kit and for islands.
@@ -66,7 +69,7 @@ Phases add their own items on top of this.
 - **Theme**: inline `is:inline` head script before paint (localStorage → `prefers-color-scheme` → light) sets `data-theme` on `<html>`; the `SiteThemeToggle` island syncs from the attribute and writes attribute + localStorage.
 - **Reveal**: vanilla `src/scripts/reveal.ts` binding the `.reveal` / `.reveal-ready` / `.is-in` contract that already exists in `tokens/base.css`. Observer `rootMargin: "-40px"`, 900ms reveal-everything fallback, reduced-motion bail.
 - **Fonts**: `@fontsource-variable/space-grotesk` + `@fontsource-variable/jetbrains-mono`, self-hosted via the bundler. The Google Fonts `@import` must never reach production.
-- **Contact**: one on-demand route `POST /api/contact` (`prerender = false`) in the same Worker. Resend via plain `fetch` (no SDK). Config via environment: `EMAIL_FROM` / `EMAIL_TO` as `vars` in `wrangler.jsonc`, `RESEND_API_KEY` as a Worker secret, all three in gitignored `.dev.vars` locally. Honeypot only; Turnstile is a documented follow-up if spam appears.
+- **Contact**: one route, `POST /api/contact` — since phase 6.1 a hand-written Pages Function (`functions/api/contact.ts`) reading `context.env`; the rest of the site is fully static. Resend via plain `fetch` (no SDK). Config via environment: `EMAIL_FROM` / `EMAIL_TO` as `vars` in `wrangler.jsonc` (now a Pages config), `RESEND_API_KEY` as a per-environment Pages secret, all three in gitignored `.dev.vars` locally. Honeypot only; Turnstile is a documented follow-up if spam appears.
 
 ## Design source of truth
 
@@ -89,5 +92,5 @@ Until the skill is deleted (phase 7), all visual/behavioral numbers come from:
 7. **Icon needs public URLs**: the Icon component paints SVGs via CSS `mask`; bundler-hashed `src/assets` paths break it. Icons live in `public/icons/`.
 8. **Resume filenames**: the source PDFs have spaces and `í`. Only the URL-safe copies in `public/` are served; the originals are removed once migrated.
 9. **Copy is law**: BRAND-GUIDE voice rules (first person, numbers not adjectives, sentence case, no emoji, no exclamation marks, em dash with spaces, `·` separators, accents in _Bogotá_/_Nicolás_) apply to every string, including form errors and the 404 page.
-10. **Workers preview versions share the production Worker's secrets** — use a test Resend key until launch; rotate in phase 7.
-11. **Adapter/wrangler config drifts**: where a phase doc names `@astrojs/cloudflare` or `wrangler.jsonc` fields, the current official docs win. Verify with `wrangler dev`, don't trust the doc.
+10. **Pages preview and production carry separate vars and secrets** (since phase 6.1) — keep a test Resend key in both environments until launch; production rotates to the live key in phase 7.
+11. **Pages/wrangler config drifts**: where a phase doc names `wrangler` Pages fields or flags, the current official docs win. Verify with `wrangler pages dev`, don't trust the doc.

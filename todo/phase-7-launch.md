@@ -24,13 +24,13 @@ SEO/meta complete, performance audited against budgets, hardening done, `nicolas
 
 ### 4. Hardening
 
-- Security headers: `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, a minimal `Permissions-Policy`. Mechanism: whatever current Workers-static-assets docs support (`_headers` file or middleware) — verify against current docs, don't assume.
+- Security headers: `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, a minimal `Permissions-Policy`. Mechanism: append to `public/_headers` (created in phase 6.1; Pages consumes it natively).
 - `grep -ri resend dist/_astro/` and a scan for the API key pattern → nothing secret in client output.
-- Confirm immutable caching on hashed `_astro/*` assets (adapter/platform default — verify response headers).
+- Confirm immutable caching on hashed `_astro/*` assets (hand-written in `public/_headers` since phase 6.1 — verify response headers on the deployed URL).
 
 ### 5. Performance audit
 
-Lighthouse (headless Chromium via the Playwright install) against the **preview URL**, desktop and mobile-simulated. Budgets — fix regressions before launch, record final numbers in the PR:
+Lighthouse (headless Chromium via the Playwright install) against the **preview URL**, desktop and mobile-simulated. Pages preview deployments send `X-Robots-Tag: noindex`, which fails the Lighthouse SEO category — run Performance/Accessibility/Best Practices against the preview and SEO against production. Budgets — fix regressions before launch, record final numbers in the PR:
 
 | Metric                               | Budget                                     |
 | ------------------------------------ | ------------------------------------------ |
@@ -56,8 +56,8 @@ Then: `git rm -r .claude/skills/nicolas-mateo-design` (and `assets/` if any orig
 
 ### 7. Go live
 
-- `HUMAN:` rotate `RESEND_API_KEY` to the production key (`wrangler secret put`); update `.dev.vars` locally.
-- `HUMAN:` attach the `nicolasmateo.dev` custom domain to the Worker in the dashboard; confirm DNS + TLS. (Requires the domain zoned in the Cloudflare account.)
+- `HUMAN:` rotate `RESEND_API_KEY` to the live key in the Pages **Production** environment (dashboard); Preview keeps the test key — the per-environment split is the point of the 6.1 migration. Update `.dev.vars` only if local sends should go live.
+- `HUMAN:` attach the `nicolasmateo.dev` custom domain to the Pages project in the dashboard; confirm DNS + TLS. (Requires the domain zoned in the Cloudflare account.)
 - Final production smoke on `https://nicolasmateo.dev`: both themes, reveal, both resume downloads, one real contact send received, `/404`, sitemap + robots fetchable, OG card renders in a link-preview validator.
 
 ## Verification
@@ -68,6 +68,7 @@ The phase is its own verification; the DoD is the record.
 
 - Order matters: run the parity checklist and write `docs/brand.md` **before** `git rm` — the skill is the source you're diffing against.
 - Domain attach changes canonical URLs nowhere (already `nicolasmateo.dev` since phase 0's `site` config) — but re-run one Lighthouse pass on the real domain after cutover.
+- The `*.pages.dev` URL stays reachable after the domain attaches — the canonical tag covers it; nothing to disable.
 - If the OG screenshot page ships by accident, the sitemap exclusion won't cover it — delete the page, don't just unlink it.
 
 ## Definition of Done
