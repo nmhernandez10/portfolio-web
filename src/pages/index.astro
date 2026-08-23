@@ -17,20 +17,14 @@ const description =
 ---
 
 <BaseLayout title={title} description={description}>
-  <Header />
-  <main id="main">
-    <Hero />
-    <Stats />
-    <Work />
-    <Experience />
-    <SkillSection id="backend" columns={2} groups={profile.skills.backend} />
-    <SkillSection
-      id="full-stack"
-      columns={3}
-      groups={profile.skills.fullStack}
-    />
-    <AICard />
-    <Contact />
-  </main>
-  <Footer />
+  <Header slot="header" />
+  <Hero />
+  <Stats />
+  <Work />
+  <Experience />
+  <SkillSection id="backend" columns={2} groups={profile.skills.backend} />
+  <SkillSection id="full-stack" columns={3} groups={profile.skills.fullStack} />
+  <AICard />
+  <Contact />
+  <Footer slot="footer" />
 </BaseLayout>

@@ -50,8 +50,14 @@ const { title, description } = Astro.props;
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   </head>
   <body>
+    <!-- The landmark lives here, not in the pages: the skip link above targets
+         #main, and owning both ends of that contract in one file is what keeps
+         a new page from shipping without one. tabindex="-1" is what makes the
+         jump move focus rather than only scroll. -->
     <a class="skip-link" href="#main">Skip to content</a>
-    <slot />
+    <slot name="header" />
+    <main id="main" tabindex="-1"><slot /></main>
+    <slot name="footer" />
     <script>
       import "@/scripts/reveal";
     </script>
