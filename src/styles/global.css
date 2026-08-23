@@ -44,3 +44,13 @@
   white-space: nowrap;
   border: 0;
 }
+
+/* `reveal-ready` must never carry into print: an unrevealed section sits at
+   opacity 0 and would print blank. Lives here rather than in tokens/base.css,
+   which stays byte-verbatim for the phase-7 parity diff. */
+@media print {
+  .reveal-ready .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -22,5 +22,6 @@ const meta = id ? sectionMeta(id) : undefined;
       />
     )
   }
-  <div class="section-body"><slot /></div>
+  {/* Every Section is below the hero, so the reveal hook is unconditional. */}
+  <div class="section-body reveal"><slot /></div>
 </section>
