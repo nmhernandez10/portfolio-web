@@ -18,10 +18,10 @@ import {
   Tag,
   Textarea,
   TextLink,
-  ThemeToggle,
   TimelineItem,
   WorkRow,
 } from "@/ui";
+import { SiteThemeToggle } from "@/sections/SiteThemeToggle";
 
 const buttonVariants = ["primary", "secondary", "ghost"] as const;
 const buttonSizes = ["sm", "md", "lg"] as const;
@@ -49,7 +49,7 @@ const techMarks = ["postgresql", "react", "typescript", "docker", "nestjs"];
     <header class="kit-head">
       <div class="kit-head-row">
         <h1>UI kit</h1>
-        <ThemeToggle client:load />
+        <SiteThemeToggle client:load />
       </div>
       <p class="kit-note">
         Every component in the design system, in every variant its props allow.

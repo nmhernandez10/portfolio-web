@@ -1,7 +1,8 @@
 ---
-import { Button, ThemeToggle } from "@/ui";
+import { Button } from "@/ui";
 import { NAV } from "@/content";
 import Wordmark from "./Wordmark.astro";
+import { SiteThemeToggle } from "./SiteThemeToggle";
 ---
 
 <header class="site-header">
@@ -17,7 +18,7 @@ import Wordmark from "./Wordmark.astro";
       }
     </nav>
     <div class="site-header__actions">
-      <ThemeToggle />
+      <SiteThemeToggle client:load />
       <Button
         as="a"
         href="/resume-fullstack.pdf"

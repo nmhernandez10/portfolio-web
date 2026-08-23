@@ -27,7 +27,7 @@ src/
   styles/global.css        imports tokens in skill order, then sections + site utilities
   ui/{core,forms,navigation,content}/*.tsx   20 components; index.ts barrel
   content/{types,profile,sections}.ts        data + page manifest; index.ts barrel
-  sections/*.astro         one component per page section (+ ContactForm.tsx)
+  sections/*.astro         one component per page section (+ the .tsx islands)
   layouts/BaseLayout.astro head, fonts, theme script, reveal script
   pages/index.astro  kit.astro  404.astro  api/contact.ts
   scripts/reveal.ts        vanilla IntersectionObserver module
@@ -42,7 +42,7 @@ docs/brand.md              phase 7: brand laws migrated from the skill
 ### Layering rules
 
 - Dependencies run one way: `pages → layouts → sections → {ui, content} → styles`. `src/ui/` never imports `src/content/`; `src/content/` holds data only — no React, no styling, no imports from `src/ui/`.
-- `src/sections/` is `.astro`. A section file is `.tsx` only if it is, or becomes, a hydrated island — today that is `ContactForm.tsx` alone (phase 5 gives it `client:visible`). This keeps every section free to host an island without restructuring, and makes shipping JS by accident impossible.
+- `src/sections/` is `.astro`. A section file is `.tsx` only if it is, or becomes, a hydrated island — today that is `SiteThemeToggle.tsx` (phase 4, `client:load`) and `ContactForm.tsx` (phase 5 gives it `client:visible`). This keeps every section free to host an island without restructuring, and makes shipping JS by accident impossible.
 - The UI kit styles itself inline and is never forked. Section layout lives in `src/styles/sections.css` behind class hooks, so phase 6 can add media queries without `!important`.
 - A class hook always sits on a section-owned element, never on a kit component: Astro deletes `class` on framework components and the kit's frozen props have no `className`. Kit components take their own `style` prop instead (as the prototype does).
 

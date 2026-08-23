@@ -16,8 +16,27 @@ const { title, description } = Astro.props;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline>
+      // Resolves the theme before first paint; SiteThemeToggle adopts it after.
+      (() => {
+        let stored = null;
+        try {
+          stored = localStorage.getItem("theme");
+        } catch {
+          // Site data blocked — fall through to the system preference.
+        }
+        document.documentElement.dataset.theme =
+          stored === "light" || stored === "dark"
+            ? stored
+            : window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+      })();
+    </script>
     <title>{title}</title>
     <meta name="description" content={description} />
+    <!-- Keyed to system preference, not data-theme: a user who toggles against
+         their system gets a mismatched chrome tint. Deferred to phase 7. -->
     <meta
       name="theme-color"
       content="#FBFAF7"
@@ -33,5 +52,8 @@ const { title, description } = Astro.props;
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <slot />
+    <script>
+      import "@/scripts/reveal";
+    </script>
   </body>
 </html>
