@@ -1,11 +1,11 @@
 ---
-// The pre-paint theme resolution, owned in one file so BaseLayout and
-// KitLayout cannot drift apart on it while the two design systems run in
-// parallel. is:inline is emitted verbatim, so the rendered markup is identical
-// to the copy this replaced.
+// The pre-paint theme resolution, owned in one file so every layout resolves
+// the theme identically and no page can drift on the localStorage contract.
+// is:inline is emitted verbatim, so the rendered markup is identical to the
+// copies this replaced.
 //
-// The localStorage key is repeated in the SiteThemeToggle islands because an
-// is:inline script cannot import.
+// The localStorage key is repeated in SiteThemeToggle because an is:inline
+// script cannot import.
 ---
 
 <script is:inline>

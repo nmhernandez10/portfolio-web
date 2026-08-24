@@ -1,0 +1,33 @@
+---
+import { Divider, SkillGroup } from "@/ui";
+import { COPY, profile } from "@/content";
+import Section from "./Section.astro";
+import SectionIntro from "./SectionIntro.astro";
+---
+
+<Section id="about">
+  <div class="about__grid">
+    <div>
+      <SectionIntro id="about" compact />
+      <div class="about__prose">
+        {COPY.about.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+      </div>
+      <Divider label={COPY.about.educationLabel} space="var(--space-7)" />
+      <div class="about__education">
+        {
+          profile.education.map((entry) => (
+            <div class="about__degree">
+              <span class="about__degree-name">{entry.degree}</span>
+              <span class="about__degree-meta">
+                {entry.school} · {entry.period}
+              </span>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+    <div>
+      {profile.skills.map((group) => <SkillGroup {...group} />)}
+    </div>
+  </div>
+</Section>

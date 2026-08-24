@@ -1,66 +1,44 @@
 ---
-import { Icon, TextLink } from "@/ui";
-import { profile } from "@/content";
+import { TextLink } from "@/ui";
+import { COPY, profile } from "@/content";
 import Section from "./Section.astro";
+import SectionIntro from "./SectionIntro.astro";
 import { ContactForm } from "./ContactForm";
-
-const rows = [
-  {
-    icon: "mail",
-    set: "ui",
-    label: "Email",
-    value: profile.email,
-    href: `mailto:${profile.email}`,
-  },
-  {
-    icon: "map-pin",
-    set: "ui",
-    label: "Based in",
-    value: profile.location,
-    href: null,
-  },
-  {
-    icon: "github",
-    set: "tech",
-    label: "Code",
-    value: profile.github,
-    href: `https://${profile.github}`,
-  },
-] as const;
-
-const railIcon = { color: "var(--text-muted)", marginTop: 3 };
 ---
 
-<Section id="contact">
-  <div class="contact-grid">
-    <ContactForm client:visible />
-    <div class="contact-rail">
-      {
-        rows.map((row) => (
-          <div class="contact-rail__row">
-            <Icon name={row.icon} set={row.set} size={16} style={railIcon} />
-            <div class="contact-rail__body">
-              <span class="label-mono">{row.label}</span>
-              {row.href ? (
-                <TextLink href={row.href}>{row.value}</TextLink>
-              ) : (
-                <span>{row.value}</span>
-              )}
-            </div>
+<Section id="contact" surface="sunk">
+  <div class="contact__grid">
+    <div>
+      <SectionIntro id="contact" compact />
+      <div class="contact__details">
+        <div class="contact__row">
+          <span class="contact__label">{COPY.contact.emailLabel}</span>
+          <div class="contact__links">
+            <TextLink
+              href={`mailto:${profile.email}`}
+              style={{ font: "var(--type-lead)" }}
+            >
+              {profile.email}
+            </TextLink>
           </div>
-        ))
-      }
-      <div class="contact-rail__row">
-        <Icon name="file-text" size={16} style={railIcon} />
-        <div class="contact-rail__body">
-          <span class="label-mono">Resume</span>
-          <span class="contact-rail__links">
-            <TextLink href={profile.resumes.backend}>Backend</TextLink>
-            <span class="label-mono">·</span>
-            <TextLink href={profile.resumes.fullStack}>Full stack</TextLink>
-          </span>
+        </div>
+        <div class="contact__row">
+          <span class="contact__label">{COPY.contact.elsewhereLabel}</span>
+          <div class="contact__links">
+            <TextLink href={`https://${profile.linkedin}`} external arrow>
+              {profile.linkedin}
+            </TextLink>
+            <TextLink href={`https://${profile.github}`} external arrow>
+              {profile.github}
+            </TextLink>
+          </div>
+        </div>
+        <div class="contact__row">
+          <span class="contact__label">{COPY.contact.locationLabel}</span>
+          <span class="contact__value">{COPY.contact.locationLine}</span>
         </div>
       </div>
     </div>
+    <ContactForm client:visible />
   </div>
 </Section>

@@ -1,7 +1,7 @@
 ---
 import { getImage } from "astro:assets";
 import portrait from "@/assets/portrait.jpg";
-import { COPY, profile, SECTIONS, sectionMeta, twoDigit } from "@/content/next";
+import { COPY, profile, SECTIONS, sectionMeta, twoDigit } from "@/content";
 import {
   Button,
   Card,
@@ -17,11 +17,11 @@ import {
   Tag,
   Textarea,
   TextLink,
-} from "@/kit";
-import KitLayout from "@/layouts/KitLayout.astro";
+} from "@/ui";
+import BaseLayout from "@/layouts/BaseLayout.astro";
 import { NavBarSpecimen } from "./_kit/NavBarSpecimen";
 import Specimen from "./_kit/Specimen.astro";
-import { SiteThemeToggle } from "@/sections/next/SiteThemeToggle";
+import { SiteThemeToggle } from "@/sections/SiteThemeToggle";
 
 const buttonVariants = ["primary", "accent", "secondary", "ghost"] as const;
 const buttonSizes = ["sm", "md", "lg"] as const;
@@ -38,7 +38,7 @@ const tagTones = [
 const textLinkTones = ["ink", "accent"] as const;
 
 // astro:assets is unavailable to React, so the portrait is processed here and
-// handed to the component as a plain URL — the same move VC3 makes in Hero.
+// handed to the component as a plain URL — the same move Hero.astro makes.
 const portraitImage = await getImage({
   src: portrait,
   width: 320,
@@ -55,7 +55,7 @@ const pastRole = profile.experience[1];
 const [firstStat, secondStat] = profile.stats;
 ---
 
-<KitLayout
+<BaseLayout
   title="UI kit — nicolasmateo.dev"
   description="Every component in the design system, in every variant its props allow."
 >
@@ -367,7 +367,7 @@ const [firstStat, secondStat] = profile.stats;
       </Specimen>
     </section>
   </div>
-</KitLayout>
+</BaseLayout>
 
 <style>
   .kit {

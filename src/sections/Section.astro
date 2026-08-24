@@ -1,27 +1,46 @@
 ---
-import { SectionHeader } from "@/ui";
-import { sectionMeta } from "@/content";
+import SectionIntro from "./SectionIntro.astro";
 import type { SectionId } from "@/content";
 
+/**
+ * The page's block shell: the full-bleed surface, the anchor the nav targets,
+ * and the 1080px column inside it. Every block on the page is one of these, so
+ * the container width and the reveal hook have a single owner.
+ */
 interface Props {
-  /** Omit for a section that carries no eyebrow, heading or anchor. */
-  id?: SectionId;
+  /** "top" is the hero's anchor; it is deliberately not in the manifest. */
+  id: SectionId | "top";
+  class?: string;
+  /**
+   * Surface alternation is design law — paper, sunk, paper, sunk — so it is
+   * declared at the call site rather than buried in a stylesheet.
+   */
+  surface?: "paper" | "sunk";
+  /** Hero opts out: it is above the fold and has nothing to reveal into. */
+  reveal?: boolean;
+  /** Opens the block with its numbered header. */
+  intro?: boolean;
 }
 
-const { id } = Astro.props;
-const meta = id ? sectionMeta(id) : undefined;
+const {
+  id,
+  class: cls,
+  surface = "paper",
+  reveal = true,
+  intro = false,
+} = Astro.props;
 ---
 
-<section id={id} class="section">
-  {
-    meta?.title && (
-      <SectionHeader
-        eyebrow={meta.eyebrow}
-        title={meta.title}
-        lede={meta.lede}
-      />
-    )
-  }
-  {/* Every Section is below the hero, so the reveal hook is unconditional. */}
-  <div class="section-body reveal"><slot /></div>
+<section
+  id={id}
+  class:list={["section", surface === "sunk" && "section--sunk", cls]}
+>
+  <div class:list={["section__inner", reveal && "reveal"]}>
+    {
+      /* `id !== "top"` narrows the union for TypeScript and states the rule it
+        stands for: the hero has no manifest entry, so it can carry no ordinal. */
+    }
+    {intro && id !== "top" && <SectionIntro id={id} />}
+    <slot />
+  </div>
 </section>

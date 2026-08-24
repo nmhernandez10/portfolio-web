@@ -1,37 +1,14 @@
 ---
-import { TimelineItem } from "@/ui";
+import { ExperienceItem } from "@/ui";
 import { profile } from "@/content";
 import Section from "./Section.astro";
 ---
 
-<Section id="experience">
-  <div class="experience-grid">
-    <ol class="timeline">
-      {
-        profile.timeline.map((entry) => (
-          <TimelineItem
-            company={entry.company}
-            role={entry.role}
-            period={entry.period}
-            location={entry.location}
-            bullets={entry.bullets}
-            current={entry.current}
-            last={entry.last}
-          />
-        ))
-      }
-    </ol>
-    <div class="education">
-      <span class="label-mono">Education</span>
-      {
-        profile.education.map((entry) => (
-          <div class="education__item">
-            <span>{entry.degree}</span>
-            <span class="education__school">{entry.school}</span>
-            <span class="label-mono">{entry.period}</span>
-          </div>
-        ))
-      }
-    </div>
-  </div>
+<Section id="experience" surface="sunk" intro>
+  {
+    /* Every field of ExperienceEntry is an ExperienceItem prop — the content
+       model was written against the kit's contract, so no mapping layer. Each
+       item draws its own hairline, so the stack needs no wrapper. */
+    profile.experience.map((entry) => <ExperienceItem {...entry} />)
+  }
 </Section>

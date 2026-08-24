@@ -1,10 +1,11 @@
-import { useState } from "react";
-import type { TextareaHTMLAttributes } from "react";
+import { fieldBox, fieldNote, metaLabel, useFocus } from "../internal";
 
-export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+/** Multi-line field, matching Input's label and focus treatment. */
+export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   hint?: string;
   error?: string;
+  /** @default 5 */
   rows?: number;
 }
 
@@ -17,17 +18,11 @@ export function Textarea({
   style,
   ...rest
 }: TextareaProps) {
-  const [focus, setFocus] = useState(false);
-  const fieldId = id || rest.name || undefined;
-  // Only one of hint/error renders at a time, so one id covers both. Written
-  // before {...rest} on the control so a caller-supplied value still wins.
-  const describedBy =
-    fieldId && (error || hint)
-      ? `${fieldId}-${error ? "error" : "hint"}`
-      : undefined;
+  const [focus, focusHandlers] = useFocus();
+  const fieldId =
+    id || `ta-${(label || "field").replace(/\s+/g, "-").toLowerCase()}`;
   return (
-    <label
-      htmlFor={fieldId}
+    <div
       style={{
         display: "flex",
         flexDirection: "column",
@@ -36,57 +31,20 @@ export function Textarea({
       }}
     >
       {label ? (
-        <span
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: "var(--text-2xs)",
-            letterSpacing: "var(--tracking-label)",
-            textTransform: "uppercase",
-            color: "var(--text-muted)",
-          }}
-        >
+        <label htmlFor={fieldId} style={metaLabel}>
           {label}
-        </span>
+        </label>
       ) : null}
       <textarea
         id={fieldId}
-        aria-describedby={describedBy}
         rows={rows}
-        onFocus={() => setFocus(true)}
-        onBlur={() => setFocus(false)}
-        style={{
-          width: "100%",
-          padding: "12px 14px",
-          background: "var(--surface-raised)",
-          border: `1px solid ${error ? "var(--status-danger)" : focus ? "var(--accent-press)" : "var(--border-strong)"}`,
-          borderRadius: "var(--radius-input)",
-          boxShadow: focus ? "var(--ring-focus)" : "none",
-          outline: "none",
-          resize: "vertical",
-          fontFamily: "var(--font-body)",
-          fontSize: "var(--text-base)",
-          lineHeight: "var(--leading-body)",
-          color: "var(--text-body)",
-          transition: "var(--transition-control)",
-        }}
+        {...focusHandlers}
+        style={{ ...fieldBox(focus, Boolean(error)), resize: "vertical" }}
         {...rest}
-      ></textarea>
-      {hint && !error ? (
-        <span
-          id={fieldId ? `${fieldId}-hint` : undefined}
-          style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)" }}
-        >
-          {hint}
-        </span>
+      />
+      {error || hint ? (
+        <span style={fieldNote(Boolean(error))}>{error || hint}</span>
       ) : null}
-      {error ? (
-        <span
-          id={fieldId ? `${fieldId}-error` : undefined}
-          style={{ fontSize: "var(--text-sm)", color: "var(--status-danger)" }}
-        >
-          {error}
-        </span>
-      ) : null}
-    </label>
+    </div>
   );
 }

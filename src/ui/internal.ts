@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { CSSProperties } from "react";
 
 /* The kit's private seam: the four things the design skill's source repeats.
-   Not exported from index.ts — nothing outside src/kit/ may import it.
+   Not exported from index.ts — nothing outside src/ui/ may import it.
 
    Every style constant below is ordered so that each consumer, spreading it
    and appending its own overrides, renders the exact declaration order the

@@ -18,14 +18,14 @@ rebrand.
 
 ## Status
 
-| Phase | Title                                                         | PR  | Status      | Preview URL     |
-| ----- | ------------------------------------------------------------- | --- | ----------- | --------------- |
-| VC0   | [Skill swap and docs](phase-vc0-skill-swap-and-docs.md)       | —   | Implemented | n/a — docs only |
-| VC1   | [Content and contract](phase-vc1-content-and-contract.md)     | —   | Implemented | —               |
-| VC2   | [Kit](phase-vc2-kit.md)                                       | —   | Implemented | —               |
-| VC3   | [Page swap](phase-vc3-page-swap.md)                           | —   | Not started | —               |
-| VC4   | [Interactivity](phase-vc4-interactivity.md)                   | —   | Not started | —               |
-| VC5   | [Responsive and quality](phase-vc5-responsive-and-quality.md) | —   | Not started | —               |
+| Phase | Title                                                         | PR  | Status                                                   | Preview URL     |
+| ----- | ------------------------------------------------------------- | --- | -------------------------------------------------------- | --------------- |
+| VC0   | [Skill swap and docs](phase-vc0-skill-swap-and-docs.md)       | —   | Implemented                                              | n/a — docs only |
+| VC1   | [Content and contract](phase-vc1-content-and-contract.md)     | —   | Implemented                                              | —               |
+| VC2   | [Kit](phase-vc2-kit.md)                                       | —   | Implemented                                              | —               |
+| VC3   | [Page swap](phase-vc3-page-swap.md)                           | —   | Implemented — one open item (favicon; see the phase doc) | —               |
+| VC4   | [Interactivity](phase-vc4-interactivity.md)                   | —   | Not started                                              | —               |
+| VC5   | [Responsive and quality](phase-vc5-responsive-and-quality.md) | —   | Not started                                              | —               |
 
 Dependencies are strictly linear: VC0 → VC1 → VC2 → VC3 → VC4 → VC5 → phase 7.
 

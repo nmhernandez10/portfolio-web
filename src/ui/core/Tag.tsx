@@ -1,73 +1,65 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 
-const tagTones = {
-  neutral: {
-    background: "var(--surface-sunken)",
-    color: "var(--text-secondary)",
-    border: "1px solid var(--border-subtle)",
+const TONES = {
+  neutral: { bg: "var(--paper-sunk)", fg: "var(--ink-2)", bd: "var(--line-1)" },
+  clay: {
+    bg: "var(--clay-soft)",
+    fg: "var(--clay-strong)",
+    bd: "var(--clay-line)",
   },
-  accent: {
-    background: "var(--accent-quiet)",
-    color: "var(--gold-700)",
-    border: "1px solid transparent",
+  moss: { bg: "var(--moss-soft)", fg: "var(--moss)", bd: "transparent" },
+  /* The skill hardcoded this foreground; --tag-amber-ink is that literal in
+     the light theme and the palette's --amber in the dark one, where the
+     literal measured 2.11. */
+  amber: {
+    bg: "var(--amber-soft)",
+    fg: "var(--tag-amber-ink)",
+    bd: "transparent",
   },
-  outline: {
-    background: "transparent",
-    color: "var(--text-secondary)",
-    border: "1px solid var(--border-strong)",
-  },
-  success: {
-    background: "var(--status-success-bg)",
-    color: "var(--status-success)",
-    border: "1px solid transparent",
-  },
-  info: {
-    background: "var(--status-info-bg)",
-    color: "var(--status-info)",
-    border: "1px solid transparent",
-  },
-  danger: {
-    background: "var(--status-danger-bg)",
-    color: "var(--status-danger)",
-    border: "1px solid transparent",
-  },
+  rust: { bg: "var(--rust-soft)", fg: "var(--rust)", bd: "transparent" },
+  outline: { bg: "transparent", fg: "var(--ink-2)", bd: "var(--line-2)" },
 };
 
-export interface TagProps {
+/**
+ * Small pill for a technology, status, or category. Mono by default — tags are
+ * the system's main place for technical texture.
+ */
+export interface TagProps extends React.HTMLAttributes<HTMLSpanElement> {
   children?: ReactNode;
-  tone?: "neutral" | "accent" | "outline" | "success" | "info" | "danger";
-  size?: "sm" | "md";
-  dot?: boolean;
+  /** @default "neutral" */
+  tone?: "neutral" | "clay" | "moss" | "amber" | "rust" | "outline";
+  /** Use the mono face. @default true */
   mono?: boolean;
-  style?: CSSProperties;
+  /** Leading status dot. @default false */
+  dot?: boolean;
 }
 
 export function Tag({
   children,
   tone = "neutral",
-  size = "md",
-  dot = false,
   mono = true,
+  dot = false,
   style,
   ...rest
 }: TagProps) {
-  const small = size === "sm";
+  const t = TONES[tone];
   return (
     <span
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 6,
-        height: small ? 22 : 26,
-        padding: small ? "0 8px" : "0 10px",
+        gap: "var(--space-2)",
+        height: 26,
+        padding: "0 var(--space-3)",
+        background: t.bg,
+        color: t.fg,
+        border: `1px solid ${t.bd}`,
         borderRadius: "var(--radius-pill)",
-        fontFamily: mono ? "var(--font-mono)" : "var(--font-body)",
-        fontSize: small ? "var(--text-2xs)" : "var(--text-xs)",
-        fontWeight: "var(--weight-medium)",
-        letterSpacing: mono ? "var(--tracking-mono)" : "0",
-        lineHeight: 1,
+        font: mono
+          ? "var(--weight-book) var(--size-label)/1 var(--font-mono)"
+          : "var(--weight-medium) var(--size-meta)/1 var(--font-sans)",
+        letterSpacing: mono ? "0.02em" : "0",
         whiteSpace: "nowrap",
-        ...tagTones[tone],
         ...style,
       }}
       {...rest}
@@ -77,10 +69,10 @@ export function Tag({
           style={{
             width: 5,
             height: 5,
-            borderRadius: "var(--radius-pill)",
+            borderRadius: "50%",
             background: "currentColor",
           }}
-        ></span>
+        />
       ) : null}
       {children}
     </span>

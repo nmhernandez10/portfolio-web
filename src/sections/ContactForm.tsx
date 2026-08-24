@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import type { SubmitEvent } from "react";
-import { Button, Input, Tag, Textarea } from "@/ui";
-// Subpath, not the "@/content" barrel: this is the one client-hydrated
-// consumer, and the barrel also re-exports the whole résumé. See the note in
-// src/content/index.ts.
+import { Button, Card, Input, Textarea } from "@/ui";
+// Subpaths, not the "@/content" barrel: this is hydrated code and the barrel
+// re-exports the whole résumé. Both modules imported here are import-free
+// leaves — see the note in src/content/index.ts.
+import { COPY } from "@/content/sections";
 import {
   CONTACT_ERRORS,
   CONTACT_SENT_PARAM,
@@ -20,9 +21,9 @@ import type { ContactErrors, ContactField } from "@/content/contact";
  * POST is not a bug. The redirect carries a sent flag, and the mount effect
  * below picks it up once React is live.
  *
- * The full-width fields use the kit's own `style` prop rather than a class:
- * Astro strips `class` from framework components, and the kit spreads the rest
- * of its props onto the inner control, not the label.
+ * The Card is the container the design draws around the fields; the <form> sits
+ * inside it rather than replacing it because CardProps extends
+ * React.HTMLAttributes, which has no `action` or `method`.
  */
 
 type Status = "idle" | "sending" | "sent";
@@ -76,62 +77,63 @@ export function ContactForm() {
   const formError = errors.form;
 
   return (
-    <form
-      className="contact-form"
-      action="/api/contact"
-      method="post"
-      onSubmit={handleSubmit}
-    >
-      <Input
-        label="Name"
-        name="name"
-        placeholder="Who is writing?"
-        required
-        {...fieldProps("name")}
-      />
-      <Input
-        label="Email"
-        name="email"
-        type="email"
-        placeholder="you@company.com"
-        required
-        {...fieldProps("email")}
-      />
-      <Textarea
-        label="What are you building?"
-        name="message"
-        rows={5}
-        placeholder="A sentence or two is plenty."
-        style={{ gridColumn: "1 / -1" }}
-        {...fieldProps("message")}
-      />
-      {/* Honeypot: never seen, never focusable. A filled value means a bot. */}
-      <input
-        className="visually-hidden"
-        type="text"
-        name="company"
-        tabIndex={-1}
-        autoComplete="off"
-        aria-hidden="true"
-      />
-      <div className="contact-form__actions">
-        <Button icon="arrow-right" disabled={status !== "idle"}>
-          {status === "sent" ? "Sent, thank you" : "Send it"}
-        </Button>
-        <span className="contact-form__status" role="status">
-          {status === "sent" ? (
-            <Tag tone="success" dot>
-              I reply within a couple of days
-            </Tag>
-          ) : formError ? (
-            <span className="contact-form__error">{formError}</span>
-          ) : (
-            <span className="contact-form__note">
-              Or just email me directly.
-            </span>
-          )}
-        </span>
-      </div>
-    </form>
+    <Card>
+      <form
+        className="contact-form"
+        action="/api/contact"
+        method="post"
+        onSubmit={handleSubmit}
+      >
+        <Input
+          label={COPY.form.name.label}
+          name="name"
+          placeholder={COPY.form.name.placeholder}
+          required
+          {...fieldProps("name")}
+        />
+        <Input
+          label={COPY.form.email.label}
+          name="email"
+          type="email"
+          placeholder={COPY.form.email.placeholder}
+          required
+          {...fieldProps("email")}
+        />
+        <Textarea
+          label={COPY.form.message.label}
+          name="message"
+          rows={4}
+          placeholder={COPY.form.message.placeholder}
+          required
+          {...fieldProps("message")}
+        />
+        {/* Honeypot: never seen, never focusable. A filled value means a bot. */}
+        <input
+          className="visually-hidden"
+          type="text"
+          name="company"
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+        />
+        <div className="contact-form__actions">
+          <Button
+            variant="accent"
+            type="submit"
+            trailing="→"
+            disabled={status !== "idle"}
+          >
+            {COPY.form.submit}
+          </Button>
+          <span role="status">
+            {status === "sent" ? (
+              <span className="contact-form__success">{COPY.form.success}</span>
+            ) : formError ? (
+              <span className="contact-form__error">{formError}</span>
+            ) : null}
+          </span>
+        </div>
+      </form>
+    </Card>
   );
 }

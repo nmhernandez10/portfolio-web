@@ -1,43 +1,55 @@
 /**
- * Shapes for the site's content. Data only — no JSX, no styling, no imports
- * from the UI kit. This layer is what changes when the résumé changes.
+ * Shapes for the site's content. Data only — no JSX, no styling, no imports from
+ * the UI kit. This layer is what changes when the résumé changes.
+ *
+ * Field names mirror the design kit's frozen prop contracts exactly
+ * (StatBlockProps, ProjectCardProps, ExperienceItemProps, SkillGroupProps), so a
+ * section spreads content straight into a component with no mapping layer.
+ * Layering forbids importing those types from src/ui, so the mirroring is
+ * deliberate rather than shared.
+ *
+ * Arrays are mutable for the same reason: the kit declares `tags?: string[]`,
+ * and a readonly array is not assignable to a mutable one.
  */
-
-export interface SkillGroupContent {
-  title: string;
-  /** File name under public/icons/<iconSet>/, without the extension. */
-  icon: string;
-  iconSet?: "ui" | "tech";
-  items: string[];
-}
 
 export interface Stat {
   /** Already formatted: "200k+", "4–8". */
   value: string;
   label: string;
+  /** Smaller qualifier under the figure. Absent on half the row by design. */
+  note?: string;
 }
 
-export interface WorkItem {
-  id: string;
+export interface Project {
   title: string;
-  role: string;
-  period: string;
-  /** One sentence naming the system and the part I owned. */
-  summary: string;
-  metrics: string[];
-  stack: string[];
+  /** Company and years, e.g. "Keel Mind · 2024–2025". */
+  kicker: string;
+  /** The constraint that shaped the work, in one sentence. */
+  description: string;
+  /** Drawer-only copy: three lines, numbered from their position. */
+  detail: string[];
+  tags: string[];
+  /** Closing line on the card, e.g. "Shipped". */
+  meta: string;
 }
 
-export interface TimelineEntry {
-  company: string;
-  role: string;
+export interface ExperienceEntry {
+  /** Renders the period in clay — the role held now. */
+  current?: boolean;
+  /** e.g. "Mar 2024 — Present". */
   period: string;
   location: string;
-  bullets: string[];
-  /** Gold rail node with a halo — the role held now. */
-  current?: boolean;
-  /** Hides the connecting rail on the final entry. */
-  last?: boolean;
+  role: string;
+  company: string;
+  summary: string;
+  points: string[];
+  tags: string[];
+}
+
+export interface SkillGroupContent {
+  /** Mono uppercase category, e.g. "Backend". */
+  title: string;
+  items: string[];
 }
 
 export interface EducationEntry {
@@ -47,27 +59,24 @@ export interface EducationEntry {
 }
 
 export interface Profile {
+  /** The rendered name — the brand mark is this, set in type. */
   name: string;
+  /** Legal name. Rendered nowhere; phase 7's JSON-LD needs it. */
   fullName: string;
-  /** Positioning label for the hero meta row and <title> — not a timeline job title. */
+  /** Positioning label for the hero and <title> — not a timeline job title. */
   role: string;
   location: string;
   email: string;
   site: string;
   github: string;
   linkedin: string;
-  /** URL-safe copies in public/. The header and menu advertise the full-stack one. */
-  resumes: { backend: string; fullStack: string };
-  /** The two hero lines, rendered with an explicit <br> between them. */
-  hero: [string, string];
-  lede: string;
+  /** The hero paragraph under the role. */
+  lead: string;
+  /** URL-safe copies in public/. The full-stack one is the primary link. */
+  resumes: { fullStack: string; backend: string };
   stats: Stat[];
-  work: WorkItem[];
-  timeline: TimelineEntry[];
+  projects: Project[];
+  experience: ExperienceEntry[];
+  skills: SkillGroupContent[];
   education: EducationEntry[];
-  skills: {
-    backend: SkillGroupContent[];
-    fullStack: SkillGroupContent[];
-  };
-  aiBullets: string[];
 }

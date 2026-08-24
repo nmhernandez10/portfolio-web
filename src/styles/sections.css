@@ -1,190 +1,64 @@
-/* Page layout, in page order. The UI kit styles itself inline and is never
-   forked; everything here is the sections' own structure, hooked by class so
-   phase 6 can add media queries without !important. Class hooks always sit on a
-   section-owned element — Astro strips `class` from framework components. */
+/* Page layout, one block per page section, in page order. Every hook sits on a
+   section-owned element: Astro deletes `class` on framework components, and the
+   kit's frozen props carry no className, so a kit component is reached only
+   through its own `style` prop or a token override.
 
-/* --- Section primitive ------------------------------------------------ */
+   This file is imported by global.css *before* the site layer, so at equal
+   specificity global.css wins. Nothing here styles the nav — NavBar owns its
+   own sticky positioning, blur and scrolled hairline. No media queries: the
+   design is desktop-only and VC5 measures the breakpoints. */
 
+/* --- The shell every block shares ------------------------------------- */
 .section {
-  max-width: var(--container-max);
-  margin: var(--section-gap) auto 0;
-  padding: 0 var(--gutter-lg);
+  padding: var(--section-y) var(--gutter);
+}
+/* Surface alternation is design law: hero and work sit on the page's --paper,
+   experience, contact and the footer on --surface-sunk. There is no third. */
+.section--sunk {
+  background: var(--surface-sunk);
+}
+.section__inner {
+  max-width: var(--width-content);
+  margin-inline: auto;
 }
 
-/* Offsets the body from its SectionHeader; self-cancels when there is none. */
-.section-body {
-  margin-top: var(--space-10);
-}
-.section-body:first-child {
-  margin-top: 0;
-}
-
-/* --- Wordmark (header + footer) --------------------------------------- */
-
-.wordmark {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-.wordmark__name {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: var(--weight-semibold);
-  letter-spacing: -0.02em;
-  color: var(--text-display);
-}
-.wordmark--lg .wordmark__name {
-  font-size: var(--text-lg);
-}
-.wordmark__dot {
-  color: var(--accent-press);
-}
-
-/* --- 1. Sticky header -------------------------------------------------- */
-
-.site-header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  background: color-mix(in oklab, var(--surface-canvas) 86%, transparent);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border-subtle);
-}
-.site-header__inner {
-  max-width: var(--container-max);
-  margin: 0 auto;
-  padding: 14px var(--gutter-lg);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-6);
-}
-/* Unconditional, not scoped to a breakpoint: the wordmark is the header's only
-   elastic child, so letting it ellipsis is what guarantees no viewport can ever
-   scroll sideways — including before the webfonts load, and on a platform whose
-   fallback metrics are wider than ours. It never engages when there is room.
-   min-width is needed on both boxes: .wordmark__name is itself a flex item and
-   would otherwise refuse to shrink below its intrinsic width. */
-.site-header .wordmark {
-  min-width: 0;
-}
-.site-header .wordmark__name {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.site-header__actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-.site-nav__bar {
-  display: flex;
-  gap: var(--space-6);
-}
-.site-nav__link {
-  font-family: var(--font-mono);
-  font-size: var(--text-2xs);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  color: var(--text-muted);
-  border-bottom: 1px solid transparent;
-  padding-bottom: 2px;
-}
-/* 0,2,0 is what it takes to beat the global `a:hover` hairline in base.css. */
-.site-nav__link:hover,
-.site-nav__link:focus-visible {
-  color: var(--text-body);
-  border-bottom: 1.5px solid var(--accent-line);
-}
-
-/* Mobile menu: a zero-JS <details> disclosure. Everything below is the closed,
-   desktop-hidden default; the two display flips live with the other breakpoints
-   in global.css. */
-.site-menu {
-  display: none;
-}
-/* 36px, not the 44px WCAG 2.5.5 target: 2.5.8 AA only requires 24px, this
-   clears it, and matching the adjacent theme toggle's height keeps the two
-   controls level in the sticky bar. */
-.site-menu__toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  color: var(--text-muted);
-  cursor: pointer;
-  list-style: none;
-}
-.site-menu__toggle::-webkit-details-marker {
-  display: none;
-}
-/* Painted the way the kit's Icon does it, but from CSS: Icon writes `mask`
-   inline, so details[open] could not swap the glyph without !important. */
-.site-menu__glyph {
-  width: 20px;
-  height: 20px;
-  background: currentColor;
-  -webkit-mask: url("/icons/ui/menu.svg") center / contain no-repeat;
-  mask: url("/icons/ui/menu.svg") center / contain no-repeat;
-}
-.site-menu[open] .site-menu__glyph {
-  -webkit-mask-image: url("/icons/ui/x.svg");
-  mask-image: url("/icons/ui/x.svg");
-}
-/* Positioned against the sticky .site-header, so the panel hangs below the bar
-   instead of stretching it. Opaque, because the header itself is translucent. */
-.site-menu__panel {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  display: flex;
-  flex-direction: column;
-  padding: var(--space-2) var(--gutter-lg) var(--space-4);
-  background: var(--surface-canvas);
-  border-bottom: 1px solid var(--border-subtle);
-}
-/* .site-nav__link sets no display of its own — it only blockifies in the bar
-   because that is a flex container. Here the flex column does it, so the
-   vertical padding actually builds a touch target — measured at 51px,
-   clearing the 44px WCAG 2.5.5 target. */
-.site-menu__panel .site-nav__link {
-  padding: var(--space-4) 0;
-}
-
-/* --- 2. Hero ----------------------------------------------------------- */
-
+/* --- Hero ------------------------------------------------------------- */
 .hero {
-  max-width: var(--container-max);
-  margin: 0 auto;
-  padding: var(--space-20) var(--gutter-lg) 0;
+  padding-bottom: var(--space-8);
 }
 .hero__grid {
   display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  gap: var(--space-16);
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-8);
+  align-items: end;
 }
 .hero__copy {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-5);
 }
-/* Wrapper keeps the inline-flex Tag from stretching in the flex column. */
-.hero__status {
+.hero__tags {
   display: flex;
-  align-items: center;
-  gap: var(--space-4);
   flex-wrap: wrap;
+  gap: var(--space-2);
 }
-.hero__lede {
-  margin: 0;
-  max-width: 48ch;
-  font-size: var(--text-lg);
-  color: var(--text-secondary);
+/* The system's one fluid type size; --type-hero is never referenced. */
+.hero__name {
+  font: var(--weight-light) clamp(3rem, 7vw, var(--size-display-xl)) /
+    var(--lh-tight) var(--font-display);
+  letter-spacing: var(--tracking-display);
+  color: var(--ink-1);
+}
+.hero__role {
+  font: var(--type-h2);
+  letter-spacing: var(--tracking-heading);
+  color: var(--ink-2);
+  max-width: 20ch;
+}
+.hero__lead {
+  font: var(--type-lead);
+  color: var(--text-body);
+  max-width: var(--measure-prose);
 }
 .hero__actions {
   display: flex;
@@ -192,209 +66,139 @@
   gap: var(--space-3);
   margin-top: var(--space-2);
 }
-.hero__meta {
-  display: flex;
+.hero__stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--space-6);
-  flex-wrap: wrap;
-  margin-top: var(--space-4);
+  margin-top: var(--space-9);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border-hairline);
 }
-.hero__media {
-  position: relative;
+
+/* --- 01 Work ---------------------------------------------------------- */
+.work__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
 }
-.hero__media picture {
-  display: block;
+
+/* --- 02 Experience ---------------------------------------------------- */
+/* Each ExperienceItem carries its own grid and hairline, so the stack needs
+   nothing of its own. */
+
+/* --- 03 About --------------------------------------------------------- */
+.about__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: var(--space-8);
 }
-.hero__portrait {
-  width: 100%;
-  aspect-ratio: 4 / 5;
-  object-fit: cover;
-  object-position: 50% 20%;
-  border-radius: var(--radius-media);
-  border: 1px solid var(--border-subtle);
+.about__prose {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: var(--measure-prose);
+  font: var(--type-body);
+  color: var(--text-body);
 }
-/* The one sanctioned 8px corner outside inputs — see AGENTS.md design laws. */
-.hero__tab {
-  position: absolute;
-  left: -1px;
-  bottom: -1px;
-  padding: 8px 12px;
-  background: var(--surface-canvas);
-  border-top: 1px solid var(--border-subtle);
-  border-right: 1px solid var(--border-subtle);
-  border-top-right-radius: var(--radius-sm);
-  font-family: var(--font-mono);
-  font-size: var(--text-2xs);
+.about__education {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.about__degree {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.about__degree-name {
+  font: var(--type-h3);
+  color: var(--ink-1);
+}
+.about__degree-meta {
+  font: var(--type-meta);
+  color: var(--text-meta);
+}
+
+/* --- 04 Contact ------------------------------------------------------- */
+.contact {
+  padding-bottom: var(--space-8);
+}
+.contact__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-8);
+}
+.contact__details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.contact__row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.contact__label {
+  font: var(--type-label);
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-meta);
 }
-
-/* --- 3. Stats ---------------------------------------------------------- */
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--space-8);
-  border-top: 1px solid var(--border-subtle);
-  padding-top: var(--space-8);
+.contact__value {
+  font: var(--type-body);
+  color: var(--ink-1);
 }
-
-/* --- 4. Selected work -------------------------------------------------- */
-
-.work-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-6);
-}
-
-/* --- 5. Experience ----------------------------------------------------- */
-
-.experience-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
-  gap: var(--space-16);
-}
-.timeline {
-  margin: 0;
-  padding: 0;
-}
-.education {
+/* The links stack so a second one (GitHub, under "Elsewhere") sits under the
+   first rather than beside it. */
+.contact__links {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
-}
-.education__item {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  border-top: 1px solid var(--border-subtle);
-  padding-top: var(--space-4);
-}
-.education__school {
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-}
-
-/* --- 6/7. Backend and full stack --------------------------------------- */
-
-.skills-grid {
-  display: grid;
-  gap: var(--space-10) var(--space-8);
-}
-.skills-grid--2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-.skills-grid--3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-/* --- 8. AI engineering -------------------------------------------------- */
-
-.ai-card__grid {
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  gap: var(--space-12);
-}
-.ai-card__head {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-.ai-card__eyebrow {
-  display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-2);
-  color: var(--gold-700);
 }
-.ai-card__title {
-  margin: 0;
-  font-size: var(--text-2xl);
-}
-.ai-card__list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+/* The form itself; the Card around it supplies the surface, hairline and pad. */
+.contact-form {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-}
-.ai-card__item {
-  display: flex;
-  gap: var(--space-3);
-  color: var(--text-secondary);
-}
-
-/* --- 9. Contact --------------------------------------------------------- */
-
-.contact-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  gap: var(--space-16);
-}
-.contact-form {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-5);
 }
 .contact-form__actions {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-}
-.contact-form__status {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-}
-.contact-form__note {
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-}
-.contact-form__error {
-  font-size: var(--text-sm);
-  color: var(--status-danger);
-}
-.contact-rail {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-}
-.contact-rail__row {
-  display: flex;
-  gap: var(--space-4);
-  border-top: 1px solid var(--border-subtle);
-  padding-top: var(--space-4);
-}
-.contact-rail__body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-.contact-rail__links {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-/* --- 10. Footer ---------------------------------------------------------- */
-
-.site-footer {
-  border-top: 1px solid var(--border-subtle);
-  margin-top: var(--section-gap);
-}
-.site-footer__inner {
-  max-width: var(--container-max);
-  margin: 0 auto;
-  padding: var(--space-10) var(--gutter-lg) var(--space-16);
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-6);
-  justify-content: space-between;
   align-items: center;
+  gap: var(--space-4);
+}
+.contact-form__success {
+  font: var(--type-meta);
+  color: var(--moss);
+}
+.contact-form__error {
+  font: var(--type-meta);
+  color: var(--rust);
+}
+
+/* --- Footer ----------------------------------------------------------- */
+.site-footer {
+  padding: var(--space-6) var(--gutter);
+  border-top: 1px solid var(--border-hairline);
+  background: var(--surface-sunk);
+}
+.site-footer__inner {
+  max-width: var(--width-content);
+  margin-inline: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+.site-footer__copy {
+  font: var(--type-meta);
+  color: var(--text-meta);
 }
 .site-footer__links {
   display: flex;
-  gap: var(--space-6);
-  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  font: var(--type-meta);
 }

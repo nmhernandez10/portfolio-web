@@ -22,24 +22,14 @@ interface Exemption {
 }
 
 /**
- * The old brand's gold. #A6762A is design law (AGENTS.md) and measures
- * 3.53-4.00 on the surfaces it lands on. The law wins, so those nodes — and
- * only those — leave the contrast rule. Everything else on / was corrected in
- * global.css. Retired with the old system in VC3.
- */
-const OLD_BRAND: Exemption[] = [
-  { fg: "#a6762a", why: "gold text, fixed by design law" },
-];
-
-/**
- * The new brand, light theme. --clay oklch(0.620 0.145 45) is design law and
+ * The brand, light theme. --clay oklch(0.620 0.145 45) is design law and
  * computes to #cb6532, which measures 3.69 both ways: as text on --paper (the
  * section ordinal, the current role's period) and as the accent button's fill
  * behind a --paper label, which is why that one is matched on the background.
  *
- * Nothing else on /kit fails. --ink-3, --moss, --rust and --clay-strong were
- * corrected in src/styles/redesign/index.css, and --ink-4's word-and-digit
- * uses were moved to --text-meta in src/kit. The three non-word marks that
+ * Nothing else fails on either page. --ink-3, --moss, --rust and --clay-strong
+ * were corrected in src/styles/global.css, and --ink-4's word-and-digit
+ * uses were moved to --text-meta in src/ui. The three non-word marks that
  * keep --ink-4 (2.06) are not listed here because axe does not report them:
  * the em dash bullet and the skills slash carry no word characters, and the
  * project card's resting arrow comes back "incomplete" rather than failing.
@@ -47,7 +37,7 @@ const OLD_BRAND: Exemption[] = [
  * but a dead exemption would blunt the canary below, so they get a comment
  * instead of an entry.
  */
-const KIT_LIGHT: Exemption[] = [
+const BRAND_LIGHT: Exemption[] = [
   { fg: "#cb6532", why: "clay as text, fixed by design law" },
   {
     bg: "#cb6532",
@@ -56,11 +46,11 @@ const KIT_LIGHT: Exemption[] = [
 ];
 
 /**
- * The new brand, dark theme, needs no exemption at all: clay lifts to #e7885d
- * and passes at 6.91, and every other pair measures clean. An empty list is
- * the strongest state a page can be in, so this one carries no canary.
+ * The brand, dark theme, needs no exemption at all: clay lifts to #e7885d and
+ * passes at 6.91, and every other pair measures clean. An empty list is the
+ * strongest state a page can be in, so this one carries no canary.
  */
-const KIT_DARK: Exemption[] = [];
+const BRAND_DARK: Exemption[] = [];
 
 interface ContrastData {
   fgColor?: string;
@@ -104,9 +94,9 @@ function gate(results: AxeResults, exemptions: Exemption[]) {
  * Reduced motion is set before every scan on purpose: reveal.ts leaves each
  * section of / below the fold at opacity 0, and axe skips what it cannot see,
  * so an unprepared scan silently covers little more than the hero. Under
- * reduce, reveal.ts bails and base.css pins .reveal visible — the whole page,
- * with no scrolling and no timing to race. /kit has no reveal; the setting is
- * harmless there.
+ * reduce, reveal.ts bails and global.css pins .reveal visible — the whole
+ * page, with no scrolling and no timing to race. /kit has no reveal; the
+ * setting is harmless there.
  */
 async function visit(page: Page, path: string) {
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -147,7 +137,7 @@ async function expectClean(page: Page, exemptions: Exemption[]) {
 
 test("the page is clean in the light theme", async ({ page }) => {
   await visit(page, "/");
-  await expectClean(page, OLD_BRAND);
+  await expectClean(page, BRAND_LIGHT);
 });
 
 test("the page is clean in the dark theme", async ({ page }) => {
@@ -156,17 +146,17 @@ test("the page is clean in the dark theme", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await visit(page, "/");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  await expectClean(page, OLD_BRAND);
+  await expectClean(page, BRAND_DARK);
 });
 
 test("the kit page is clean in the light theme", async ({ page }) => {
   await visit(page, "/kit");
-  await expectClean(page, KIT_LIGHT);
+  await expectClean(page, BRAND_LIGHT);
 });
 
 test("the kit page is clean in the dark theme", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await visit(page, "/kit");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  await expectClean(page, KIT_DARK);
+  await expectClean(page, BRAND_DARK);
 });

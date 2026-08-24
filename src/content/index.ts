@@ -6,9 +6,10 @@
 // the e2e specs, all reaching "content/contact" directly — and since this
 // barrel also re-exports the whole of profile.ts, keeping the only door a
 // subpath is what makes it structurally impossible for the résumé to reach the
-// browser bundle.
+// browser bundle. "content/sections" is a subpath door for the same reason: it
+// imports nothing, so an island can take its copy from there safely.
 
 export { profile } from "./profile";
-export { SECTIONS, NAV, sectionMeta, twoDigit } from "./sections";
+export { SECTIONS, COPY, sectionMeta, twoDigit } from "./sections";
 export type { SectionEntry, SectionId, SectionMeta } from "./sections";
 export type * from "./types";

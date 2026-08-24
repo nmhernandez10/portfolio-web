@@ -1,0 +1,31 @@
+---
+import { SectionHeader } from "@/ui";
+import { sectionMeta } from "@/content";
+import type { SectionId } from "@/content";
+
+/**
+ * The one place a section's ordinal is derived. Every numbered section opens
+ * with one of these, so the manifest position and the "01"-"04" on the page
+ * can never drift apart.
+ */
+interface Props {
+  id: SectionId;
+  /**
+   * The header sits inside a grid column rather than above the whole block, so
+   * it needs less air beneath it. About and Contact; the design's own JSX makes
+   * the same override at both call sites.
+   */
+  compact?: boolean;
+}
+
+const { id, compact = false } = Astro.props;
+const { index, label, title, lead } = sectionMeta(id);
+---
+
+<SectionHeader
+  index={index}
+  label={label}
+  title={title}
+  lead={lead}
+  style={compact ? { marginBottom: "var(--space-5)" } : undefined}
+/>

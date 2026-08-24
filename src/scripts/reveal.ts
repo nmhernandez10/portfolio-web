@@ -1,5 +1,5 @@
 /**
- * Scroll reveal. The CSS contract lives in tokens/base.css: `.reveal` only hides
+ * Scroll reveal. The CSS contract lives in global.css: `.reveal` only hides
  * once <html> carries `.reveal-ready`, so the observer is armed *before* opting
  * in — a constructor that throws leaves the page visible rather than blank.
  *

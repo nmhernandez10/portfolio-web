@@ -1,5 +1,7 @@
 ---
-import "@fontsource-variable/space-grotesk";
+import "@fontsource-variable/newsreader";
+import "@fontsource-variable/newsreader/wght-italic.css";
+import "@fontsource-variable/instrument-sans";
 import "@fontsource-variable/jetbrains-mono";
 import "@/styles/global.css";
 import ThemeScript from "./ThemeScript.astro";
@@ -20,8 +22,10 @@ const { title, description } = Astro.props;
     <ThemeScript />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <!-- Keyed to system preference, not data-theme: a user who toggles against
-         their system gets a mismatched chrome tint. Deferred to phase 7. -->
+    <!-- The two --paper values, converted oklch -> sRGB: light
+         oklch(0.985 0.004 85) and dark oklch(0.205 0.008 70). Keyed to system
+         preference, not data-theme: a user who toggles against their system
+         gets a mismatched chrome tint. Deferred to phase 7. -->
     <meta
       name="theme-color"
       content="#FBFAF7"
@@ -29,7 +33,7 @@ const { title, description } = Astro.props;
     />
     <meta
       name="theme-color"
-      content="#141310"
+      content="#1A1713"
       media="(prefers-color-scheme: dark)"
     />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />

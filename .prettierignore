@@ -6,11 +6,8 @@ pnpm-lock.yaml
 .claude
 
 # tokens are copied verbatim from the design system; formatting them would break
-# the phase-2 `diff -r src/styles/tokens` parity check
+# the `diff -r src/styles/tokens` parity check phase 7 runs before deleting the skill
 src/styles/tokens
-
-# the same, for the new system's tokens; VC3 renames this to src/styles/tokens
-src/styles/redesign/tokens
 
 # e2e artifacts
 test-results

@@ -1,146 +1,160 @@
-import { useState } from "react";
-import type { CSSProperties, MouseEvent, ReactNode } from "react";
-import { Icon } from "./Icon";
+import type { CSSProperties, ReactNode } from "react";
+import { useHover } from "../internal";
 
-const buttonSizes = {
+const SIZES = {
   sm: {
-    height: "var(--control-height-sm)",
-    padding: "0 14px",
-    fontSize: "var(--text-sm)",
-    gap: 6,
-    icon: 14,
+    font: "var(--size-meta)",
+    pad: "0 var(--space-3)",
+    h: 30,
+    gap: "var(--space-2)",
   },
   md: {
-    height: "var(--control-height)",
-    padding: "0 var(--pad-control-x)",
-    fontSize: "var(--text-base)",
-    gap: 8,
-    icon: 16,
+    font: "var(--size-body-s)",
+    pad: "0 var(--space-4)",
+    h: 38,
+    gap: "var(--space-2)",
   },
   lg: {
-    height: "var(--control-height-lg)",
-    padding: "0 28px",
-    fontSize: "var(--text-lg)",
-    gap: 10,
-    icon: 18,
+    font: "var(--size-body)",
+    pad: "0 var(--space-5)",
+    h: 46,
+    gap: "var(--space-3)",
   },
 };
 
-const buttonVariants = {
+/* `hover` is declared last in every entry so that pulling it off with a rest
+   destructure leaves the remaining declaration order untouched. */
+const VARIANTS: Record<
+  NonNullable<ButtonProps["variant"]>,
+  CSSProperties & { hover: CSSProperties }
+> = {
   primary: {
-    background: "var(--accent)",
-    color: "var(--text-on-accent)",
-    border: "1px solid transparent",
+    background: "var(--ink-1)",
+    color: "var(--text-inverse)",
+    border: "1px solid var(--ink-1)",
+    hover: {
+      background: "var(--btn-primary-hover)",
+      borderColor: "var(--btn-primary-hover)",
+    },
+  },
+  accent: {
+    background: "var(--clay)",
+    color: "var(--paper)",
+    border: "1px solid var(--clay)",
+    hover: {
+      background: "var(--clay-strong)",
+      borderColor: "var(--clay-strong)",
+    },
   },
   secondary: {
-    background: "var(--surface-raised)",
-    color: "var(--text-body)",
-    border: "1px solid var(--border-strong)",
+    background: "transparent",
+    color: "var(--ink-1)",
+    border: "1px solid var(--border-control)",
+    hover: { background: "var(--paper-sunk)", borderColor: "var(--ink-3)" },
   },
   ghost: {
     background: "transparent",
-    color: "var(--text-body)",
+    color: "var(--ink-2)",
     border: "1px solid transparent",
-  },
-  inverse: {
-    background: "var(--ink-1)",
-    color: "var(--paper-0)",
-    border: "1px solid transparent",
+    hover: { background: "var(--paper-sunk)", color: "var(--ink-1)" },
   },
 };
 
-const buttonHovers = {
-  primary: { background: "var(--accent-hover)" },
-  secondary: {
-    background: "var(--surface-sunken)",
-    borderColor: "var(--ink-3)",
-  },
-  ghost: { background: "var(--surface-sunken)" },
-  inverse: { background: "var(--ink-0)" },
-};
-
-export interface ButtonProps {
+/**
+ * Pill button in four weights. Primary (ink) is the page's single strongest
+ * action; accent (clay) is reserved for one call-to-action per screen.
+ */
+export interface ButtonProps extends React.HTMLAttributes<HTMLElement> {
   children?: ReactNode;
-  variant?: "primary" | "secondary" | "ghost" | "inverse";
+  /** Visual weight. @default "primary" */
+  variant?: "primary" | "accent" | "secondary" | "ghost";
+  /** @default "md" */
   size?: "sm" | "md" | "lg";
-  icon?: string;
-  iconPosition?: "left" | "right";
-  iconSet?: "ui" | "tech";
-  iconBase?: string;
-  fullWidth?: boolean;
-  disabled?: boolean;
-  as?: "button" | "a";
+  /** Renders an <a> instead of a <button>. */
   href?: string;
-  onClick?: (e: MouseEvent) => void;
-  style?: CSSProperties;
+  /** Glyph placed after the label (e.g. an arrow). */
+  trailing?: ReactNode;
+  /** Glyph placed before the label. */
+  leading?: ReactNode;
+  disabled?: boolean;
+  /** Stretch to the container width. @default false */
+  full?: boolean;
+  type?: "button" | "submit" | "reset";
 }
 
 export function Button({
   children,
   variant = "primary",
   size = "md",
-  icon,
-  iconPosition = "right",
-  iconSet = "ui",
-  iconBase,
-  fullWidth = false,
+  href,
+  trailing,
+  leading,
   disabled = false,
-  as = "button",
+  full = false,
+  type = "button",
+  onClick,
   style,
   ...rest
 }: ButtonProps) {
-  const [hover, setHover] = useState(false);
-  const [press, setPress] = useState(false);
-  const s = buttonSizes[size] || buttonSizes.md;
-  const v = buttonVariants[variant] || buttonVariants.primary;
-  const Tag = as;
-  const glyph = icon ? (
-    <Icon
-      name={icon}
-      set={iconSet}
-      size={s.icon}
-      {...(iconBase ? { base: iconBase } : {})}
-    />
-  ) : null;
+  const [hover, hoverHandlers] = useHover();
+  const s = SIZES[size];
+  const { hover: hoverStyle, ...v } = VARIANTS[variant];
+
+  const base: CSSProperties = {
+    display: full ? "flex" : "inline-flex",
+    width: full ? "100%" : undefined,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: s.gap,
+    height: s.h,
+    padding: s.pad,
+    font: `var(--weight-medium) ${s.font}/1 var(--font-sans)`,
+    letterSpacing: "-0.005em",
+    borderRadius: "var(--radius-pill)",
+    cursor: disabled ? "not-allowed" : "pointer",
+    opacity: disabled ? 0.4 : 1,
+    textDecoration: "none",
+    whiteSpace: "nowrap",
+    transition:
+      "var(--transition-control), transform var(--dur-instant) var(--ease-standard)",
+    ...v,
+    ...(hover && !disabled ? hoverStyle : null),
+    ...style,
+  };
+
+  const content = (
+    <>
+      {leading ? (
+        <span style={{ display: "flex", opacity: 0.85 }}>{leading}</span>
+      ) : null}
+      {children}
+      {trailing ? (
+        <span style={{ display: "flex", opacity: 0.85 }}>{trailing}</span>
+      ) : null}
+    </>
+  );
+
+  const handlers = {
+    ...hoverHandlers,
+    onClick: disabled ? undefined : onClick,
+  };
+
+  if (href && !disabled) {
+    return (
+      <a href={href} style={base} {...handlers} {...rest}>
+        {content}
+      </a>
+    );
+  }
   return (
-    <Tag
-      disabled={Tag === "button" ? disabled : undefined}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => {
-        setHover(false);
-        setPress(false);
-      }}
-      onMouseDown={() => setPress(true)}
-      onMouseUp={() => setPress(false)}
-      style={{
-        display: fullWidth ? "flex" : "inline-flex",
-        width: fullWidth ? "100%" : undefined,
-        alignItems: "center",
-        justifyContent: "center",
-        gap: s.gap,
-        height: s.height,
-        padding: s.padding,
-        fontFamily: "var(--font-body)",
-        fontSize: s.fontSize,
-        fontWeight: "var(--weight-medium)",
-        letterSpacing: "-0.005em",
-        lineHeight: 1,
-        borderRadius: "var(--radius-control)",
-        cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? 0.4 : 1,
-        textDecoration: "none",
-        whiteSpace: "nowrap",
-        transition: "var(--transition-control)",
-        transform: press && !disabled ? "scale(var(--press-scale))" : "none",
-        ...v,
-        ...(hover && !disabled ? buttonHovers[variant] : null),
-        ...style,
-      }}
+    <button
+      type={type}
+      disabled={disabled}
+      style={base}
+      {...handlers}
       {...rest}
     >
-      {icon && iconPosition === "left" ? glyph : null}
-      <span>{children}</span>
-      {icon && iconPosition === "right" ? glyph : null}
-    </Tag>
+      {content}
+    </button>
   );
 }

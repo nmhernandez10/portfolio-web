@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { NAV } from "../src/content/sections";
+import { COPY, SECTIONS } from "../src/content/sections";
 import { profile } from "../src/content/profile";
 import { CONTACT_SENT_PARAM, CONTACT_SENT_VALUE } from "../src/content/contact";
 
 /**
- * Few and load-bearing, per the phase brief: the static page, the two phase-4
- * behaviours, the endpoint's safe paths and gates, and the phase-6 mobile nav.
+ * Few and load-bearing, per the phase brief: the static page, the islands'
+ * behaviour, the endpoint's safe paths and gates, and the structural guarantee
+ * that the résumé never reaches the browser.
  *
  * Data comes from src/content so a manifest change fails a test instead of
  * drifting past a hardcoded copy of it.
@@ -20,9 +21,51 @@ test("every anchored section is in the static page under one h1", async ({
 }) => {
   await page.goto("/");
   await expect(page.locator("h1")).toHaveCount(1);
-  for (const entry of NAV) {
-    await expect(page.locator(`#${entry.id}`)).toBeVisible();
+  // "top" is the hero's anchor — the nav brand targets it, and it is
+  // deliberately not a manifest entry.
+  for (const id of ["top", ...SECTIONS.map((section) => section.id)]) {
+    await expect(page.locator(`#${id}`)).toBeVisible();
   }
+});
+
+test("each block renders its own content", async ({ page }) => {
+  await page.goto("/");
+
+  await expect(
+    page.getByRole("heading", { level: 1, name: profile.name }),
+  ).toBeVisible();
+  await expect(page.getByText(profile.lead)).toBeVisible();
+
+  for (const section of SECTIONS) {
+    await expect(
+      page.getByRole("heading", { level: 2, name: section.title }),
+    ).toBeVisible();
+  }
+
+  await expect(
+    page.getByText(profile.projects[0].title, { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(profile.experience[0].role, { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(profile.education[0].degree, { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText(COPY.contact.locationLine)).toBeVisible();
+  // Exact, because the failure this guards is a missing space: Astro drops the
+  // whitespace between two expressions a newline separates.
+  await expect(
+    page
+      .locator("footer")
+      .getByText(`${COPY.footer.copyright} ${profile.name}`, { exact: true }),
+  ).toBeVisible();
+
+  // Project cards, experience entries and skills groups are the page's only h3
+  // emitters. Counting them together also pins SkillGroup at h3: at the kit's
+  // own h4 this count drops by six and axe's heading-order fails in About.
+  await expect(page.getByRole("heading", { level: 3 })).toHaveCount(
+    profile.projects.length + profile.experience.length + profile.skills.length,
+  );
 });
 
 test("the theme toggle flips data-theme and survives a reload", async ({
@@ -39,9 +82,71 @@ test("the theme toggle flips data-theme and survives a reload", async ({
   await expect(html).toHaveAttribute("data-theme", "dark");
 });
 
-test("both resumes are served", async ({ request }) => {
+test("both resumes are served, and every link points at the right one", async ({
+  page,
+  request,
+}) => {
   for (const href of Object.values(profile.resumes)) {
     expect((await request.get(href)).status()).toBe(200);
+  }
+
+  await page.goto("/");
+  // getByRole matches accessible names by substring, and four links share the
+  // word "Résumé" — the header action, the hero CTA ("Résumé, PDF") and the
+  // footer's two. Scope and pin exactness, or Playwright reports an ambiguity
+  // rather than a failure anyone can read.
+  const header = page.locator("nav");
+  const footer = page.locator("footer");
+
+  for (const link of [
+    header.getByRole("link", { name: COPY.nav.resume, exact: true }),
+    page.getByRole("link", { name: COPY.hero.cta.resume, exact: true }),
+    footer.getByRole("link", { name: COPY.footer.links.resume, exact: true }),
+  ]) {
+    await expect(link).toHaveAttribute("href", profile.resumes.fullStack);
+  }
+
+  await expect(
+    footer.getByRole("link", {
+      name: COPY.footer.links.backendResume,
+      exact: true,
+    }),
+  ).toHaveAttribute("href", profile.resumes.backend);
+});
+
+/**
+ * src/content/index.ts states that the résumé must be unreachable from the
+ * browser bundle structurally, not by tree-shaking: islands import only the
+ * import-free leaves (content/sections, content/contact) and take anything from
+ * profile.ts as a serialized prop. Nothing else checks that, and a single
+ * convenience import of "@/content" inside an island would undo it silently.
+ * The canary is a string profile.ts alone carries.
+ *
+ * Astro hydrates islands from an inline <script type="module">, so there is no
+ * <script src> to enumerate — and the chunk that would carry profile.ts sits an
+ * import deeper than the island itself. Hence the transitive walk: this is the
+ * module graph a browser on / can actually pull.
+ */
+const CHUNK = /\/_astro\/[A-Za-z0-9._-]+\.js/g;
+
+test("profile data never reaches a client bundle", async ({ request }) => {
+  const canary = profile.education[0].school;
+  const html = await (await request.get("/")).text();
+
+  const queue = [...new Set(html.match(CHUNK) ?? [])];
+  expect(queue.length, "no client bundles to check").toBeGreaterThan(0);
+
+  const seen = new Set<string>();
+  while (queue.length > 0) {
+    const url = queue.pop()!;
+    if (seen.has(url)) continue;
+    seen.add(url);
+
+    const body = await (await request.get(url)).text();
+    expect(body, `${url} carries profile.ts`).not.toContain(canary);
+    for (const next of body.match(CHUNK) ?? []) {
+      if (!seen.has(next)) queue.push(next);
+    }
   }
 });
 
@@ -114,15 +219,16 @@ test("a form-encoded post redirects instead of answering JSON", async ({
 });
 
 /**
- * 960 and 720 are the two breakpoints; each is checked on both sides. 768 is
- * iPad portrait, and it is here for a reason: the nav used to move at 720, and
- * everything from 720 to 769 scrolled sideways because the desktop header needs
- * 915px. 320 is the narrowest phone worth supporting — the wordmark ellipsises
- * there rather than pushing the page wide.
+ * TODO(VC5): restore. The design the page now runs on defines desktop only —
+ * the kit carries zero media queries and was drawn at 1280 — so sweeping below
+ * that measures a layout nobody has designed yet. VC5 designs narrow mode and
+ * its Definition of Done restores the full ladder (1280 down to 320, both sides
+ * of every breakpoint) together with the header-fit assertion that left here
+ * with the wordmark. Tolerable only while production is the unlaunched
+ * *.pages.dev URL; if launch is ever reordered ahead of VC5, this comes back
+ * first.
  */
-const SWEEP = [
-  1280, 1120, 961, 960, 959, 800, 768, 720, 719, 430, 390, 360, 320,
-];
+const SWEEP = [1440, 1280];
 
 test("no viewport scrolls sideways", async ({ page }) => {
   await page.goto("/");
@@ -131,49 +237,20 @@ test("no viewport scrolls sideways", async ({ page }) => {
     // The variable fonts shift metrics after load, and the header's fit is
     // exactly what moves — measuring before they settle measures nothing.
     await page.evaluate(() => document.fonts.ready);
-    const m = await page.evaluate(() => {
+    const overflow = await page.evaluate(() => {
       const doc = document.documentElement;
-      const name = document.querySelector(".wordmark__name") as HTMLElement;
-      return {
-        overflow: doc.scrollWidth - doc.clientWidth,
-        // The wordmark is the header's only elastic child, so it ellipsises
-        // before the page can widen. That makes the overflow check alone too
-        // forgiving — a header that stops fitting degrades quietly here instead
-        // of failing. Assert both, or a breakpoint regression just eats the
-        // name. Below 350px there is genuinely no room, and truncating beats
-        // scrolling.
-        clipped: name.scrollWidth > name.clientWidth + 1,
-      };
+      return doc.scrollWidth - doc.clientWidth;
     });
-    expect(m.overflow, `horizontal overflow at ${width}px`).toBeLessThanOrEqual(
+    expect(overflow, `horizontal overflow at ${width}px`).toBeLessThanOrEqual(
       0,
     );
-    if (width >= 360) {
-      expect(m.clipped, `wordmark truncated at ${width}px`).toBe(false);
-    }
   }
 });
 
-test("the mobile menu opens and closes", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
-
-  // Addressed by class because Playwright's role engine does not map <summary>.
-  // The browser's own tree is correct — Chromium reports the toggle as
-  // DisclosureTriangle, name "Menu", expanded false/true — so the disclosure
-  // semantics this phase relies on are real; only the test locator is affected.
-  const menu = page.locator(".site-menu");
-  const panel = page.locator(".site-menu__panel");
-
-  await expect(panel).toBeHidden();
-  await page.locator(".site-menu__toggle").click();
-  await expect(menu).toHaveAttribute("open", "");
-  await expect(panel).toBeVisible();
-  await expect(panel.getByRole("link", { name: "Contact" })).toBeVisible();
-  // The desktop copy must not be reachable alongside it.
-  await expect(page.locator(".site-nav__bar")).toBeHidden();
-
-  await page.locator(".site-menu__toggle").click();
-  await expect(menu).not.toHaveAttribute("open", "");
-  await expect(panel).toBeHidden();
-});
+/**
+ * TODO(VC5): restore. The mobile menu left with the old header — the new one is
+ * the kit's NavBar, which has no narrow presentation yet. VC5 builds the
+ * <details> disclosure inside SiteNav and re-adds what this deletes: the menu
+ * opens, it lists the four nav links plus the résumé action, it navigates, it
+ * closes, and the desktop link row is never reachable alongside it.
+ */

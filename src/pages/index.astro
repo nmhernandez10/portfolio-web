@@ -1,30 +1,32 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { profile } from "@/content";
-import Header from "@/sections/Header.astro";
+import { SiteNav } from "@/sections/SiteNav";
 import Hero from "@/sections/Hero.astro";
-import Stats from "@/sections/Stats.astro";
 import Work from "@/sections/Work.astro";
 import Experience from "@/sections/Experience.astro";
-import SkillSection from "@/sections/SkillSection.astro";
-import AICard from "@/sections/AICard.astro";
+import About from "@/sections/About.astro";
 import Contact from "@/sections/Contact.astro";
 import Footer from "@/sections/Footer.astro";
 
-const title = `${profile.fullName} — ${profile.role}`;
-const description =
-  "I lead technical design and delivery for a regulated mental-health platform — schema to shipped UI, owned end to end. Based in Bogotá, Colombia.";
+const title = `${profile.name} — ${profile.role}`;
+
+// brand and resumeHref are passed rather than imported by the island: profile.ts
+// carries the whole résumé, and only import-free content leaves may cross into a
+// hydrated bundle. See src/content/index.ts.
 ---
 
-<BaseLayout title={title} description={description}>
-  <Header slot="header" />
+<BaseLayout title={title} description={profile.lead}>
+  <SiteNav
+    slot="header"
+    client:load
+    brand={profile.name}
+    resumeHref={profile.resumes.fullStack}
+  />
   <Hero />
-  <Stats />
   <Work />
   <Experience />
-  <SkillSection id="backend" columns={2} groups={profile.skills.backend} />
-  <SkillSection id="full-stack" columns={3} groups={profile.skills.fullStack} />
-  <AICard />
+  <About />
   <Contact />
   <Footer slot="footer" />
 </BaseLayout>

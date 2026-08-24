@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
-import { ThemeToggle } from "@/ui";
+
+const STORAGE_KEY = "theme";
 
 /**
- * The app's theme policy around the kit's ThemeToggle. The inline script in
- * BaseLayout.astro owns the first paint and writes data-theme; this adopts that
- * attribute once React is live and persists every toggle after it. The kit
- * component writes the attribute itself, so this owns only state + storage.
+ * The site's theme control, icon-free: the new design system defines no
+ * ThemeToggle and no icons, so this is site chrome rather than kit inventory.
  *
- * The storage key is duplicated in BaseLayout.astro on purpose: that script is
- * is:inline and cannot import.
+ * The inline script in the layout owns the first paint and writes data-theme;
+ * this adopts that attribute once React is live, then owns the attribute and
+ * storage on every toggle after it. The storage key is duplicated in
+ * ThemeScript.astro on purpose: that script is is:inline and cannot import.
+ *
+ * Rendered by SiteNav on / (plain React — an island cannot hydrate inside
+ * another) and mounted directly as an island by /kit.
  */
 export function SiteThemeToggle() {
   // Must start "light" to match the prerendered HTML, or hydration mismatches.
@@ -18,17 +22,41 @@ export function SiteThemeToggle() {
     if (document.documentElement.dataset.theme === "dark") setTheme("dark");
   }, []);
 
+  const dark = theme === "dark";
+  const next = dark ? "light" : "dark";
+
   return (
-    <ThemeToggle
-      theme={theme}
-      onChange={(next) => {
+    <button
+      type="button"
+      aria-pressed={dark}
+      aria-label={`Switch to ${next} theme`}
+      onClick={() => {
         setTheme(next);
+        document.documentElement.dataset.theme = next;
         try {
-          localStorage.setItem("theme", next);
+          localStorage.setItem(STORAGE_KEY, next);
         } catch {
           // Site data blocked — the theme still applies for this session.
         }
       }}
-    />
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        height: 30,
+        padding: "0 var(--space-3)",
+        background: "transparent",
+        color: "var(--text-meta)",
+        border: "1px solid var(--border-control)",
+        borderRadius: "var(--radius-pill)",
+        font: "var(--type-label)",
+        letterSpacing: "var(--tracking-label)",
+        textTransform: "uppercase",
+        cursor: "pointer",
+        whiteSpace: "nowrap",
+        transition: "var(--transition-control)",
+      }}
+    >
+      {dark ? "Light" : "Dark"}
+    </button>
   );
 }

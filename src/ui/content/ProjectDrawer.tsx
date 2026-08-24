@@ -5,7 +5,7 @@ import { monoLabel } from "../internal";
 
 /**
  * The subset of a project the drawer renders. Declared structurally rather
- * than imported: src/kit never reaches into src/content, so the two shapes are
+ * than imported: src/ui never reaches into src/content, so the two shapes are
  * proven compatible at the call site instead.
  */
 export interface DrawerProject {

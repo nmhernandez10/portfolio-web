@@ -1,87 +1,75 @@
-import { useState } from "react";
-import type { CSSProperties, MouseEventHandler, ReactNode } from "react";
+import type { CSSProperties, ElementType, ReactNode } from "react";
+import { useHover } from "../internal";
 
-export interface CardProps {
-  children?: ReactNode;
-  padding?: "none" | "sm" | "md" | "lg";
-  tone?: "raised" | "sunken" | "accent" | "inverse" | "bare";
-  /** Adds hover lift + shadow and a pointer cursor. */
-  interactive?: boolean;
-  as?: "div" | "a" | "article" | "section" | "li";
-  href?: string;
-  style?: CSSProperties;
-}
+/* borderColor is a field rather than something parsed back out of the border
+   shorthand, which is what the skill's source did. Both declarations are still
+   emitted, in the order the skill emitted them. */
+const TONES: Record<
+  NonNullable<CardProps["tone"]>,
+  { background: string; borderColor: string; color?: string }
+> = {
+  raised: {
+    background: "var(--surface-card)",
+    borderColor: "var(--border-hairline)",
+  },
+  flat: { background: "transparent", borderColor: "var(--border-hairline)" },
+  sunk: { background: "var(--surface-sunk)", borderColor: "transparent" },
+  inverse: {
+    background: "var(--surface-inverse)",
+    borderColor: "var(--line-inverse)",
+    color: "var(--text-inverse)",
+  },
+};
 
 /**
- * The exported contract is CardProps. The implementation also accepts the two
- * hover handlers because ProjectCard and ProjectBrief drive their own hover
- * state through Card — in the original JSX those arrived via ...rest.
+ * Hairline container. Shadows only appear on hover for interactive cards —
+ * at rest this system draws containers with 1px rules, not elevation.
  */
-type CardImplProps = CardProps & {
-  onMouseEnter?: MouseEventHandler;
-  onMouseLeave?: MouseEventHandler;
-};
+export interface CardProps extends React.HTMLAttributes<HTMLElement> {
+  children?: ReactNode;
+  as?: keyof React.JSX.IntrinsicElements;
+  /** @default "raised" */
+  tone?: "raised" | "flat" | "sunk" | "inverse";
+  /** Lift + shadow on hover. @default false */
+  interactive?: boolean;
+  /** Padding override. @default "var(--space-6)" */
+  pad?: string;
+  /** Renders an <a>. */
+  href?: string;
+}
 
 export function Card({
   children,
-  padding = "md",
+  as: Tag = "div",
   tone = "raised",
   interactive = false,
-  as = "div",
+  pad = "var(--space-6)",
+  href,
   style,
   ...rest
-}: CardImplProps) {
-  const [hover, setHover] = useState(false);
-  const Tag = as;
-  const pad = {
-    none: 0,
-    sm: "var(--space-5)",
-    md: "var(--pad-card)",
-    lg: "var(--pad-card-lg)",
-  }[padding];
-  const tones = {
-    raised: {
-      background: "var(--surface-card)",
-      border: "1px solid var(--border-subtle)",
-    },
-    sunken: {
-      background: "var(--surface-sunken)",
-      border: "1px solid transparent",
-    },
-    accent: {
-      background: "var(--surface-accent-soft)",
-      border: "1px solid var(--gold-200)",
-    },
-    inverse: {
-      background: "var(--ink-1)",
-      border: "1px solid var(--border-inverse)",
-      color: "var(--paper-0)",
-    },
-    bare: { background: "transparent", border: "1px solid transparent" },
-  }[tone];
+}: CardProps) {
+  const [hover, hoverHandlers] = useHover();
+  const { background, borderColor, color } = TONES[tone];
+  // `as` is any intrinsic tag, which no single JSX signature can accept.
+  const El = (href ? "a" : Tag) as ElementType;
+  const box: CSSProperties = {
+    display: "block",
+    padding: pad,
+    borderRadius: "var(--radius-lg)",
+    background,
+    border: `1px solid ${borderColor}`,
+    ...(color ? { color } : null),
+    boxShadow: interactive && hover ? "var(--shadow-md)" : "var(--shadow-none)",
+    borderColor: interactive && hover ? "var(--line-2)" : borderColor,
+    transform: interactive && hover ? "translateY(-2px)" : "translateY(0)",
+    transition:
+      "transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-standard)",
+    textDecoration: "none",
+    ...style,
+  };
   return (
-    <Tag
-      onMouseEnter={interactive ? () => setHover(true) : undefined}
-      onMouseLeave={interactive ? () => setHover(false) : undefined}
-      style={{
-        borderRadius: "var(--radius-card)",
-        padding: pad,
-        transition: "var(--transition-control)",
-        boxShadow:
-          interactive && hover ? "var(--shadow-2)" : "var(--shadow-none)",
-        transform: interactive && hover ? "translateY(-2px)" : "none",
-        cursor: interactive ? "pointer" : undefined,
-        textDecoration: "none",
-        color: "inherit",
-        ...tones,
-        ...(interactive && hover
-          ? { borderColor: "var(--border-strong)" }
-          : null),
-        ...style,
-      }}
-      {...rest}
-    >
+    <El href={href} {...hoverHandlers} style={box} {...rest}>
       {children}
-    </Tag>
+    </El>
   );
 }

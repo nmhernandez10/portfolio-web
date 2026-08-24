@@ -1,5 +1,5 @@
-import { Button, NavBar } from "@/kit";
-import type { NavItem } from "@/kit";
+import { Button, NavBar } from "@/ui";
+import type { NavItem } from "@/ui";
 
 export interface NavBarSpecimenProps {
   brand: string;

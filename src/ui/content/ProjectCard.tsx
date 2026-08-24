@@ -1,192 +1,137 @@
-import { useState } from "react";
 import type { CSSProperties } from "react";
-import { Card } from "../core/Card";
-import { Tag } from "../core/Tag";
-import { Icon } from "../core/Icon";
+import { monoLabel, tagPill, useHover } from "../internal";
 
-export interface ProjectCardProps {
+/**
+ * A piece of work in the projects grid: index, title, one-paragraph
+ * description, stack tags. The whole card is the link.
+ */
+export interface ProjectCardProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+  /** Mono ordinal, e.g. "01". */
+  index?: string;
   title: string;
-  role: string;
-  period: string;
-  summary: string;
-  stack?: string[];
-  metrics?: string[];
+  /** Short context line above the title, e.g. "Keel Mind · 2025". */
+  kicker?: string;
+  description?: string;
+  tags?: string[];
+  /** Small closing line, e.g. "Private repo". */
+  meta?: string;
   href?: string;
-  /** Image URL for the media band; omit to show the pending-screenshot state. */
-  media?: string;
-  mediaLabel?: string;
-  iconBase?: string;
-  style?: CSSProperties;
 }
 
+const cardTagPill: CSSProperties = { ...tagPill, background: "var(--paper)" };
+
 export function ProjectCard({
+  index,
   title,
-  role,
-  period,
-  summary,
-  stack = [],
-  metrics = [],
-  href = "#",
-  media,
-  mediaLabel = "Screenshot pending",
-  iconBase,
+  kicker,
+  description,
+  tags = [],
+  meta,
+  href,
   style,
   ...rest
 }: ProjectCardProps) {
-  const [hover, setHover] = useState(false);
+  const [hover, hoverHandlers] = useHover();
   return (
-    <Card
-      as="a"
-      href={href}
-      interactive
-      padding="none"
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
+    <a
+      href={href || "#"}
+      {...hoverHandlers}
       style={{
         display: "flex",
         flexDirection: "column",
-        overflow: "hidden",
+        gap: "var(--space-4)",
+        padding: "var(--space-6)",
+        background: hover ? "var(--surface-card)" : "transparent",
+        border: `1px solid ${hover ? "var(--line-2)" : "var(--border-hairline)"}`,
+        borderRadius: "var(--radius-lg)",
+        boxShadow: hover ? "var(--shadow-md)" : "none",
+        transform: hover ? "translateY(-2px)" : "none",
+        transition:
+          "transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out), background-color var(--dur-base) var(--ease-standard), border-color var(--dur-base) var(--ease-standard)",
+        textDecoration: "none",
+        height: "100%",
         ...style,
       }}
       {...rest}
     >
       <div
         style={{
-          height: 168,
-          background: media
-            ? `var(--paper-2) url(${media}) center / cover no-repeat`
-            : "var(--paper-2)",
-          borderBottom: "1px solid var(--border-subtle)",
           display: "flex",
-          alignItems: "flex-end",
-          padding: "var(--space-4)",
+          justifyContent: "space-between",
+          alignItems: "baseline",
+          gap: "var(--space-4)",
         }}
       >
-        {media ? null : (
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-2xs)",
-              letterSpacing: "var(--tracking-label)",
-              textTransform: "uppercase",
-              color: "var(--text-muted)",
-            }}
-          >
-            {mediaLabel}
-          </span>
-        )}
+        <span style={{ ...monoLabel, color: "var(--text-meta)" }}>{index}</span>
+        {/* The resting arrow is a non-word mark, so it keeps --ink-4. */}
+        <span
+          style={{
+            font: "var(--type-label)",
+            color: hover ? "var(--clay)" : "var(--ink-4)",
+            transform: hover ? "translateX(3px)" : "none",
+            transition:
+              "transform var(--dur-base) var(--ease-out), color var(--dur-fast) var(--ease-standard)",
+          }}
+        >
+          →
+        </span>
       </div>
+
       <div
         style={{
           display: "flex",
           flexDirection: "column",
-          gap: "var(--space-4)",
-          padding: "var(--pad-card)",
+          gap: "var(--space-2)",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "baseline",
-            justifyContent: "space-between",
-            gap: "var(--space-4)",
-          }}
-        >
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-2xs)",
-              letterSpacing: "var(--tracking-label)",
-              textTransform: "uppercase",
-              color: "var(--text-muted)",
-            }}
-          >
-            {role}
+        {kicker ? (
+          <span style={{ font: "var(--type-meta)", color: "var(--text-meta)" }}>
+            {kicker}
           </span>
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-2xs)",
-              color: "var(--text-muted)",
-            }}
-          >
-            {period}
-          </span>
-        </div>
+        ) : null}
         <h3
           style={{
-            margin: 0,
-            display: "flex",
-            alignItems: "center",
-            gap: "var(--space-2)",
-            fontFamily: "var(--font-display)",
-            fontSize: "var(--text-xl)",
-            fontWeight: "var(--weight-semibold)",
+            font: "var(--type-h2)",
             letterSpacing: "var(--tracking-heading)",
-            color: "var(--text-display)",
           }}
         >
           {title}
-          <Icon
-            name="arrow-up-right"
-            size={18}
-            {...(iconBase ? { base: iconBase } : {})}
-            style={{
-              transform: hover ? "translate(2px,-2px)" : "none",
-              transition: "transform var(--duration-fast) var(--ease-out)",
-              color: "var(--accent-press)",
-            }}
-          />
         </h3>
+      </div>
+
+      {description ? (
         <p
           style={{
-            margin: 0,
-            fontSize: "var(--text-base)",
-            lineHeight: "var(--leading-body)",
-            color: "var(--text-secondary)",
+            font: "var(--type-small)",
+            color: "var(--text-body)",
+            flex: 1,
           }}
         >
-          {summary}
+          {description}
         </p>
-        {metrics.length ? (
-          <div
-            style={{
-              display: "flex",
-              gap: "var(--space-6)",
-              paddingTop: "var(--space-1)",
-            }}
-          >
-            {metrics.map((m) => (
-              <span
-                key={m}
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "var(--text-xs)",
-                  color: "var(--text-body)",
-                }}
-              >
-                {m}
-              </span>
-            ))}
-          </div>
-        ) : null}
-        {stack.length ? (
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "var(--space-2)",
-              paddingTop: "var(--space-1)",
-            }}
-          >
-            {stack.map((s) => (
-              <Tag key={s} size="sm">
-                {s}
-              </Tag>
-            ))}
-          </div>
-        ) : null}
+      ) : null}
+
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "var(--space-2)",
+          alignItems: "center",
+        }}
+      >
+        {tags.map((t) => (
+          <span key={t} style={cardTagPill}>
+            {t}
+          </span>
+        ))}
       </div>
-    </Card>
+
+      {meta ? (
+        /* Words, so --text-meta rather than the skill's --ink-4 (2.06). */
+        <span style={{ font: "var(--type-meta)", color: "var(--text-meta)" }}>
+          {meta}
+        </span>
+      ) : null}
+    </a>
   );
 }

@@ -1,18 +1,16 @@
-:root{
-  --duration-instant:80ms; /* @kind other */
-  --duration-fast:140ms; /* @kind other */
-  --duration-base:200ms; /* @kind other */
-  --duration-slow:320ms; /* @kind other */
-  --duration-reveal:520ms; /* @kind other */
+:root {
+  --dur-instant: 80ms;
+  --dur-fast:    140ms;
+  --dur-base:    220ms;
+  --dur-slow:    420ms;
+  --dur-reveal:  700ms;
 
-  --ease-out:cubic-bezier(.22,.7,.28,1); /* @kind other */
-  --ease-in-out:cubic-bezier(.5,0,.5,1); /* @kind other */
-  --ease-entrance:cubic-bezier(.16,.84,.34,1); /* @kind other */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out:      cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:       cubic-bezier(0.7, 0, 0.84, 0);
 
-  --transition-control:background-color var(--duration-fast) var(--ease-out),color var(--duration-fast) var(--ease-out),border-color var(--duration-fast) var(--ease-out),box-shadow var(--duration-fast) var(--ease-out),transform var(--duration-fast) var(--ease-out);
-  --transition-reveal:opacity var(--duration-reveal) var(--ease-entrance),transform var(--duration-reveal) var(--ease-entrance);
-
-  /* Press feedback: a hair of shrink, never a bounce */
-  --press-scale:.985; /* @kind other */
-  --reveal-offset:14px;
+  --transition-control: color var(--dur-fast) var(--ease-standard),
+                        background-color var(--dur-fast) var(--ease-standard),
+                        border-color var(--dur-fast) var(--ease-standard),
+                        opacity var(--dur-fast) var(--ease-standard);
 }

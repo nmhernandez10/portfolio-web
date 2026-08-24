@@ -1,46 +1,49 @@
 ---
-import { Picture } from "astro:assets";
-import { Button, Tag } from "@/ui";
-import { profile } from "@/content";
+import { getImage } from "astro:assets";
 import portrait from "@/assets/portrait.jpg";
+import { Button, Portrait, StatBlock, Tag } from "@/ui";
+import { COPY, profile } from "@/content";
+import Section from "./Section.astro";
+
+// astro:assets is unavailable to React, so the portrait is processed here and
+// handed to the kit component as a plain URL. Portrait renders 240 x
+// round(240 * 1.22) CSS pixels; these are its 2x dimensions.
+const portraitImage = await getImage({
+  src: portrait,
+  width: 480,
+  height: 586,
+  format: "webp",
+});
 ---
 
-<div class="hero">
+<Section id="top" class="hero" reveal={false}>
   <div class="hero__grid">
     <div class="hero__copy">
-      <div class="hero__status">
-        <Tag tone="success" dot>Open to work</Tag>
+      <div class="hero__tags">
+        <Tag tone="moss" dot>{COPY.hero.status}</Tag>
+        <Tag tone="outline">{profile.location}</Tag>
       </div>
-      <h1>{profile.hero[0]}<br />{profile.hero[1]}</h1>
-      <p class="hero__lede">{profile.lede}</p>
+      <h1 class="hero__name">{profile.name}</h1>
+      <p class="hero__role">{profile.role}</p>
+      <p class="hero__lead">{profile.lead}</p>
       <div class="hero__actions">
-        <Button as="a" href="#work" icon="arrow-down">See selected work</Button>
-        <Button
-          as="a"
-          href="#contact"
-          variant="secondary"
-          icon="mail"
-          iconPosition="left">Get in touch</Button
-        >
-      </div>
-      <div class="hero__meta">
-        <span class="label-mono">{profile.location}</span>
-        <span class="label-mono">{profile.role}</span>
+        <Button variant="accent" size="lg" trailing="→" href="#contact">
+          {COPY.hero.cta.contact}
+        </Button>
+        {
+          /* No target="_blank": ButtonProps extends React.HTMLAttributes, which
+            carries no `target`, and the kit's API is frozen. The old header's
+            résumé button and /kit's NavBar specimen both open in place too. */
+        }
+        <Button variant="secondary" size="lg" href={profile.resumes.fullStack}>
+          {COPY.hero.cta.resume}
+        </Button>
       </div>
     </div>
-    <div class="hero__media">
-      <Picture
-        src={portrait}
-        alt={profile.fullName}
-        widths={[480, 720, 956]}
-        sizes="(min-width: 1120px) 407px, (min-width: 960px) 40vw, (min-width: 720px) calc(100vw - 80px), calc(100vw - 40px)"
-        formats={["avif", "webp"]}
-        fallbackFormat="jpg"
-        loading="eager"
-        fetchpriority="high"
-        class="hero__portrait"
-      />
-      <span class="hero__tab">Bogotá · Remote</span>
-    </div>
+    <Portrait src={portraitImage.src} alt={profile.name} size={240} />
   </div>
-</div>
+
+  <div class="hero__stats">
+    {profile.stats.map((stat) => <StatBlock {...stat} />)}
+  </div>
+</Section>

@@ -1,26 +1,22 @@
-// The design system, ported in-app. Import from "@/ui" rather than reaching
-// into the group folders.
+// The design system, ported in-app from .claude/skills/nicolas-mateo-design.
+// Import from "@/ui" rather than reaching into the group folders; internal.ts
+// is the kit's private seam and is deliberately not re-exported.
 
-export * from "./core/Icon";
 export * from "./core/Button";
-export * from "./core/IconButton";
-export * from "./core/Tag";
 export * from "./core/Card";
-export * from "./core/Avatar";
-export * from "./core/StatBlock";
+export * from "./core/Divider";
+export * from "./core/Portrait";
+export * from "./core/Tag";
 
 export * from "./forms/Input";
 export * from "./forms/Textarea";
-export * from "./forms/Select";
-export * from "./forms/Switch";
 
+export * from "./navigation/NavBar";
 export * from "./navigation/TextLink";
-export * from "./navigation/SegmentedToggle";
-export * from "./navigation/ThemeToggle";
 
 export * from "./content/SectionHeader";
+export * from "./content/ExperienceItem";
 export * from "./content/ProjectCard";
-export * from "./content/ProjectBrief";
-export * from "./content/WorkRow";
-export * from "./content/TimelineItem";
 export * from "./content/SkillGroup";
+export * from "./content/StatBlock";
+export * from "./content/ProjectDrawer";

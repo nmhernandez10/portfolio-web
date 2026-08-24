@@ -1,25 +1,28 @@
-import type { CSSProperties, ReactNode } from "react";
+import { metaLabel, monoLabel } from "../internal";
 
-export interface SectionHeaderProps {
-  /** Numbered mono kicker, e.g. "02 / Selected work". */
-  eyebrow?: string;
-  title: ReactNode;
-  lede?: ReactNode;
-  /** Right-aligned control on the eyebrow row. */
-  action?: ReactNode;
+/**
+ * Section opener: mono index + label, serif statement, optional lead
+ * paragraph. Every major section on the site starts with one.
+ */
+export interface SectionHeaderProps extends React.HTMLAttributes<HTMLElement> {
+  /** Mono ordinal, e.g. "01". Rendered in clay. */
+  index?: string;
+  /** Mono uppercase category, e.g. "Selected work". */
+  label?: string;
+  /** The serif statement. Keep under ~10 words. */
+  title: string;
+  /** Optional supporting paragraph. */
+  lead?: string;
+  /** @default "left" */
   align?: "left" | "center";
-  /** Hairline above the header. */
-  rule?: boolean;
-  style?: CSSProperties;
 }
 
 export function SectionHeader({
-  eyebrow,
+  index,
+  label,
   title,
-  lede,
-  action,
+  lead,
   align = "left",
-  rule = true,
   style,
   ...rest
 }: SectionHeaderProps) {
@@ -29,9 +32,9 @@ export function SectionHeader({
         display: "flex",
         flexDirection: "column",
         gap: "var(--space-4)",
-        paddingTop: rule ? "var(--space-6)" : 0,
-        borderTop: rule ? "1px solid var(--border-subtle)" : "none",
+        alignItems: align === "center" ? "center" : "flex-start",
         textAlign: align,
+        marginBottom: "var(--space-7)",
         ...style,
       }}
       {...rest}
@@ -39,55 +42,34 @@ export function SectionHeader({
       <div
         style={{
           display: "flex",
-          alignItems: "baseline",
-          justifyContent: align === "center" ? "center" : "space-between",
-          gap: "var(--space-6)",
-          flexWrap: "wrap",
+          alignItems: "center",
+          gap: "var(--space-3)",
         }}
       >
-        {eyebrow ? (
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "var(--text-2xs)",
-              fontWeight: "var(--weight-medium)",
-              letterSpacing: "var(--tracking-label)",
-              textTransform: "uppercase",
-              color: "var(--text-muted)",
-            }}
-          >
-            {eyebrow}
-          </span>
+        {index ? (
+          <span style={{ ...monoLabel, color: "var(--clay)" }}>{index}</span>
         ) : null}
-        {action}
+        {label ? <span style={metaLabel}>{label}</span> : null}
       </div>
       <h2
         style={{
-          margin: 0,
-          fontFamily: "var(--font-display)",
-          fontSize: "var(--type-section-size)",
-          fontWeight: "var(--weight-semibold)",
-          letterSpacing: "var(--tracking-heading)",
-          lineHeight: "var(--leading-display)",
-          color: "var(--text-display)",
-          maxWidth: "22ch",
-          marginInline: align === "center" ? "auto" : undefined,
+          font: "var(--type-statement)",
+          letterSpacing: "var(--tracking-display)",
+          color: "var(--text-heading)",
+          maxWidth: "18ch",
         }}
       >
         {title}
       </h2>
-      {lede ? (
+      {lead ? (
         <p
           style={{
-            margin: 0,
-            maxWidth: "var(--measure-lede)",
-            marginInline: align === "center" ? "auto" : undefined,
-            fontSize: "var(--text-lg)",
-            lineHeight: "var(--leading-body)",
-            color: "var(--text-secondary)",
+            font: "var(--type-lead)",
+            color: "var(--text-body)",
+            maxWidth: "var(--measure-prose)",
           }}
         >
-          {lede}
+          {lead}
         </p>
       ) : null}
     </header>
