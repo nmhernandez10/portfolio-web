@@ -40,25 +40,26 @@ RESEND_API_KEY=re_your_test_key
 
 - Quote `EMAIL_FROM` — the display-name form contains spaces and angle
   brackets. It reaches Resend verbatim and must stay on the verified domain.
-- `EMAIL_FROM` and `EMAIL_TO` are also committed as `vars` in `wrangler.jsonc`;
-  `.dev.vars` is what your local runs read.
-- Use a Resend **test** key until launch. Deployed, the key is a Pages secret set
-  separately for Production and Preview in the Cloudflare dashboard.
+- All three are set per environment in the Cloudflare dashboard for deploys —
+  the two addresses as plain variables, the key as a Secret. Nothing about the
+  environment is committed; `.dev.vars` is what your local runs read.
+- Use a Resend **test** key until launch. Production and Preview each carry
+  their own copy of all three keys.
 - `pnpm preview` reads this file, because it runs the real Pages runtime.
   `pnpm dev` does not — `astro dev` serves static output only, so submitting the
   form there 404s. Use `pnpm build && pnpm preview` to exercise the endpoint.
 
 ## Commands
 
-| Command             | What it does and when you want it                                                                               |
-| ------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `pnpm dev`          | Dev server on `localhost:4321`. The everyday loop — static only, no `/api/contact`.                             |
-| `pnpm build`        | Production build to `dist/`, a plain static directory.                                                          |
-| `pnpm preview`      | Serves the last build plus `functions/` on `localhost:8788`, on the real Pages runtime. Build first.            |
-| `pnpm check`        | `astro check` + `tsc --noEmit` + `tsc -p functions`. There is no ESLint — this and Prettier are the whole gate. |
-| `pnpm format`       | Prettier write. Run it before committing; CI checks formatting.                                                 |
-| `pnpm format:check` | Prettier verify, the way CI runs it.                                                                            |
-| `pnpm test:e2e`     | Builds, then runs the Playwright suite against the build.                                                       |
+| Command             | What it does and when you want it                                                                                              |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `pnpm dev`          | Dev server on `localhost:4321`. The everyday loop — static only, no `/api/contact`.                                            |
+| `pnpm build`        | Production build to `dist/`, a plain static directory.                                                                         |
+| `pnpm preview`      | Serves the last build plus `functions/` on `localhost:8788`, on the real Pages runtime. Build first.                           |
+| `pnpm check`        | `astro check` + `tsc --noEmit`, over `src/` and `functions/` alike. There is no ESLint — this and Prettier are the whole gate. |
+| `pnpm format`       | Prettier write. Run it before committing; CI checks formatting.                                                                |
+| `pnpm format:check` | Prettier verify, the way CI runs it.                                                                                           |
+| `pnpm test:e2e`     | Builds, then runs the Playwright suite against the build.                                                                      |
 
 ## Tests
 

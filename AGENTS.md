@@ -10,7 +10,7 @@ Implementation runs phase by phase from `todo/`. Before any work: read `todo/REA
 
 ## Stack
 
-Astro 7 (latest, decided 2026-08-19, superseding the original "Astro 5" note), `@astrojs/react` (React 19), TypeScript strict, pnpm (via corepack), Node 24. No ESLint — `astro check` + `tsc --noEmit` + `tsc -p functions` + Prettier is the whole quality toolchain. Path alias `@/*` → `src/*`.
+Astro 7 (latest, decided 2026-08-19, superseding the original "Astro 5" note), `@astrojs/react` (React 19), TypeScript strict, pnpm (via corepack), Node 24. No ESLint — `astro check` + `tsc --noEmit` + Prettier is the whole quality toolchain. Path alias `@/*` → `src/*`.
 
 Note: pnpm's `minimumReleaseAge` supply-chain policy (24h) is active on this machine. If an install rejects fresh releases, resolve with `pnpm clean --lockfile && pnpm install` (age-aware resolution) — do not disable the policy.
 
@@ -43,7 +43,7 @@ docs/brand.md              phase 7: brand laws migrated from the skill
 ### Layering rules
 
 - Dependencies run one way: `pages → layouts → sections → {ui, content} → styles`. `src/ui/` never imports `src/content/`; `src/content/` holds data only — no React, no styling, no imports from `src/ui/`.
-- `functions/` is the delivery layer outside `src/`. It may import `src/content` contract modules (data only) by **relative** path — the Pages Functions bundler follows relative imports repo-wide but resolves no aliases, so `@/content` cannot appear there — and never `src/ui`, `src/sections` or styles. Nothing in `src/` ever imports from `functions/`. Import the `content/contact` subpath, not the `@/content` barrel: the barrel re-exports the whole of `profile.ts`, and keeping the contract's only door a subpath is what makes it structurally impossible for the résumé to reach the browser bundle.
+- `functions/` is the delivery layer outside `src/`. It may import `src/content` contract modules (data only) by **relative** path — the Pages Functions bundler follows relative imports repo-wide but resolves no aliases, so `@/content` cannot appear there — and never `src/ui`, `src/sections` or styles. Since 2026-08-23 `functions/` shares the root TypeScript program, which **does** define the `@/*` path, so an alias import there now typechecks and fails only at runtime: this rule is convention, not compiler-enforced. `pnpm test:e2e` is what catches it. Nothing in `src/` ever imports from `functions/`. Import the `content/contact` subpath, not the `@/content` barrel: the barrel re-exports the whole of `profile.ts`, and keeping the contract's only door a subpath is what makes it structurally impossible for the résumé to reach the browser bundle.
 - `src/sections/` is `.astro`. A section file is `.tsx` only if it is, or becomes, a hydrated island — today that is `SiteThemeToggle.tsx` (phase 4, `client:load`) and `ContactForm.tsx` (phase 5, `client:visible`). This keeps every section free to host an island without restructuring, and makes shipping JS by accident impossible.
 - The UI kit styles itself inline and is never forked. Section layout lives in `src/styles/sections.css` behind class hooks, so phase 6 can add media queries without `!important`.
 - Breakpoints live in `src/styles/global.css`, below the `@import` block and in descending order — `< 960px` then `< 720px`. `< 960px` is narrow mode: the grids fold to one column **and** the header nav moves behind the menu button, because the desktop header measures 915px wide (wordmark 170 + nav 421 + actions 196 + gaps + gutters) and cannot survive to 720. One narrow-mode boundary, not two. That file is last in the cascade, so equal-specificity rules beat `sections.css`; the order between the two blocks is load-bearing, because several rules collide at equal specificity. Media queries group against base class hooks (`.skills-grid`, not both modifiers). Where the kit sets a property inline, a **token override** is the only lever — `--type-section-size`, `--gutter-lg`.
@@ -55,7 +55,7 @@ docs/brand.md              phase 7: brand laws migrated from the skill
 - `pnpm dev` — dev server at `localhost:4321`. Static only: it does **not** serve `/api/contact`, so submitting the form in dev 404s. UI work is unaffected; the endpoint loop is `pnpm build && pnpm preview`.
 - `pnpm build` — production build to `dist/`, a plain static directory
 - `pnpm preview` — serve the last build from the real Pages runtime at `localhost:8788` (`wrangler pages dev`, which also runs `functions/`). Build first.
-- `pnpm check` — `astro check && tsc --noEmit && tsc -p functions`
+- `pnpm check` — `astro check && tsc --noEmit`
 - `pnpm format` / `pnpm format:check` — Prettier write / verify
 - `pnpm test:e2e` — build, then run the Playwright suite against it
 
@@ -100,8 +100,8 @@ GitHub Actions owns quality, Cloudflare owns delivery — Actions never deploys.
 
 - Cloudflare **Pages** deploys from git: `main` → production, every other branch and PR → a preview deployment with its own URL. Project `portfolio-web`. There is no adapter and no `wrangler deploy` — Pages builds and publishes from the repo.
 - Build command `pnpm build`, output directory `dist`. The build is plain static; `functions/api/contact.ts` is picked up by Pages' file-based routing and invoked on `/api/contact` only.
-- `wrangler.jsonc` is the Pages config and the source of truth: `name`, `pages_build_output_dir`, `compatibility_date` and the contact `vars`. `pages_build_output_dir` is what locks the dashboard's copies of those fields. It needs build system V2 or later.
-- No `env.production` / `env.preview` blocks. `vars` is **non-inheritable** in Pages config: an env block must restate every var, so a partial override silently drops keys. Add blocks only when values actually diverge.
+- `wrangler.jsonc` is the Pages config and the source of truth for `name`, `pages_build_output_dir` and `compatibility_date`. `pages_build_output_dir` is what locks the dashboard's copies of those fields. It needs build system V2 or later.
+- **It carries no `vars`.** The lock above is per-field, so any var named there stops being editable in the dashboard; all three environment keys therefore live in the dashboard instead (see Environment). No `env.production` / `env.preview` blocks either — `vars` is non-inheritable in Pages config, so an env block would have to restate every key.
 - `public/_headers` owns response headers; it ships to `dist/_headers`. Today it carries the `/_astro/*` immutable-cache rule; phase 7 appends security headers to the same file.
 - `sharp` is a direct dependency, not just astro's optional one. The static image service emits a chunk under `dist/` that does a bare `import("sharp")`, which under pnpm's strict layout resolves from the project root — where an optional transitive dep is not linked. Without it every `astro:assets` transform fails the build.
 - Local loop: `pnpm preview` (`wrangler pages dev`) serves the built `dist/` plus `functions/` from workerd at `localhost:8788`. It watches `functions/` and its relative imports, so Function edits hot-reload; only static HTML changes need a rebuild.
@@ -111,18 +111,19 @@ GitHub Actions owns quality, Cloudflare owns delivery — Actions never deploys.
 
 Secrets are credentials, vars are configuration. Three keys, all consumed by `functions/api/contact.ts` — the only code in the repo that reads the environment.
 
-| key              | deployed                                           | local       |
-| ---------------- | -------------------------------------------------- | ----------- |
-| `EMAIL_FROM`     | `vars` in `wrangler.jsonc`                         | `.dev.vars` |
-| `EMAIL_TO`       | `vars` in `wrangler.jsonc`                         | `.dev.vars` |
-| `RESEND_API_KEY` | Pages secret, set per environment in the dashboard | `.dev.vars` |
+| key              | deployed                                             | local       |
+| ---------------- | ---------------------------------------------------- | ----------- |
+| `EMAIL_FROM`     | Pages variable, set per environment in the dashboard | `.dev.vars` |
+| `EMAIL_TO`       | Pages variable, set per environment in the dashboard | `.dev.vars` |
+| `RESEND_API_KEY` | Pages secret, set per environment in the dashboard   | `.dev.vars` |
 
 - **Access is `context.env`**, the Pages Function's first argument — typed by a three-key `interface Env` colocated in the Function and passed to `send()`. Nothing imports the environment from a module; there is no ambient `env` on the Pages path.
-- **Typing is hand-written, not generated.** `@cloudflare/workers-types` is a devDependency and `functions/tsconfig.json` picks it up; the root `tsconfig.json` excludes `functions/`, because workerd's globals conflict with the DOM lib the site needs. There is no `wrangler types` step and no `worker-configuration.d.ts` to commit.
+- **Typing is hand-written, not generated.** A three-key `interface Env` and the handler's `RequestContext` are both written out in the Function. `functions/` shares the repo's one TypeScript program, so `Request` and `Response` come from the DOM lib there as they do in `src/`; the Function needs nothing workerd-specific. There is no `@cloudflare/workers-types` dependency, no `functions/tsconfig.json`, no `wrangler types` step and no `worker-configuration.d.ts` to commit — dropped 2026-08-23 in phase 6.2, superseding phase 6.1's split-project decision.
 - **Local setup**: create `.dev.vars` (gitignored) with all three keys. Quote `EMAIL_FROM` — the display-name form contains spaces and angle brackets. `pnpm preview` reads it; `pnpm dev` does not, because `astro dev` no longer serves the endpoint at all.
-- `RESEND_API_KEY` is set twice in the dashboard — once for **Production**, once for **Preview** (Settings → Variables and Secrets), as type Secret. Per-environment secrets are the reason this phase moved to Pages.
+- Every key is set twice in the dashboard — once for **Production**, once for **Preview** (Settings → Variables and Secrets). `RESEND_API_KEY` is type Secret; the two addresses are plain variables. Per-environment values are the reason this project moved to Pages.
+- **A missing binding is caught, a wrong one is not.** `send()` returns early if any of the three is absent, logging that fact and nothing else, so the endpoint answers `502` with the brand-voice failure copy rather than an opaque Resend rejection. It cannot tell a typo'd address from a correct one.
 - `EMAIL_FROM` reaches Resend verbatim, so `user@domain` and `Name <user@domain>` are both valid. It must stay on the verified domain — Resend cannot send from the Gmail address.
-- `EMAIL_TO` is the same inbox the contact rail advertises: it mirrors `profile.email` in `src/content/profile.ts`, and changing one without the other silently delivers to an inbox the page does not show. It stays a var (not an import) so environments can override the destination.
+- `EMAIL_TO` is the same inbox the contact rail advertises: it mirrors `profile.email` in `src/content/profile.ts`, and changing one without the other silently delivers to an inbox the page does not show. Since 2026-08-23 the value lives only in the dashboard, so **nothing in the repo can flag that drift** — editing `profile.email` means editing both Pages environments too. It stays environment-driven (not an import) so environments can override the destination.
 - **Never log message bodies or submitter emails.** Function logs carry status codes and outcomes only.
 - Both environments keep a Resend test key until launch; production rotates to the live key in phase 7.
 

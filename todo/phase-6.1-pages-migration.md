@@ -1,5 +1,12 @@
 # Phase 6.1 — Pages migration
 
+> **Amended 2026-08-23 — two locked decisions were reversed in phase 6.2,** with the user, after comparing this repo against a working deployed Pages project (`../landing-webpage`). Both reversals are recorded in `phase-6.2-workers-decommission.md`; the lines they retire are:
+>
+> - **The split TypeScript project** — decision 15, task 4, and the Verification line "the root project must not see `functions/`". `PagesFunction<Env>` was the only workerd-specific type in the Function, so `@cloudflare/workers-types`, `functions/tsconfig.json` and the `tsc -p functions` checker are all gone; `functions/` now shares the root program and is typed against the DOM lib.
+> - **`vars` in `wrangler.jsonc`** — decision 16, task 3, and the non-inheritable-`vars` gotcha. The file's field lock made `EMAIL_FROM`/`EMAIL_TO` uneditable in the dashboard, which the user wanted; both moved to per-environment dashboard variables and the `vars` block is gone. The gotcha is moot: there are no vars to inherit.
+>
+> Everything else in this doc stands, including the `onRequest` method gate and the hand-written origin check.
+
 ## Goal
 
 The site serves from Cloudflare Pages: a plain static `dist/` plus one hand-written Pages Function, deployed by Pages git integration — `main` → production, every other branch → preview, each environment with its own vars and secrets. The `@astrojs/cloudflare` adapter is removed; `astro build` emits a plain static site and nothing Workers-shaped remains in the build.

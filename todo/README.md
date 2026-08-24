@@ -14,7 +14,7 @@ This directory is the implementation plan for the portfolio. Each phase is one m
 | 5     | [Contact endpoint](phase-5-contact-endpoint.md)           | —   | Implemented      | —           |
 | 6     | [Responsive and quality](phase-6-responsive-quality.md)   | —   | Implemented      | —           |
 | 6.1   | [Pages migration](phase-6.1-pages-migration.md)           | —   | In progress      | —           |
-| 6.2   | [Workers decommission](phase-6.2-workers-decommission.md) | —   | Not started      | —           |
+| 6.2   | [Workers decommission](phase-6.2-workers-decommission.md) | —   | Implemented      | —           |
 | 7     | [Launch](phase-7-launch.md)                               | —   | Not started      | —           |
 
 Dependencies are linear (each phase builds on the previous), with one exception: phases 4 and 5 are independent of each other and may run in either order. The Pages migration runs 6.1 → 6.2 between 6 and 7; phase 7 depends on both.
@@ -69,7 +69,7 @@ Phases add their own items on top of this.
 - **Theme**: inline `is:inline` head script before paint (localStorage → `prefers-color-scheme` → light) sets `data-theme` on `<html>`; the `SiteThemeToggle` island syncs from the attribute and writes attribute + localStorage.
 - **Reveal**: vanilla `src/scripts/reveal.ts` binding the `.reveal` / `.reveal-ready` / `.is-in` contract that already exists in `tokens/base.css`. Observer `rootMargin: "-40px"`, 900ms reveal-everything fallback, reduced-motion bail.
 - **Fonts**: `@fontsource-variable/space-grotesk` + `@fontsource-variable/jetbrains-mono`, self-hosted via the bundler. The Google Fonts `@import` must never reach production.
-- **Contact**: one route, `POST /api/contact` — since phase 6.1 a hand-written Pages Function (`functions/api/contact.ts`) reading `context.env`; the rest of the site is fully static. Resend via plain `fetch` (no SDK). Config via environment: `EMAIL_FROM` / `EMAIL_TO` as `vars` in `wrangler.jsonc` (now a Pages config), `RESEND_API_KEY` as a per-environment Pages secret, all three in gitignored `.dev.vars` locally. Honeypot only; Turnstile is a documented follow-up if spam appears.
+- **Contact**: one route, `POST /api/contact` — since phase 6.1 a hand-written Pages Function (`functions/api/contact.ts`) reading `context.env`; the rest of the site is fully static. Resend via plain `fetch` (no SDK). Config via environment: all three keys are set per environment in the Pages dashboard — `EMAIL_FROM` / `EMAIL_TO` as plain variables, `RESEND_API_KEY` as a secret — and live in the gitignored `.dev.vars` locally. (**Revised 2026-08-23 in phase 6.2**: the two addresses were `vars` in `wrangler.jsonc` until naming them there proved to lock the dashboard's copies.) Honeypot only; Turnstile is a documented follow-up if spam appears.
 
 ## Design source of truth
 
