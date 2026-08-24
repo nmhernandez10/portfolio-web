@@ -142,6 +142,14 @@ async function send(
   { name, email, topic, message }: Submission,
   env: Env,
 ): Promise<boolean> {
+  // All three arrive from the environment, so a misconfigured dashboard is the
+  // failure mode this catches. Without it a missing binding reaches Resend and
+  // comes back as an opaque rejection. Names no value, per the logging law.
+  if (!env.RESEND_API_KEY || !env.EMAIL_FROM || !env.EMAIL_TO) {
+    console.error("Contact endpoint is missing one of its three bindings");
+    return false;
+  }
+
   try {
     const response = await fetch(RESEND_ENDPOINT, {
       method: "POST",

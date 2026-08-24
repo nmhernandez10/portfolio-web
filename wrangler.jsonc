@@ -7,26 +7,11 @@
   "pages_build_output_dir": "./dist",
   // Matches the installed workerd (1.20260815.1); bump alongside wrangler upgrades.
   "compatibility_date": "2026-08-15",
-
-  // Contact endpoint configuration. Non-secret, so it is versioned here rather
-  // than hidden in the dashboard. Top-level vars apply to both the preview and
-  // production environments; there are no env blocks because vars is
-  // non-inheritable, so an env.production/env.preview block would have to
-  // restate every key and a partial override silently drops the rest.
-  //
-  // EMAIL_FROM reaches Resend verbatim, so both "user@domain" and
-  // "Name <user@domain>" are valid; it must stay on the verified domain.
-  //
-  // EMAIL_TO is the same inbox the contact rail advertises — it mirrors
-  // profile.email in src/content/profile.ts and the two must move together. It
-  // stays a var rather than reading profile.email so environments can override
-  // the destination; the endpoint never imports it.
-  "vars": {
-    "EMAIL_FROM": "Nicolás Hernández <contact@nicolasmateo.dev>",
-    "EMAIL_TO": "nm.hernandez1996@gmail.com",
-  },
-  // RESEND_API_KEY is a credential, so it is not here: it is a Pages secret set
-  // per environment in the dashboard (Settings → Variables and Secrets, once
-  // for Production and once for Preview) and lives in the gitignored .dev.vars
-  // locally, which `wrangler pages dev` reads.
+  // No environment config lives here. The contact endpoint's three keys —
+  // EMAIL_FROM, EMAIL_TO and RESEND_API_KEY — are set per environment in the
+  // dashboard (Settings → Variables and Secrets): the two addresses as plain
+  // variables, the API key as a Secret. Locally all three sit in the gitignored
+  // .dev.vars, which `wrangler pages dev` reads. Naming a var in this file would
+  // lock the dashboard's copy of it, which is exactly why they moved out
+  // (2026-08-23) — see AGENTS.md for the EMAIL_TO / profile.email rule.
 }
