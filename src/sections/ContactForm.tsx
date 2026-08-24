@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { SubmitEvent } from "react";
-import { Button, Input, Select, Tag, Textarea } from "@/ui";
+import { Button, Input, Tag, Textarea } from "@/ui";
 // Subpath, not the "@/content" barrel: this is the one client-hydrated
 // consumer, and the barrel also re-exports the whole résumé. See the note in
 // src/content/index.ts.
@@ -8,8 +8,8 @@ import {
   CONTACT_ERRORS,
   CONTACT_SENT_PARAM,
   CONTACT_SENT_VALUE,
-  CONTACT_TOPICS,
 } from "@/content/contact";
+import type { ContactErrors, ContactField } from "@/content/contact";
 
 /**
  * The contact form's client behaviour around the kit's frozen form components.
@@ -26,15 +26,11 @@ import {
  */
 
 type Status = "idle" | "sending" | "sent";
-type Errors = Record<string, string>;
-
-/** Fields the kit can render an error on. Everything else goes to the form line. */
-const INLINE_ERRORS = ["name", "email", "message"];
 
 export function ContactForm() {
   // Must start idle to match the prerendered HTML, or hydration mismatches.
   const [status, setStatus] = useState<Status>("idle");
-  const [errors, setErrors] = useState<Errors>({});
+  const [errors, setErrors] = useState<ContactErrors>({});
 
   useEffect(() => {
     const flag = new URLSearchParams(location.search).get(CONTACT_SENT_PARAM);
@@ -61,7 +57,7 @@ export function ContactForm() {
       }
       // Inside the try on purpose: a platform error page is not JSON, and
       // parsing it must land on the same fallback rather than hang the button.
-      const body = (await response.json()) as { errors?: Errors };
+      const body = (await response.json()) as { errors?: ContactErrors };
       setErrors(body.errors ?? { form: CONTACT_ERRORS.failed });
     } catch {
       setErrors({ form: CONTACT_ERRORS.failed });
@@ -70,17 +66,14 @@ export function ContactForm() {
   }
 
   /** Error props for the fields that can show one, written once. */
-  const fieldProps = (field: string) => ({
+  const fieldProps = (field: ContactField) => ({
     error: errors[field],
     "aria-invalid": errors[field] ? (true as const) : undefined,
   });
 
-  // Anything the kit cannot show inline — topic, transport failures — collapses
-  // into the one line beside the button.
-  const formError = Object.entries(errors)
-    .filter(([field]) => !INLINE_ERRORS.includes(field))
-    .map(([, message]) => message)
-    .join(" ");
+  // Everything the kit cannot show inline — an unreadable body, a failed send —
+  // arrives under one key and renders on the line beside the button.
+  const formError = errors.form;
 
   return (
     <form
@@ -103,12 +96,6 @@ export function ContactForm() {
         placeholder="you@company.com"
         required
         {...fieldProps("email")}
-      />
-      <Select
-        label="What is this about?"
-        name="topic"
-        options={[...CONTACT_TOPICS]}
-        style={{ gridColumn: "1 / -1" }}
       />
       <Textarea
         label="What are you building?"

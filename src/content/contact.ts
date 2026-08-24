@@ -3,16 +3,9 @@
  * /api/contact endpoint must agree on. Data only — validating a submission is
  * the endpoint's job, rendering one is the island's.
  *
- * Field labels and placeholders deliberately stay in ContactForm.tsx: only the
- * island renders them, so they are presentation, not contract.
+ * Field labels and placeholders are not part of it: they are presentation, and
+ * live with the rest of the page's copy.
  */
-
-/** The Select's options and the endpoint's allowlist — one list, or silent 400s. */
-export const CONTACT_TOPICS = [
-  "A role",
-  "Contract work",
-  "Something else",
-] as const;
 
 export const CONTACT_MESSAGE_MAX = 5000;
 
@@ -24,8 +17,18 @@ export const CONTACT_SENT_VALUE = "1";
 export const CONTACT_ERRORS = {
   name: "Tell me who is writing.",
   email: "Enter an email I can reply to.",
-  topic: "Pick one of the listed topics.",
   message: `Keep the message under ${CONTACT_MESSAGE_MAX} characters.`,
   unreadable: "That submission did not come through. Try again.",
   failed: "The message did not send. Email me directly instead.",
 } as const;
+
+/** The three fields the kit can render an error on. */
+export type ContactField = "name" | "email" | "message";
+
+/**
+ * The shape errors travel in — declared here so both sides of the wire share
+ * one definition, and so a key neither side handles is a compile error.
+ * "form" carries what the kit cannot show inline: an unreadable body, a failed
+ * send.
+ */
+export type ContactErrors = Partial<Record<ContactField | "form", string>>;

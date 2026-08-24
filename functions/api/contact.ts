@@ -3,8 +3,8 @@ import {
   CONTACT_MESSAGE_MAX,
   CONTACT_SENT_PARAM,
   CONTACT_SENT_VALUE,
-  CONTACT_TOPICS,
 } from "../../src/content/contact";
+import type { ContactErrors } from "../../src/content/contact";
 
 /**
  * The one dynamic route on an otherwise static site: it takes the contact form,
@@ -56,12 +56,9 @@ const FORM_CONTENT_TYPES = [
 interface Submission {
   name: string;
   email: string;
-  topic: string;
   message: string;
   company: string;
 }
-
-type Errors = Record<string, string>;
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), {
@@ -70,7 +67,7 @@ const json = (status: number, body: unknown) =>
   });
 
 /** Errors are JSON on both paths; only success knows about the dual path. */
-const fail = (status: number, errors: Errors) =>
+const fail = (status: number, errors: ContactErrors) =>
   json(status, { ok: false, errors });
 
 const sent = (wantsJson: boolean) =>
@@ -114,24 +111,15 @@ async function readSubmission(
     if (typeof value === "string") fields[key] = value.trim();
   }
 
-  const {
-    name = "",
-    email = "",
-    topic = "",
-    message = "",
-    company = "",
-  } = fields;
-  return { name, email, topic, message, company };
+  const { name = "", email = "", message = "", company = "" } = fields;
+  return { name, email, message, company };
 }
 
-function validate({ name, email, topic, message }: Submission): Errors {
-  const errors: Errors = {};
+function validate({ name, email, message }: Submission): ContactErrors {
+  const errors: ContactErrors = {};
   if (!name) errors.name = CONTACT_ERRORS.name;
   // An empty string fails the shape check too, so this covers missing as well.
   if (!EMAIL_SHAPE.test(email)) errors.email = CONTACT_ERRORS.email;
-  if (!CONTACT_TOPICS.some((allowed) => allowed === topic)) {
-    errors.topic = CONTACT_ERRORS.topic;
-  }
   if (message.length > CONTACT_MESSAGE_MAX)
     errors.message = CONTACT_ERRORS.message;
   return errors;
@@ -139,7 +127,7 @@ function validate({ name, email, topic, message }: Submission): Errors {
 
 /** Total by construction: true means delivered, anything else is false. */
 async function send(
-  { name, email, topic, message }: Submission,
+  { name, email, message }: Submission,
   env: Env,
 ): Promise<boolean> {
   // All three arrive from the environment, so a misconfigured dashboard is the
@@ -162,8 +150,8 @@ async function send(
         from: env.EMAIL_FROM,
         to: env.EMAIL_TO,
         reply_to: email,
-        subject: `Portfolio contact — ${topic}`,
-        text: `Name: ${name}\nEmail: ${email}\nTopic: ${topic}\n\n${message}`,
+        subject: `Portfolio contact — ${name}`,
+        text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
       }),
       // Without this a hung upstream holds the Function until the platform's
       // own limit.

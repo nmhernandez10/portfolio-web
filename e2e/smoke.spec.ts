@@ -1,11 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { NAV } from "../src/content/sections";
 import { profile } from "../src/content/profile";
-import {
-  CONTACT_SENT_PARAM,
-  CONTACT_SENT_VALUE,
-  CONTACT_TOPICS,
-} from "../src/content/contact";
+import { CONTACT_SENT_PARAM, CONTACT_SENT_VALUE } from "../src/content/contact";
 
 /**
  * Few and load-bearing, per the phase brief: the static page, the two phase-4
@@ -51,7 +47,7 @@ test("both resumes are served", async ({ request }) => {
 
 test("the contact endpoint rejects a missing email", async ({ request }) => {
   const response = await request.post("/api/contact", {
-    data: { name: "Test", topic: CONTACT_TOPICS[0], message: "Hello" },
+    data: { name: "Test", message: "Hello" },
   });
   expect(response.status()).toBe(400);
   expect((await response.json()).errors.email).toBeTruthy();
@@ -64,7 +60,6 @@ test("a filled honeypot answers like a success and sends nothing", async ({
     data: {
       name: "Bot",
       email: "bot@example.com",
-      topic: CONTACT_TOPICS[0],
       message: "Hello",
       company: "spam",
     },
@@ -90,7 +85,6 @@ test("the contact endpoint gates method and origin", async ({ request }) => {
     form: {
       name: "Test",
       email: "test@example.com",
-      topic: CONTACT_TOPICS[0],
       message: "Hello",
     },
   });
@@ -108,7 +102,6 @@ test("a form-encoded post redirects instead of answering JSON", async ({
     form: {
       name: "Bot",
       email: "bot@example.com",
-      topic: CONTACT_TOPICS[0],
       message: "Hello",
       company: "spam",
     },
