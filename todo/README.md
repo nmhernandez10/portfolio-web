@@ -4,20 +4,18 @@ This directory is the implementation plan for the portfolio. Each phase is one m
 
 ## Status
 
-| Phase | Title                                                     | PR  | Status           | Preview URL |
-| ----- | --------------------------------------------------------- | --- | ---------------- | ----------- |
-| 0     | [Foundations](phase-0-foundations.md)                     | —   | In progress      | —           |
-| 1     | [Deploy skeleton](phase-1-deploy-skeleton.md)             | —   | Superseded (6.1) | —           |
-| 2     | [UI kit](phase-2-ui-kit.md)                               | —   | Implemented      | —           |
-| 3     | [Content and page](phase-3-content-and-page.md)           | —   | Implemented      | —           |
-| 4     | [Interactivity](phase-4-interactivity.md)                 | —   | Implemented      | —           |
-| 5     | [Contact endpoint](phase-5-contact-endpoint.md)           | —   | Implemented      | —           |
-| 6     | [Responsive and quality](phase-6-responsive-quality.md)   | —   | Implemented      | —           |
-| 6.1   | [Pages migration](phase-6.1-pages-migration.md)           | —   | In progress      | —           |
-| 6.2   | [Workers decommission](phase-6.2-workers-decommission.md) | —   | Implemented      | —           |
-| 7     | [Launch](phase-7-launch.md)                               | —   | Not started      | —           |
+Phases 0–6.2 are implemented and their docs were removed on 2026-08-24 for cohesion —
+the full record lives in git history, and every item still open from them was carried
+into [phase 7, task 0](phase-7-launch.md) with per-item timing tags (several must run
+at VC0/VC1 time, not at launch). What remains:
 
-Dependencies are linear (each phase builds on the previous), with one exception: phases 4 and 5 are independent of each other and may run in either order. The Pages migration runs 6.1 → 6.2 between 6 and 7; phase 7 depends on both.
+| Phase   | Title                                                                                   | PR  | Status      | Preview URL |
+| ------- | --------------------------------------------------------------------------------------- | --- | ----------- | ----------- |
+| VC0–VC5 | [Visual correction](visual-correction/README.md) — rebrand to the replaced design skill | —   | Not started | —           |
+| 7       | [Launch](phase-7-launch.md)                                                             | —   | Not started | —           |
+
+Dependencies are linear: the six visual-correction phases run in order (their own
+README carries the per-phase table), then phase 7.
 
 ## How to execute a phase
 
@@ -42,7 +40,7 @@ Phases add their own items on top of this.
 ## Stack and architecture (locked — do not revisit)
 
 - **Astro 7 (latest; supersedes the original "Astro 5" — decided with the user 2026-08-19) + React 19 islands, TypeScript strict, pnpm.** Keep every dependency on its latest compatible release; where phase docs assumed Astro 5 semantics, current official docs win. Static-first: sections are `.astro` and ship zero JS. Exactly two islands hydrate: `SiteThemeToggle` (`client:load`, phase 4, wrapping the kit's unmodified `ThemeToggle`) and `ContactForm` (`client:visible`, phase 5).
-- **Cloudflare Pages, adapter-less** (decided with the user 2026-08-22, superseding phase 1's Workers decision — see the supersession note under that doc's H1; `@astrojs/cloudflare` dropped Pages support in v13 and Astro 7 requires v14, so no adapter can target Pages). `astro build` emits a plain static `dist/`; the contact endpoint is a hand-written Pages Function, `functions/api/contact.ts`. Pages git integration deploys: `main` → production, every other branch/PR → preview, with separate vars and secrets per environment. GitHub Actions is the quality gate only (it never deploys). Custom domain `nicolasmateo.dev` attaches in phase 7.
+- **Cloudflare Pages, adapter-less** (decided with the user 2026-08-22, superseding the original phase-1 Workers decision; `@astrojs/cloudflare` dropped Pages support in v13 and Astro 7 requires v14, so no adapter can target Pages). `astro build` emits a plain static `dist/`; the contact endpoint is a hand-written Pages Function, `functions/api/contact.ts`. Pages git integration deploys: `main` → production, every other branch/PR → preview, with separate vars and secrets per environment. GitHub Actions is the quality gate only (it never deploys). Custom domain `nicolasmateo.dev` attaches in phase 7.
 - **UI kit is an in-app module**: `src/styles/tokens/` + `src/ui/`, ported from the design skill and fully independent of it. The skill is deleted in phase 7 after a parity check.
 - **Layout**:
   ```

@@ -1,0 +1,21 @@
+<!-- @dsCard group="Brand" viewport="700x260" name="Portrait treatment" subtitle="Arch crop, desaturated at rest, colour on hover" -->
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { padding: 22px 26px; background: var(--paper); }
+  .row { display:flex; align-items:center; gap: 14px; flex-wrap: wrap; }
+  .col { display:flex; flex-direction:column; gap: 10px; }
+  .lbl { font: var(--type-label); letter-spacing:.06em; color: var(--text-meta); }
+  .val { font: var(--type-label); color: var(--ink-4); }
+</style></head><body>
+<div class="row" style="gap:24px">
+    <div style="width:150px;height:183px;border-radius:75px 75px 14px 14px;overflow:hidden;border:1px solid var(--border-hairline)">
+      <img src="../assets/portrait.jpg" alt="" style="width:100%;height:100%;object-fit:cover;filter:grayscale(1)">
+    </div>
+    <div style="width:150px;height:183px;border-radius:75px 75px 14px 14px;overflow:hidden;border:1px solid var(--border-hairline)">
+      <img src="../assets/portrait.jpg" alt="" style="width:100%;height:100%;object-fit:cover">
+    </div>
+    <div class="col" style="gap:6px"><span class="lbl">rest → hover</span><span class="val">grayscale(1) → grayscale(0)<br>420ms ease-out, scale 1.03</span></div>
+  </div>
+</body></html>

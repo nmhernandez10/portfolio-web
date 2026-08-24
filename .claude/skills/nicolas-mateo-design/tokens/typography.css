@@ -1,0 +1,46 @@
+:root {
+  --font-display: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --font-sans:    "Instrument Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Sizes — 1rem = 16px */
+  --size-display-xl: 5.5rem;   /* 88 — hero name */
+  --size-display-l:  4rem;     /* 64 */
+  --size-display-m:  2.75rem;  /* 44 — section statements */
+  --size-h1:         2.125rem; /* 34 */
+  --size-h2:         1.5rem;   /* 24 */
+  --size-h3:         1.1875rem;/* 19 */
+  --size-body-l:     1.1875rem;/* 19 — lead paragraphs */
+  --size-body:       1.0625rem;/* 17 */
+  --size-body-s:     0.9375rem;/* 15 */
+  --size-meta:       0.8125rem;/* 13 */
+  --size-label:      0.75rem;  /* 12 — mono eyebrow */
+
+  --lh-tight:   1.02;
+  --lh-snug:    1.18;
+  --lh-normal:  1.45;
+  --lh-relaxed: 1.62;
+
+  --tracking-display: -0.022em;
+  --tracking-heading: -0.012em;
+  --tracking-normal:  0;
+  --tracking-label:   0.13em;
+
+  --weight-light:  300;
+  --weight-book:   400;
+  --weight-medium: 500;
+  --weight-semi:   600;
+
+  /* Semantic roles */
+  --type-hero:    var(--weight-light) var(--size-display-xl)/var(--lh-tight) var(--font-display);
+  --type-statement: var(--weight-light) var(--size-display-m)/var(--lh-snug) var(--font-display);
+  --type-h1:      var(--weight-medium) var(--size-h1)/var(--lh-snug) var(--font-sans);
+  --type-h2:      var(--weight-medium) var(--size-h2)/1.3 var(--font-sans);
+  --type-h3:      var(--weight-semi) var(--size-h3)/1.35 var(--font-sans);
+  --type-lead:    var(--weight-book) var(--size-body-l)/var(--lh-relaxed) var(--font-sans);
+  --type-body:    var(--weight-book) var(--size-body)/var(--lh-relaxed) var(--font-sans);
+  --type-small:   var(--weight-book) var(--size-body-s)/var(--lh-normal) var(--font-sans);
+  --type-meta:    var(--weight-book) var(--size-meta)/var(--lh-normal) var(--font-sans);
+  --type-label:   var(--weight-medium) var(--size-label)/1.2 var(--font-mono);
+  --type-code:    var(--weight-book) var(--size-body-s)/1.7 var(--font-mono);
+}

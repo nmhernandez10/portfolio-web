@@ -1,0 +1,47 @@
+<!-- @dsCard group="Components" viewport="700x240" name="Navigation" subtitle="NavBar and TextLink" -->
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../styles.css">
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+<script src="../../ds-preview-fallback.js"></script>
+<style>body{padding:24px 26px;background:var(--paper)}</style>
+</head><body><div id="root"></div>
+<script type="text/plain" id="app">
+(async () => { try {
+  const DS = await dsResolve(["NavBar","TextLink","Button"], { root: '../../' });
+
+  const { NavBar, TextLink, Button } = DS;
+  function Demo() {
+    return (
+      <div style={{display:'flex',flexDirection:'column',gap:26}}>
+        <div style={{border:'1px solid var(--border-hairline)',borderRadius:'var(--radius-lg)',overflow:'hidden'}}>
+          <NavBar items={[{id:'work',label:'Work'},{id:'about',label:'About'},{id:'contact',label:'Contact'}]}
+            active="work" style={{position:'static'}}
+            action={<Button size="sm" variant="secondary">Résumé</Button>} />
+        </div>
+        <div style={{display:'flex',gap:28,font:'var(--type-body)'}}>
+          <TextLink href="#">nm.hernandez1996@gmail.com</TextLink>
+          <TextLink href="#" arrow>Read the case study</TextLink>
+          <TextLink href="#" tone="accent" arrow external>LinkedIn</TextLink>
+        </div>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+} catch (e) { console.error("DS render failed", e); document.getElementById("root").textContent = "Failed to load: " + e.message; } })();
+</script>
+<script>
+(function () {
+  function boot() {
+    try {
+      var src = document.getElementById('app').textContent;
+      (0, eval)(Babel.transform(src, { presets: ['react'] }).code);
+    } catch (e) { console.error('DS boot failed', e); }
+  }
+  if (document.readyState === 'complete') boot();
+  else window.addEventListener('load', boot);
+})();
+</script></body></html>
