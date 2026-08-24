@@ -42,50 +42,94 @@ Engineer & Feature Architect"`. `fullName` stays "Nicolás Mateo Hernández Roja
 
 ## Tasks
 
-1. **`src/content/next/types.ts` + `profile.ts`** — the new model, typed strict:
-   profile (name, fullName, role, location, email, site, github, linkedin, lead),
-   `resumes { fullStack, backend }`, `stats` (value/label/note?), `projects` (index,
-   title, kicker, description, detail[], tags[], meta), `experience` (current?, period,
-   location, role, company, summary, points[], tags[]), `skills` (title, items[] — the
-   slash-run groups), `education` (school, degree, period). Transcribe every string
-   from `data.js` verbatim.
-2. **`src/content/next/sections.ts`** — the new manifest and UI strings. Four entries
-   in page order (ordinals are derived, `01`–`04`): `work` ("Selected work" /
-   "Systems I designed, shipped and still own." / lead "Four pieces of production
-   work, each with the constraint that shaped it."), `experience` ("Experience" / "Six
-   years of production backends."), `about` ("About" / "How I work."), `contact`
-   ("Contact" / "Tell me what you're building."). Plus the JSX-hardcoded copy, so no
-   later phase invents strings:
-   - hero: status tag "Open to senior / staff backend roles", CTAs "Get in touch" /
-     "Résumé, PDF"
-   - about: the two prose paragraphs from `About.jsx`, the "Education" divider label
-   - contact: labels "Email" / "Elsewhere" / "Based in", the line
-     "Bogotá, Colombia · UTC−5 · remote-first"
-   - form: labels Name / Email / Message; placeholders "your name" /
-     "you@company.com" / "what you're building, and where I'd fit"; button
-     "Send message"; success "Thanks — I'll reply within a couple of days."
-   - drawer: close label "Close ✕"
-   - footer: "© 2026" + link labels Email · GitHub · LinkedIn · Résumé ·
-     Backend résumé
-   - nav: Work / Experience / About / Contact
-3. **`src/content/next/index.ts`** — the barrel, mirroring today's discipline:
-   everything except the contact contract. `contact.ts` stays a shared, subpath-only
-   module (it is edited in place in task 5, not duplicated into `next/`).
-4. **Résumé PDFs**: copy the two 2026 PDFs from the skill's `uploads/` over
-   `public/resume-fullstack.pdf` and `public/resume-backend.pdf`. The old page keeps
-   linking both paths, so nothing else changes.
-5. **Drop the topic field, atomically**:
-   - `src/content/contact.ts`: remove `CONTACT_TOPICS` and the topic error string.
-   - `functions/api/contact.ts`: remove topic from validation, the email subject/body
-     and the field list. Behavior contract otherwise untouched (gates, honeypot, 303,
-     error shape).
-   - `src/sections/ContactForm.tsx` (the **old** form): remove the `Select` and its
-     grid placement; the form-level error line stays for transport failures.
-   - `e2e/smoke.spec.ts`: the endpoint posts drop `topic`; remove the
-     `CONTACT_TOPICS` import.
-6. Confirm the old page renders byte-identically except for the missing topic select,
-   and that no `next/` module is imported anywhere yet (`grep -rn "content/next"
-src/ functions/ e2e/` → only the `next/` files themselves).
+1. [x] **`src/content/next/types.ts` + `profile.ts`** — written. Six interfaces (`Stat`,
+       `Project`, `ExperienceEntry`, `SkillGroupContent`, `EducationEntry`, `Profile`),
+       field names mirroring the kit's frozen prop contracts so VC3 spreads content into
+       components with no mapping layer. Arrays stay mutable: the kit declares
+       `tags?: string[]`, and a readonly array is not assignable to one. `profile.ts`
+       transcribes every string from `data.js`; `phone` omitted, `fullName` / `site` /
+       `github` / `resumes` added, project `index` derived (deviation 2).
+2. [x] **`src/content/next/sections.ts`** — the manifest (`SECTIONS`, four entries,
+       `as const satisfies`), `SectionId`, `twoDigit`, the widened `ENTRIES` alias,
+       `SectionMeta` and `sectionMeta(id)` deriving `01`–`04` from position, plus `COPY`
+       carrying every string the kit hardcodes in its section JSX. The module imports
+       nothing — see deviation 4.
+3. [x] **`src/content/next/index.ts`** — the barrel: `profile`, `SECTIONS`, `COPY`,
+       `sectionMeta`, `twoDigit` and the three section types, with `contact.ts`
+       deliberately excluded and the reason restated. No `NAV` (deviation 1).
+4. [x] **Résumé PDFs** — both re-sourced from the skill's `uploads/`.
+       `resume-fullstack.pdf` was already byte-identical (md5 `582c638c…`), so only
+       `resume-backend.pdf` changed: `7a1231d6…` (34,588 B) → `f353a710…` (34,814 B),
+       matching the 2026 upload and the PDF the kit itself links.
+5. [x] **Drop the topic field, atomically** — `CONTACT_TOPICS` and `CONTACT_ERRORS.topic`
+       gone from the contract; `topic` gone from the endpoint's `Submission`,
+       `readSubmission`, `validate`, `send`, subject and body; the `Select` and its grid
+       placement gone from the old form; `topic` gone from all four e2e POST bodies.
+       `grep -rni topic src/ functions/ e2e/` and `grep -ril topic dist/` are both empty.
+6. [x] **Confirmed.** `grep -rn "content/next" src/ functions/ e2e/` returns nothing — no
+       module imports the new model, and `tsc` still typechecks it (verified by injecting
+       a type error into `next/profile.ts` and watching `tsc --noEmit` catch it).
+       `git diff --stat` shows no change under `src/ui/`, `src/styles/` or `src/pages/`.
+       The 12-test Playwright suite passes; the only page change is the missing select.
+
+## Deviations from this doc (agreed with the user, and why)
+
+1. **`NAV` was not ported** (tasks 2–3). Today's `NAV` exists to _filter_: the old
+   manifest carried an `ai` entry with no nav link, so `NAV` was
+   `ENTRIES.filter(entry => entry.nav !== undefined)` behind a type predicate. All four
+   new sections are in the nav, so `NAV` would degenerate to a rename of `SECTIONS` with
+   one consumer. VC3's `SiteNav` maps `SECTIONS` directly; the `#id` anchor convention
+   stays in the renderer, where `Header.astro` keeps it today.
+2. **Projects carry no `index`** (task 1). `data.js` stores `'01'`…`'04'`, which is
+   exactly the array position — duplicated derivable state, in the same file whose
+   section ordinals are derived to prevent that drift. `twoDigit` is now the one owner of
+   the brand's two-digit ordinal (sections and cards in VC3, drawer detail lines in VC4),
+   which is what the kit does itself (`ProjectDrawer.jsx` derives `padStart(2, '0')`).
+   The fidelity script asserts `twoDigit(i + 1) === PROJECTS[i].index` for all four, so
+   the derivation is proven to reproduce the source.
+3. **The error shape moved into the contract** (task 5). `type Errors =
+Record<string, string>` was declared twice, once on each side of the wire. Removing
+   topic closes the key set, so `contact.ts` now owns `ContactField` and
+   `ContactErrors = Partial<Record<ContactField | "form", string>>`. One definition,
+   `errors.form` typed rather than index-signature `string`, and a resurrected
+   `errors.topic` is a compile error on both sides. No behaviour change.
+4. **`sections.ts` imports nothing, so `COPY.contact.locationLine` repeats the city**
+   (task 2). VC3's islands need nav labels and form copy, and `src/content/index.ts`
+   records why the résumé must not be reachable from the browser bundle — structurally,
+   not by tree-shaking. An import-free leaf keeps that guarantee, at the cost of
+   `"Bogotá, Colombia · UTC−5 · remote-first"` mirroring `profile.location`. The mirror
+   carries a JSDoc, and the fidelity script asserts the line still opens with
+   `profile.location`.
+5. **The Resend subject became `Portfolio contact — ${name}`** (task 5). Topic was the
+   subject's only discriminator; without it every message would arrive titled
+   identically. The body already carries `Name:`, so nothing new is exposed, and the
+   logging law is untouched — logs still carry status codes and outcomes only.
+6. **`INLINE_ERRORS` and its filter/join collapsed to `errors.form`** (task 5). They
+   existed only because topic had no inline slot. `validate()` emits `name` / `email` /
+   `message`, and both failure paths key `form`, so the two forms are equivalent by
+   construction.
+
+## Known residue
+
+- **The endpoint has never required a message body.** `validate()` bounds message
+  _length_ (`> CONTACT_MESSAGE_MAX`) and nothing else, so an empty `message` is accepted
+  and only the browser's `required` attribute stops one. This predates the phase and is
+  identical on both sides of the diff (`git show HEAD:functions/api/contact.ts`), so
+  tightening it would be a behaviour change this phase's brief excludes. Worth settling
+  in VC3, which rewrites the form. `name` is unbounded for the same reason, and this
+  phase widened where that shows: it now reaches the Resend subject as well as the body,
+  so an absurd name turns a send into a 502 rather than a rejected field. Same call —
+  record it, settle it in VC3.
+- **`COPY.contact.locationLine` mirrors `profile.location` with no compile-time guard.**
+  Deviation 4 buys the import-free leaf with a duplicated city, and the fidelity script
+  that asserts the mirror is throwaway — after this phase the JSDoc is the only guard.
+  VC3 renders that line from a section file, where the leaf constraint no longer applies,
+  so deriving it from `profile.location` there would retire the mirror for free.
+- **No real delivery was proven.** Every endpoint case was exercised against
+  `wrangler pages dev` with `RESEND_API_KEY` blanked via `--env-file`, so a valid
+  topicless submission returns `502` at the missing-binding guard — which proves
+  validation accepted it without an outward-facing send. Real delivery stays where
+  `phase-7-launch.md` task 0.C already puts it.
 
 ## Verification
 
@@ -93,8 +137,14 @@ src/ functions/ e2e/` → only the `next/` files themselves).
 - `pnpm preview` → `POST /api/contact` accepts a topicless submission and still
   rejects a missing name/email/message with the shared error strings; the honeypot
   path still returns success without sending.
-- Distinctive-string spot check: grep 6+ strings from `data.js` (one per top-level
-  key) in `src/content/next/` — all present, byte-identical.
+- Fidelity is proven mechanically, not spot-checked. A throwaway Node script (Node 24
+  strips the types natively) imports `data.js` and the new modules together and deep-
+  compares stats / experience / skills / education, projects minus `index`, and every
+  `PROFILE` key except `phone`; then normalizes whitespace over the kit JSX and asserts
+  every leaf string of `SECTIONS` and `COPY` appears verbatim in the file that owns it.
+  Two documented exemptions (`footer.links.github`, `footer.links.backendResume`) are
+  repo additions the kit has no equivalent for. 64 assertions; negative-controlled by
+  swapping U+2212 for a hyphen and an en dash for a hyphen, both of which fail it.
 - `git diff --stat` shows no changes under `src/ui/`, `src/styles/`, `src/pages/`.
 
 ## Gotchas

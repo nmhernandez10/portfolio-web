@@ -21,7 +21,7 @@ rebrand.
 | Phase | Title                                                         | PR  | Status      | Preview URL     |
 | ----- | ------------------------------------------------------------- | --- | ----------- | --------------- |
 | VC0   | [Skill swap and docs](phase-vc0-skill-swap-and-docs.md)       | —   | Implemented | n/a — docs only |
-| VC1   | [Content and contract](phase-vc1-content-and-contract.md)     | —   | Not started | —               |
+| VC1   | [Content and contract](phase-vc1-content-and-contract.md)     | —   | Implemented | —               |
 | VC2   | [Kit](phase-vc2-kit.md)                                       | —   | Not started | —               |
 | VC3   | [Page swap](phase-vc3-page-swap.md)                           | —   | Not started | —               |
 | VC4   | [Interactivity](phase-vc4-interactivity.md)                   | —   | Not started | —               |
