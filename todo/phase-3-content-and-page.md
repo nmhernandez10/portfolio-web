@@ -1,5 +1,7 @@
 # Phase 3 — Content and page
 
+> **Amended 2026-08-23 — build paths below are pre-6.1.** Every `dist/client/…` path in Verification, and the Gotchas line calling `dist/client` "the deployed asset directory", date from the `@astrojs/cloudflare` adapter. Phase 6.1 removed it: the build emits a plain static `dist/`, so those paths are now `dist/…`. `pnpm preview:worker` is likewise gone — the loop is `pnpm preview` (`wrangler pages dev`) on 8788. The findings themselves still stand; only the paths moved.
+
 ## Goal
 
 The full page, statically rendered with the kit: real content, real assets, light theme. No interactivity yet — the theme toggle renders inert, the form posts nowhere useful, nothing animates. **The signature check: the whole page reads perfectly with JavaScript disabled.**

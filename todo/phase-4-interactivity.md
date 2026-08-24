@@ -1,5 +1,7 @@
 # Phase 4 — Interactivity
 
+> **Amended 2026-08-23 — the JS baseline needs re-measuring.** Task 4's chunk table and the bundle-check bullet were measured against `dist/client/_astro/` under the `@astrojs/cloudflare` adapter, which phase 6.1 removed; the path is now `dist/_astro/`. Phase 7's "Total JS shipped ≤ 90KB gzip (baseline recorded in phase 4)" budget must re-measure there rather than carry these numbers forward — they are a record of what the adapter build emitted, not of what ships today. `wrangler dev` in Verification is now `pnpm preview` on 8788.
+
 ## Goal
 
 The two behaviors the site still defines — theme toggle and scroll reveal — implemented exactly, and nothing more. "Nothing else moves." May run before or after phase 5.

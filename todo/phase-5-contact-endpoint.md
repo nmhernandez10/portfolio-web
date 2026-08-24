@@ -11,7 +11,7 @@ The contact form sends real email via Resend from the same Worker, with validati
 - One on-demand route: `src/pages/api/contact.ts` with `export const prerender = false` — the rest of the site stays fully static. Same Worker, no extra service.
 - **Resend via plain `fetch`** to `https://api.resend.com/emails` — no SDK; it's ~15 lines and zero dependencies.
 - **Email config is environment-driven, never hardcoded**:
-  - `EMAIL_FROM` and `EMAIL_TO` are non-secret **`vars` in `wrangler.jsonc`** (versioned, reviewable, per-environment overridable). Initial values: `contact@nicolasmateo.dev` → `nm.hernandez1996@gmail.com`.
+  - `EMAIL_FROM` and `EMAIL_TO` are non-secret **`vars` in `wrangler.jsonc`** (versioned, reviewable, per-environment overridable). Initial values: `contact@nicolasmateo.dev` → `nm.hernandez1996@gmail.com`. **Amended 2026-08-23 — both moved to per-environment Pages dashboard variables in phase 6.2**, because naming a var in `wrangler.jsonc` locks the dashboard's copy of it. They are no longer versioned or reviewable; the environment is now configured entirely outside the repo.
   - `RESEND_API_KEY` is a **Worker secret** (`wrangler secret put`). Rule: secrets = credentials, vars = configuration.
   - Locally all three live in the gitignored `.dev.vars`.
 - **Validation: hand-rolled** (zod is overkill for 4 fields): trim all; `name` and `email` required; email shape check (pragmatic regex); `topic` must be in the Select's allowlist; `message` ≤ 5000 chars. Error response: `400` with `{ ok: false, errors: { field: "message" } }`. Error copy follows brand voice (sentence case, no exclamation marks).
@@ -21,7 +21,7 @@ The contact form sends real email via Resend from the same Worker, with validati
 ## Tasks
 
 1. [ ] `HUMAN:` Resend setup — create/confirm the account; add and verify the `nicolasmateo.dev` domain (DNS records — verifiable even before the site moves to the domain in phase 7); create an API key. **Use a test/sandbox key until launch** (previews share production secrets — global gotcha 10). Provide: the key, and confirmation of the from address.
-2. [x] **Config**: add `EMAIL_FROM`/`EMAIL_TO` under `vars` in `wrangler.jsonc`; `wrangler secret put RESEND_API_KEY`; create `.dev.vars` with all three (confirm it's gitignored **before** writing the key into it); re-run `wrangler types` so `env` is typed.
+2. [x] **Config**: add `EMAIL_FROM`/`EMAIL_TO` under `vars` in `wrangler.jsonc` (**undone 2026-08-23 — see the amendment above; they are dashboard variables now**); `wrangler secret put RESEND_API_KEY`; create `.dev.vars` with all three (confirm it's gitignored **before** writing the key into it); re-run `wrangler types` so `env` is typed.
 3. [x] **Endpoint** `src/pages/api/contact.ts`:
    - `POST` only — anything else `405`.
    - Parse `FormData` or JSON by content-type; never throw on garbage input (bad content-type, empty body → `400`, not `500`).
@@ -90,7 +90,7 @@ Net **+9,738 raw / +2,995 gzip** for the second island. `SiteThemeToggle` shrank
 
 ## Appendix — Turnstile (not executed now)
 
-Add only if real spam materializes post-launch: Cloudflare Turnstile invisible widget on the form island, token verified server-side in `contact.ts` via the siteverify endpoint (`TURNSTILE_SECRET` as a Worker secret, site key as a var). Slots in after the honeypot check. Cost: one third-party script — why it's excluded at launch.
+Add only if real spam materializes post-launch: Cloudflare Turnstile invisible widget on the form island, token verified server-side in `contact.ts` via the siteverify endpoint (`TURNSTILE_SECRET` as a Pages secret set per environment, site key as a Pages variable — **amended 2026-08-23**, this doc predates the move off Workers). Slots in after the honeypot check. Cost: one third-party script — why it's excluded at launch.
 
 ## Definition of Done
 
