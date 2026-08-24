@@ -1,9 +1,9 @@
 {
   "extends": "astro/tsconfigs/strict",
   "include": [".astro/types.d.ts", "**/*"],
-  // functions/ is a separate project: workerd globals conflict with the DOM
-  // lib the site needs. `pnpm check` runs it as `tsc -p functions`.
-  "exclude": ["dist", "functions"],
+  // functions/ is in this program too: the Pages Function is typed against the
+  // DOM lib like the rest of the repo, so it needs no project of its own.
+  "exclude": ["dist"],
   "compilerOptions": {
     // no baseUrl: TS 6 deprecates it (TS5101); paths already resolve relative to this file
     "paths": {

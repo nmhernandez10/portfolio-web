@@ -39,9 +39,6 @@ importers:
       '@axe-core/playwright':
         specifier: ^4.13.0
         version: 4.13.0(playwright-core@1.62.1)
-      '@cloudflare/workers-types':
-        specifier: ^5.20260822.1
-        version: 5.20260822.1
       '@playwright/test':
         specifier: ^1.62.1
         version: 1.62.1
@@ -2888,7 +2885,8 @@ snapshots:
   '@cloudflare/workerd-windows-64@1.20260815.1':
     optional: true
 
-  '@cloudflare/workers-types@5.20260822.1': {}
+  '@cloudflare/workers-types@5.20260822.1':
+    optional: true
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:

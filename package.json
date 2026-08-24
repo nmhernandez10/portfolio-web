@@ -13,7 +13,7 @@
     "preview": "wrangler pages dev",
     "test:e2e": "astro build && playwright test",
     "astro": "astro",
-    "check": "astro check && tsc --noEmit && tsc -p functions",
+    "check": "astro check && tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
@@ -30,7 +30,6 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@axe-core/playwright": "^4.13.0",
-    "@cloudflare/workers-types": "^5.20260822.1",
     "@playwright/test": "^1.62.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",

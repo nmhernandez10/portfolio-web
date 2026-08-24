@@ -25,6 +25,17 @@ interface Env {
   RESEND_API_KEY: string;
 }
 
+/**
+ * The handler's context, written out rather than imported. functions/ shares the
+ * repo's one TypeScript program, so Request and Response come from the DOM lib
+ * here as they do in src/; @cloudflare/workers-types would redefine them
+ * globally for every file in that program.
+ */
+interface RequestContext {
+  request: Request;
+  env: Env;
+}
+
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const RESEND_TIMEOUT_MS = 10_000;
 
@@ -159,7 +170,10 @@ async function send(
   }
 }
 
-export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
+export const onRequest = async ({
+  request,
+  env,
+}: RequestContext): Promise<Response> => {
   // Gates answer with a status and no body — nothing on the page can reach
   // them, so there is nothing to render. The pipeline below answers with
   // fail()'s JSON, which the island does render.
