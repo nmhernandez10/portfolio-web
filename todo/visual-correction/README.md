@@ -18,14 +18,14 @@ rebrand.
 
 ## Status
 
-| Phase | Title                                                         | PR  | Status      | Preview URL |
-| ----- | ------------------------------------------------------------- | --- | ----------- | ----------- |
-| VC0   | [Skill swap and docs](phase-vc0-skill-swap-and-docs.md)       | —   | Not started | —           |
-| VC1   | [Content and contract](phase-vc1-content-and-contract.md)     | —   | Not started | —           |
-| VC2   | [Kit](phase-vc2-kit.md)                                       | —   | Not started | —           |
-| VC3   | [Page swap](phase-vc3-page-swap.md)                           | —   | Not started | —           |
-| VC4   | [Interactivity](phase-vc4-interactivity.md)                   | —   | Not started | —           |
-| VC5   | [Responsive and quality](phase-vc5-responsive-and-quality.md) | —   | Not started | —           |
+| Phase | Title                                                         | PR  | Status      | Preview URL     |
+| ----- | ------------------------------------------------------------- | --- | ----------- | --------------- |
+| VC0   | [Skill swap and docs](phase-vc0-skill-swap-and-docs.md)       | —   | Implemented | n/a — docs only |
+| VC1   | [Content and contract](phase-vc1-content-and-contract.md)     | —   | Not started | —               |
+| VC2   | [Kit](phase-vc2-kit.md)                                       | —   | Not started | —               |
+| VC3   | [Page swap](phase-vc3-page-swap.md)                           | —   | Not started | —               |
+| VC4   | [Interactivity](phase-vc4-interactivity.md)                   | —   | Not started | —               |
+| VC5   | [Responsive and quality](phase-vc5-responsive-and-quality.md) | —   | Not started | —               |
 
 Dependencies are strictly linear: VC0 → VC1 → VC2 → VC3 → VC4 → VC5 → phase 7.
 
@@ -84,11 +84,14 @@ code, abstractions that remove repetition, best practices throughout.
 
 ## Risk register (read before starting any phase)
 
-0. **The PR-and-preview infrastructure does not exist yet.** `main` was never pushed
-   (GitHub's only branch is `dev`) and the Cloudflare Pages project was never created
-   in the dashboard. Phase 7 task 0 carries the full setup with timing tags: VC0 runs
-   group A (git/GitHub) itself and coordinates group B (Pages project + environment
-   variables, `HUMAN:`) with the user before the first preview is expected.
+0. **The PR-and-preview infrastructure is incomplete.** `main` is on GitHub at
+   `64f539a`, but `dev` is still the default branch and `main` carries no protection
+   rule; the Cloudflare Pages project was never created (both checked during VC0 on
+   2026-08-24). Phase 7 task 0 carries the setup with timing tags. Group A (git/GitHub)
+   is `HUMAN:` dashboard work — there is no `gh` CLI — and was raised with the user at
+   VC0. Group B (Pages project + environment variables, `HUMAN:`) was raised at VC0 too
+   and **remains outstanding**: VC0 has nothing to preview and VC1 validates the
+   endpoint locally, so **VC2 is the phase that blocks on it**.
 1. **The e2e viewport sweep and mobile-menu tests are shrunk in VC3 and restored in
    VC5.** The pre-design has zero media queries, so the swapped page cannot pass a
    320px sweep until VC5 designs narrow mode. This is tolerable only while production

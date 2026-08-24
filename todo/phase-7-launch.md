@@ -20,15 +20,19 @@ history); these are the items that were still open. Each carries a **when** tag 
 groups must run **before** launch work starts, because the VC phases' PR-and-preview
 workflow depends on them.
 
-**A. Git and GitHub — when: at VC0.** `main` was never pushed (`origin/dev` is the only
-remote branch), so no PR `dev → main` has ever existed:
+**A. Git and GitHub — when: at VC0.** `main` is on GitHub at `64f539a` and `dev` is the
+default branch (verified 2026-08-24 with `git ls-remote origin`; remote `HEAD` tracks
+`dev`). No PR `dev → main` has ever existed, and what is actually missing is the default
+branch and the protection rule:
 
-- Push `main`; set GitHub's default branch to `main` (it currently defaults to `dev`).
+- `HUMAN:` set GitHub's default branch to `main` (it currently defaults to `dev`). There is no `gh` CLI on the build machine, so this is dashboard-only.
 - `HUMAN:` enable branch protection on `main`: require the CI check (job id `ci`)
   before merging.
 
-**B. Cloudflare Pages project — when: before the first VC PR needs a preview** (the
-project was never created; phase 6.1's dashboard walkthrough never ran):
+**B. Cloudflare Pages project — when: before the VC2 PR**, the first preview anyone
+reviews. VC0 has nothing to preview and VC1's endpoint validation runs locally on
+`pnpm preview`, so neither blocks on this. (Confirmed still not created with the user on
+2026-08-24; phase 6.1's dashboard walkthrough never ran.)
 
 - `HUMAN:` pause/disconnect the old `portfolio-web` **Worker**'s git connection first,
   then create the **Pages** project `portfolio-web` connected to
@@ -44,9 +48,9 @@ project was never created; phase 6.1's dashboard walkthrough never ran):
   live; previews carry `X-Robots-Tag: noindex`; the endpoint's safe matrix rows
   (missing-email `400`, honeypot `200`, `GET` `405`, no-Origin `403`) pass against a
   preview URL.
-- The first `dev → main` merge (VC0) becomes the first production deploy — confirm
-  `portfolio-web.pages.dev` serves it, then run the soak/matrix rows against
-  production.
+- The first `dev → main` merge to land after the project exists becomes the first
+  production deploy — confirm `portfolio-web.pages.dev` serves it, then run the
+  soak/matrix rows against production. (VC0 and VC1 merge before that point.)
 
 **C. Resend — when: before VC1's endpoint validation, delivery proof at launch:**
 

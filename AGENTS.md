@@ -1,8 +1,6 @@
 # AGENTS.md — nicolasmateo.dev
 
-Personal portfolio for Nicolás Hernández: a one-page, static-first Astro 7 + React 19 site deployed to Cloudflare Pages, telling one story — Senior Software Engineer — with backend and full-stack work given their own sections. This file is the canonical agent doc; `CLAUDE.md` only imports it.
-
-> The design skill still describes a Backend ↔ Full stack **lens toggle** that swapped the copy behind a switch. It was dropped on 2026-08-22 in favour of the two sections; the skill's visual numbers still govern, its lens behaviour does not.
+Personal portfolio for Nicolás Hernández: a one-page, static-first Astro 7 + React 19 site deployed to Cloudflare Pages, telling one story — Senior Backend Engineer & Feature Architect — across four numbered sections. This file is the canonical agent doc; `CLAUDE.md` only imports it.
 
 ## Workflow
 
@@ -18,25 +16,26 @@ That rebuild can add `minimumReleaseAgeExclude` entries to `pnpm-workspace.yaml`
 
 ## Project map
 
-Target layout (later phases fill this in; see `todo/README.md` for the annotated version):
+Target layout — each line tagged with the phase that lands or removes it where that is still pending:
 
 ```
 src/
   styles/tokens/*.css      7 token files
   styles/sections.css      page layout, one class block per page section
   styles/global.css        imports tokens in skill order, then sections + site utilities
-  ui/{core,forms,navigation,content}/*.tsx   20 components; index.ts barrel
+  ui/{core,forms,navigation,content}/*.tsx   14 components (VC3); index.ts barrel
   content/{types,profile,sections,contact}.ts  data, page manifest, form contract; index.ts barrel
   sections/*.astro         one component per page section (+ the .tsx islands)
+                           islands: SiteNav (VC3), ContactForm, WorkGrid (VC4)
   layouts/BaseLayout.astro head, fonts, theme script, reveal script
-  pages/index.astro  kit.astro  404.astro
+  pages/index.astro  kit.astro  404.astro (phase 7)
   scripts/reveal.ts        vanilla IntersectionObserver module
   assets/portrait.jpg      optimized via astro:assets
 functions/api/contact.ts   the contact endpoint, as a Pages Function
 public/
-  icons/{ui,tech}/*.svg    Icon uses CSS mask, so these must be plain public URLs
+  icons/                   deleted in VC3 — the system ships no icons
   resume-backend.pdf  resume-fullstack.pdf
-  favicon.svg  robots.txt  og.png  _headers
+  favicon.svg  _headers    robots.txt + og.png land in phase 7
 docs/brand.md              phase 7: brand laws migrated from the skill
 ```
 
@@ -44,10 +43,10 @@ docs/brand.md              phase 7: brand laws migrated from the skill
 
 - Dependencies run one way: `pages → layouts → sections → {ui, content} → styles`. `src/ui/` never imports `src/content/`; `src/content/` holds data only — no React, no styling, no imports from `src/ui/`.
 - `functions/` is the delivery layer outside `src/`. It may import `src/content` contract modules (data only) by **relative** path — the Pages Functions bundler follows relative imports repo-wide but resolves no aliases, so `@/content` cannot appear there — and never `src/ui`, `src/sections` or styles. Since 2026-08-23 `functions/` shares the root TypeScript program, which **does** define the `@/*` path, so an alias import there now typechecks and fails only at runtime: this rule is convention, not compiler-enforced. `pnpm test:e2e` is what catches it. Nothing in `src/` ever imports from `functions/`. Import the `content/contact` subpath, not the `@/content` barrel: the barrel re-exports the whole of `profile.ts`, and keeping the contract's only door a subpath is what makes it structurally impossible for the résumé to reach the browser bundle.
-- `src/sections/` is `.astro`. A section file is `.tsx` only if it is, or becomes, a hydrated island — today that is `SiteThemeToggle.tsx` (phase 4, `client:load`) and `ContactForm.tsx` (phase 5, `client:visible`). This keeps every section free to host an island without restructuring, and makes shipping JS by accident impossible.
-- The UI kit styles itself inline and is never forked. Section layout lives in `src/styles/sections.css` behind class hooks, so phase 6 can add media queries without `!important`.
-- Breakpoints live in `src/styles/global.css`, below the `@import` block and in descending order — `< 960px` then `< 720px`. `< 960px` is narrow mode: the grids fold to one column **and** the header nav moves behind the menu button, because the desktop header measures 915px wide (wordmark 170 + nav 421 + actions 196 + gaps + gutters) and cannot survive to 720. One narrow-mode boundary, not two. That file is last in the cascade, so equal-specificity rules beat `sections.css`; the order between the two blocks is load-bearing, because several rules collide at equal specificity. Media queries group against base class hooks (`.skills-grid`, not both modifiers). Where the kit sets a property inline, a **token override** is the only lever — `--type-section-size`, `--gutter-lg`.
-- A class hook always sits on a section-owned element, never on a kit component: Astro deletes `class` on framework components and the kit's frozen props have no `className`. Kit components take their own `style` prop instead (as the prototype does). This applies to **hiding** as much as to layout — the kit writes `display` inline, so a stylesheet `display: none` aimed at a kit component loses. Wrap it (`.site-header__resume` is the worked example).
+- `src/sections/` is `.astro`. A section file is `.tsx` only if it is, or becomes, a hydrated island — three of them: `SiteNav.tsx` (VC3, `client:load`) renders the kit `NavBar` and hosts both the theme toggle (plain React, since an island cannot hydrate inside another) and the résumé action through `NavBar`'s `action` prop; `ContactForm.tsx` (`client:visible`); `WorkGrid.tsx` (VC4, `client:visible`) owns the project cards and the drawer. This keeps every section free to host an island without restructuring, and makes shipping JS by accident impossible.
+- The UI kit styles itself inline and is never forked. Section layout lives in `src/styles/sections.css` behind class hooks, so VC5 can add media queries without `!important`.
+- Breakpoints live in `src/styles/global.css`, below the `@import` block and in descending order. **VC5 measures and documents them**: the kit defines desktop only (1280, zero media queries), and the new header — 15px brand, four 12px mono links, the theme pill and the résumé button — measures differently from the old one, so the boundary is re-derived there with its arithmetic recorded, not inherited. One narrow-mode boundary; a second, smaller step only if measurement demands it. What is fixed regardless: `global.css` is last in the cascade, so equal-specificity rules beat `sections.css` and the order between the two blocks is load-bearing; media queries group against base class hooks, not both modifiers; and where the kit sets a property inline, a **token override** is the only lever — `--section-y`, `--gutter`, never `!important` and never an edit inside `tokens/`.
+- A class hook always sits on a section-owned element, never on a kit component: Astro deletes `class` on framework components and the kit's frozen props have no `className`. Kit components take their own `style` prop instead (as the skill's component JSX does). This applies to **hiding** as much as to layout — the kit writes `display` inline, so a stylesheet `display: none` aimed at a kit component loses. Wrap it — VC5's narrow mode, which hides one of the two nav presentations per side of the breakpoint, is where this bites.
 - `BaseLayout` owns `<main id="main" tabindex="-1">` and pages fill the `header` / `footer` named slots. The skip link and its target live in one file on purpose: a page cannot ship without a main landmark, which is how `/kit` went three phases without one.
 
 ## Commands
@@ -129,17 +128,22 @@ Secrets are credentials, vars are configuration. Three keys, all consumed by `fu
 
 ## Design laws (non-negotiable)
 
-- Gold text is always `#A6762A` (`--gold-700`); `#E3B23C` is fill-only, never text. It measures 3.53–4.00 against the surfaces it lands on, under WCAG AA at the sizes it is used; the law wins, and `e2e/a11y.spec.ts` exempts exactly those nodes from axe's contrast rule and nothing else. Revisit in phase 7 with `docs/brand.md`.
-- Three light-theme text roles were corrected to reach AA and are overridden in `global.css` under `:root:not([data-theme="dark"])`, not edited in `tokens/` (which stays byte-verbatim): `--text-muted` `#8B887C` → `#686559`, `--status-success` `#6F7A44` → `#5E6738`, `--status-danger` `#B0503A` → `#A54830`. Dark measures clean and is untouched. Scope any further override the same way — a bare `:root` in `global.css` out-orders `colors.css`'s `[data-theme="dark"]` block and silently breaks the dark theme.
-- No Google Fonts in production — fonts are self-hosted; verify `grep -r "fonts.googleapis" dist/` is empty.
-- Copy: first person, sentence case, numbers not adjectives, no emoji, no exclamation marks, em dash with spaces, `·` separators, accents kept in _Bogotá_ / _Nicolás_. Applies to every string including form errors and the 404 page.
-- Content never depends on JS: all ten sections exist in static HTML.
-- White surfaces only on cards; 8px radius only on inputs — with one sanctioned exception, the hero portrait's `BOGOTÁ · REMOTE` tab, whose top-right corner is `--radius-sm` per the prototype (`PortraitScreens.jsx`, skill README §2); no orange, no gradients, no Inter.
+- **Clay is the only accent.** `--clay` `oklch(0.620 0.145 45)`, used on section ordinals, the active nav underline, one call-to-action per screen, and hover arrows. If clay appears three times in a viewport, remove one. Never introduce a new hue; never use a gradient.
+- **Separation is 1px hairlines, not shadows.** `--line-1` for rules between content, `--line-2` for control borders. There are exactly three sanctioned shadows: `--shadow-md` on interactive-card hover, `--shadow-lg` behind the project drawer, and `--shadow-focus` as the focus ring. A card at rest has a border and no shadow.
+- **Radii ladder**: containers 14px (`--radius-lg`), inputs 8px (`--radius-md`), small chips 4px (`--radius-sm`), controls and tags fully round (`--radius-pill`). Nothing else, and no exceptions. Buttons are never square.
+- **No icons of any kind.** Typography carries every affordance: `→` for direction, JetBrains Mono ordinals for steps, an em dash for list markers, a 5px `currentColor` dot for status, `✕` beside the word "Close". No icon font, no SVG sprite, no emoji.
+- **Three typefaces, one job each.** Newsreader Light 300 at `-0.022em` tracking — the name, section statements, stat figures; always light. Instrument Sans 400/500/600 — everything readable. JetBrains Mono — 12px/0.13em uppercase eyebrow labels, ordinals, tags, metadata. No Inter, no Space Grotesk. Fonts are self-hosted: the skill's `tokens/fonts.css` Google Fonts `@import` must never ship, so `grep -r "fonts.googleapis" dist/` stays empty in every phase that builds.
+- **Surfaces alternate `--paper` and `--paper-sunk`** — no third background. Pure white (`--paper-raised`) only on cards and form fields; `--paper-inverse` at most once per page. Flat colour only: no imagery behind text, no patterns, no textures.
+- **Both themes ship.** `data-theme="dark"` on `<html>`; every component reads the semantic aliases, so no component changes per theme. Contrast corrections are theme-scoped overrides in `global.css` — `:root:not([data-theme="dark"])` for light, `[data-theme="dark"]` for dark, each carrying its measured ratio in a comment. Never a bare `:root`, which out-orders `colors.css`'s dark block and silently breaks the dark theme, and never an edit inside `tokens/`, which stays byte-verbatim for the phase-7 parity diff.
+- **Copy**: first person, sentence case, numbers not adjectives, no emoji, no exclamation marks, em dash with spaces, `·` separators, accents kept in _Bogotá_ / _Nicolás_. Banned words — _passionate_, _results-driven_, _world-class_, _cutting-edge_, _ninja_, _rockstar_, _seamless_. Section titles are short statements ending with a period; project copy is two sentences, the constraint then the outcome; "+" marks floors (200k+) and en dashes mark ranges (4–8). Applies to every string including form errors and the 404 page.
+- **Content never depends on JS**: every section exists in static HTML.
 
 ## Design source of truth (until phase 7 replaces it with docs/brand.md)
 
-- `.claude/skills/nicolas-mateo-design/README.md` — master spec
-- `.claude/skills/nicolas-mateo-design/prototype/site-b/PortraitScreens.jsx` — exact grids and inline styles (never run the prototype's `index.html`)
-- `.claude/skills/nicolas-mateo-design/prototype/data.js` — every content string, keyed by lens
-- `.claude/skills/nicolas-mateo-design/design-system/tokens/*.css` — token values
-- `.claude/skills/nicolas-mateo-design/design-system/BRAND-GUIDE.md` — voice and visual law; read before writing any copy
+The skill governs every visual and behavioural number. Where the repo deliberately departs from it, the departure is recorded in `todo/visual-correction/README.md` § Locked decisions — nowhere else.
+
+- `.claude/skills/nicolas-mateo-design/readme.md` — master spec: foundations, voice, iconography, component inventory
+- `.claude/skills/nicolas-mateo-design/tokens/*.css` — token values; light `:root` plus the `[data-theme="dark"]` override
+- `.claude/skills/nicolas-mateo-design/components/{core,forms,navigation,content}/` — the 14 components, each as `.jsx` + a frozen `.d.ts` + a `.prompt.md` carrying its usage laws
+- `.claude/skills/nicolas-mateo-design/guidelines/*.card.html` — 18 specimen cards
+- `.claude/skills/nicolas-mateo-design/ui_kits/portfolio/` — the composed page: section JSX, `data.js` (every content string), and `portfolio-reference.png` + `portfolio-dark-reference.png`. Never run the `index*.html` harnesses — they load React from unpkg.

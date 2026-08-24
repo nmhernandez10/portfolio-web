@@ -19,18 +19,21 @@ icons, light + dark — and can find every source file it needs. No site code ch
 
 ## Tasks
 
-1. **Commit the skill swap — the first commit on `dev`.** The old skill's 124 file
-   deletions are sitting unstaged and the whole new skill is untracked; any other PR
-   would swallow them. `git add .claude/skills/ && git commit` (`chore:` type). If the
-   planning session's `todo/` work (the `visual-correction/` docs, the phase-7
-   amendments, the removal of the phase 0–6.2 docs) is still uncommitted, commit it
-   separately (`docs:`).
-2. **Run phase 7, task 0.A now** — push `main`, reset GitHub's default branch to
-   `main`, `HUMAN:` branch protection requiring the `ci` check. This phase ends with a
-   PR `dev → main`, which cannot exist until `main` is on GitHub. Check task 0.B's
-   Pages-project creation with the user too: the first VC PR expects preview deploys.
-3. **Rewrite the `AGENTS.md` "Design laws (non-negotiable)" section** from the new
-   skill's `readme.md` and `guidelines/*.card.html`:
+1. [x] **Commit the skill swap.** Already done before this phase ran: the swap and the
+       planning session's `todo/` work landed together in `f30aef2`. Verified — `git status`
+       clean, 95 files tracked under `.claude/skills/`, nothing ignored. No commit to make.
+2. [x] **Run phase 7, task 0.A now.** The premise was stale. `git ls-remote origin`
+       (2026-08-24) shows `refs/heads/main` already on GitHub at `64f539a` — the same SHA as
+       local `main` — with remote `HEAD` on `dev`. So no push was needed and nothing blocked
+       the PR. What is genuinely missing is `HUMAN:` work with no CLI path here (`gh` is not
+       installed): the default-branch switch to `main` and branch protection requiring the
+       `ci` check. `phase-7-launch.md` task 0.A and `visual-correction/README.md` risk 0 were
+       corrected to say this instead of "`main` was never pushed".
+       Task 0.B checked with the user: the Pages project is **not** created. VC0 is docs-only
+       and VC1 validates the endpoint locally, so 0.B was retagged **when: before the VC2 PR**
+       in all three docs that referenced it.
+3. [x] **Rewrite the `AGENTS.md` "Design laws (non-negotiable)" section** from the new
+       skill's `readme.md` and `guidelines/*.card.html`:
    - Gold is gone. The single accent is **clay** — `--clay` `oklch(0.620 0.145 45)` —
      used on section ordinals, the active nav underline, one CTA per screen and hover
      arrows; "if clay appears three times in a viewport, remove one". Never a new hue,
@@ -58,8 +61,8 @@ icons, light + dark — and can find every source file it needs. No site code ch
      "+" floors and en-dash ranges, contractions fine, exclamation marks not.
    - Keep the existing meta-rules that still hold: content never depends on JS; copy is
      first person, sentence case, no emoji, accents preserved.
-4. **Rewrite the `AGENTS.md` "Design source of truth" section** (and the sentence under
-   the H1 about the lens toggle) to the new paths:
+4. [x] **Rewrite the `AGENTS.md` "Design source of truth" section** (and the sentence under
+       the H1 about the lens toggle) to the new paths:
    - `.claude/skills/nicolas-mateo-design/readme.md` — master spec (foundations, voice,
      iconography, component inventory)
    - `…/tokens/*.css` — token values, light `:root` + `[data-theme="dark"]`
@@ -72,20 +75,68 @@ icons, light + dark — and can find every source file it needs. No site code ch
    - Replace the lens-toggle note: the design now tells **one story** — "Senior Backend
      Engineer & Feature Architect" — with four numbered sections; there is no lens, no
      separate Backend/Full-stack sections, no AI card section.
-5. **Update the `AGENTS.md` project map and layering notes** where they describe the
-   old design: the target `src/ui` component count (14), `public/icons/` (dies in VC3 —
-   mark it accordingly), the two-island note (three islands after VC4: `SiteNav`,
-   `ContactForm`, `WorkGrid`, plus the theme toggle inside `SiteNav`), and the
-   breakpoint paragraph (numbers will be re-derived in VC5 — point it at that phase
-   rather than asserting 960/720 as final).
-6. **Repoint `todo/README.md`**: the "Design source of truth" section gets the same new
-   paths; gotchas 1 (prototype harness), 5 (gold law → clay law), 7 (Icon public URLs —
-   now obsolete, replaced by the no-icons law) and 9 (BRAND-GUIDE → `readme.md` voice
-   rules) are rewritten. (The Status section already points here — done during
-   planning, when the phase 0–6.2 docs were removed.)
-7. **Surface, don't fix:** `SKILL.md` frontmatter names the skill
-   `nicolas-hernandez-design` while the folder is `nicolas-mateo-design`. Ask the user
-   whether to align them; do not rename silently.
+5. [x] **Update the `AGENTS.md` project map and layering notes** where they describe the
+       old design: the target `src/ui` component count (14), `public/icons/` (dies in VC3 —
+       mark it accordingly), the two-island note (three islands after VC4: `SiteNav`,
+       `ContactForm`, `WorkGrid`, plus the theme toggle inside `SiteNav`), and the
+       breakpoint paragraph (numbers will be re-derived in VC5 — point it at that phase
+       rather than asserting 960/720 as final).
+6. [x] **Repoint `todo/README.md`.** Done by removing duplication rather than
+       re-typing it (see Deviations): the "Design source of truth" section became a pointer to
+       `AGENTS.md`, and the gotcha list went 11 → 9. Of the four gotchas this task named by
+       their old numbers, 1 (prototype harness) became "never run the kit harnesses" and 5
+       (gold), 7 (Icon public URLs) and 9 (BRAND-GUIDE voice) collapsed into a single new
+       gotcha 5 pointing at `AGENTS.md` § Design laws. Old 4 (Google Fonts), 6 (no-JS), 8
+       (résumé filenames), 10 and 11 survive, renumbered. **The old numbers no longer resolve
+       — cite gotchas by title from here on.**
+7. [x] **Surface, don't fix:** `SKILL.md` frontmatter named the skill
+       `nicolas-hernandez-design` while the folder is `nicolas-mateo-design`. Raised with the
+       user; they chose to **align the frontmatter** to `nicolas-mateo-design`, which is the
+       name Claude Code actually registers (it resolves skills by directory, so the frontmatter
+       `name` was inert). That one line is the sole sanctioned departure from "the skill ships
+       byte-verbatim"; nothing else references the frontmatter name.
+       **A second mismatch was surfaced and deliberately left alone**: `SKILL.md` line 7 says
+       "Read the README.md file within this skill", but the file on disk is `readme.md`, so on
+       a case-sensitive filesystem that instruction does not resolve. The user's decision
+       covered the name only, so this stays open — resolve it here or when the skill is
+       deleted in phase 7.
+
+## Deviations from this doc (agreed, and why)
+
+1. **The lens blockquote was deleted, not rewritten** (task 4). Task 4 asked for a note
+   saying there is no lens, no separate Backend/Full-stack sections and no AI card
+   section. That annotates — it teaches a reader about three things that do not exist,
+   which this phase's own locked decision forbids ("rewritten, not annotated; a reader
+   should never have to know gold existed"). The same rule applies to the lens. The H1
+   sentence now states the new shape positively, and § Design source of truth opens with
+   the one line the blockquote had earned: the skill governs, and the deliberate
+   departures from it are recorded in `visual-correction/README.md` § Locked decisions.
+2. **`todo/README.md`'s "Design source of truth" became a pointer, not a second copy**
+   (task 6). Task 6 said it "gets the same new paths"; five paths maintained in two files
+   is exactly the drift this phase exists to end. `AGENTS.md` owns them.
+3. **Gotchas 5, 7 and 9 collapsed into one** (task 6) instead of being rewritten
+   individually — all three only restated laws that `AGENTS.md` § Design laws now owns.
+   The list went 11 → 9 and old numbers no longer resolve.
+4. **Scope extended to `todo/README.md`'s "Stack and architecture (locked)" block**
+   (agreed with the user). Task 6 did not name it, but it still asserted 20 components,
+   an icons directory, "exactly two islands", the lens toggle and Space Grotesk — and the
+   Definition of Done requires both docs to teach only the new brand. Only those five
+   design-facing lines changed; the stack, Pages, layering, theme, reveal and contact
+   decisions are untouched, being repo decisions rather than brand ones.
+
+These four all follow one rule adopted for this phase: **one owner per fact.** `AGENTS.md`
+owns current law and current shape; `todo/README.md` owns the plan, the dated decisions and
+the traps; a phase doc owns its own tasks. Where a fact lived in both docs, the second copy
+became a pointer.
+
+## Known residue
+
+- `todo/README.md`'s **Theme** bullet still names `SiteThemeToggle` as the island that
+  syncs the attribute. That stays true until VC3 folds the control into `SiteNav`; the
+  bullet records the theme _mechanism_, which this phase left untouched by design.
+  VC5's docs-sync (its task 6) is where it lands.
+- `AGENTS.md` § Testing still describes today's suite (two islands, a mobile menu). It is
+  accurate now; VC3 and VC4 rewrite the specs and VC5 syncs the prose.
 
 ## Verification
 

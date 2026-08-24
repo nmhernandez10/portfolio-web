@@ -1,5 +1,5 @@
 ---
-name: nicolas-hernandez-design
+name: nicolas-mateo-design
 description: Use this skill to generate well-branded interfaces and assets for Nicolás Hernández's personal portfolio brand, either for production or throwaway prototypes/mocks/etc. Contains essential design guidelines, colors, type, fonts, assets, and UI kit components for prototyping.
 user-invocable: true
 ---
