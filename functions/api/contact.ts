@@ -1,29 +1,46 @@
-import { env } from "cloudflare:workers";
-import type { APIRoute } from "astro";
 import {
   CONTACT_ERRORS,
   CONTACT_MESSAGE_MAX,
   CONTACT_SENT_PARAM,
   CONTACT_SENT_VALUE,
   CONTACT_TOPICS,
-} from "@/content";
+} from "../../src/content/contact";
 
 /**
- * The one on-demand route on an otherwise static site: it takes the contact
- * form, validates it and hands it to Resend. Reads env from
- * "cloudflare:workers" — Astro.locals.runtime.env was removed in
- * @astrojs/cloudflare v14 and now throws.
+ * The one dynamic route on an otherwise static site: it takes the contact form,
+ * validates it and hands it to Resend. A Pages Function rather than an Astro
+ * route — the site builds adapter-less, so functions/ is the only place a
+ * request handler can live.
+ *
+ * functions/ is the delivery layer outside src/: it may import src/content
+ * contract modules (data only) by relative path — the Pages bundler resolves no
+ * aliases — and nothing else from src/.
  *
  * Nothing here ever logs a message body or a submitter address. Status codes
  * and outcomes only.
  */
-export const prerender = false;
+interface Env {
+  EMAIL_FROM: string;
+  EMAIL_TO: string;
+  RESEND_API_KEY: string;
+}
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const RESEND_TIMEOUT_MS = 10_000;
 
 /** Pragmatic, not RFC 5322: reject the obviously unreachable, accept the rest. */
 const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * The types a browser can post cross-site without a preflight, so the ones a
+ * CSRF gate has to cover. Astro's origin check guarded these until it left with
+ * the adapter.
+ */
+const FORM_CONTENT_TYPES = [
+  "application/x-www-form-urlencoded",
+  "multipart/form-data",
+  "text/plain",
+];
 
 interface Submission {
   name: string;
@@ -110,12 +127,10 @@ function validate({ name, email, topic, message }: Submission): Errors {
 }
 
 /** Total by construction: true means delivered, anything else is false. */
-async function send({
-  name,
-  email,
-  topic,
-  message,
-}: Submission): Promise<boolean> {
+async function send(
+  { name, email, topic, message }: Submission,
+  env: Env,
+): Promise<boolean> {
   try {
     const response = await fetch(RESEND_ENDPOINT, {
       method: "POST",
@@ -131,7 +146,8 @@ async function send({
         subject: `Portfolio contact — ${topic}`,
         text: `Name: ${name}\nEmail: ${email}\nTopic: ${topic}\n\n${message}`,
       }),
-      // Without this a hung upstream holds the Worker until its own limit.
+      // Without this a hung upstream holds the Function until the platform's
+      // own limit.
       signal: AbortSignal.timeout(RESEND_TIMEOUT_MS),
     });
     if (!response.ok)
@@ -143,11 +159,36 @@ async function send({
   }
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
+  // Gates answer with a status and no body — nothing on the page can reach
+  // them, so there is nothing to render. The pipeline below answers with
+  // fail()'s JSON, which the island does render.
+  //
+  // Pages routes every method to this file, so 405 is explicit. A module
+  // exporting only onRequestPost would fall through to the asset handler
+  // instead, giving a 404 whose shape depends on what else is deployed.
+  if (request.method !== "POST")
+    return new Response(null, { status: 405, headers: { Allow: "POST" } });
+
+  // Media types are case-insensitive (RFC 9110), hence the lowercasing: one
+  // parsed value decides both the gate below and how the body is read, so they
+  // cannot disagree about what arrived.
+  const contentType = request.headers.get("content-type") ?? "";
+  const mediaType = contentType.split(";")[0].trim().toLowerCase();
+
+  // CSRF gate, hand-held. A browser can post the form content types cross-site
+  // without a preflight, so they must carry a same-origin Origin. Browsers send
+  // one on same-origin form posts, so the no-JS path is unaffected; a bare curl
+  // form post is a 403. application/json is exempt: a plain form cannot forge
+  // it.
+  if (
+    (mediaType === "" || FORM_CONTENT_TYPES.includes(mediaType)) &&
+    request.headers.get("origin") !== new URL(request.url).origin
+  )
+    return new Response(null, { status: 403 });
+
   // One decision drives both how the body is parsed and what a success is.
-  const wantsJson = (request.headers.get("content-type") ?? "").includes(
-    "application/json",
-  );
+  const wantsJson = mediaType === "application/json";
 
   const submission = await readSubmission(request, wantsJson);
   if (!submission) return fail(400, { form: CONTACT_ERRORS.unreadable });
@@ -158,14 +199,7 @@ export const POST: APIRoute = async ({ request }) => {
   const errors = validate(submission);
   if (Object.keys(errors).length > 0) return fail(400, errors);
 
-  return (await send(submission))
+  return (await send(submission, env))
     ? sent(wantsJson)
     : fail(502, { form: CONTACT_ERRORS.failed });
 };
-
-/**
- * Astro dispatches mod[method] ?? mod.ALL, so without this a GET is a 404 plus
- * a router warning rather than the 405 it should be.
- */
-export const ALL: APIRoute = () =>
-  new Response(null, { status: 405, headers: { Allow: "POST" } });

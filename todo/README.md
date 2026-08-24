@@ -13,7 +13,7 @@ This directory is the implementation plan for the portfolio. Each phase is one m
 | 4     | [Interactivity](phase-4-interactivity.md)                 | —   | Implemented      | —           |
 | 5     | [Contact endpoint](phase-5-contact-endpoint.md)           | —   | Implemented      | —           |
 | 6     | [Responsive and quality](phase-6-responsive-quality.md)   | —   | Implemented      | —           |
-| 6.1   | [Pages migration](phase-6.1-pages-migration.md)           | —   | Not started      | —           |
+| 6.1   | [Pages migration](phase-6.1-pages-migration.md)           | —   | In progress      | —           |
 | 6.2   | [Workers decommission](phase-6.2-workers-decommission.md) | —   | Not started      | —           |
 | 7     | [Launch](phase-7-launch.md)                               | —   | Not started      | —           |
 

@@ -1,16 +1,16 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const BASE_URL = "http://localhost:4321";
+const BASE_URL = "http://localhost:8788";
 
 /**
  * Chromium only — this suite guards behaviour and accessibility, not rendering
  * across engines.
  *
- * The server is `astro preview`, which the Cloudflare adapter runs on real
- * workerd through @cloudflare/vite-plugin, so /api/contact is exercised on the
- * runtime it deploys to. It needs a build first and exits with a clear message
- * if there is none; the `test:e2e` script owns that build so a stale dist/ can
- * never go green. CI already builds, so it calls `playwright test` directly.
+ * The server is `wrangler pages dev` (the `preview` script), the same runtime
+ * Cloudflare Pages deploys to, so functions/api/contact.ts is exercised for
+ * real rather than stubbed. It serves the built dist/, so the `test:e2e` script
+ * owns that build and a stale dist/ can never go green. CI already builds, so
+ * it calls `playwright test` directly.
  */
 export default defineConfig({
   testDir: "e2e",
@@ -26,14 +26,6 @@ export default defineConfig({
   webServer: {
     command: "pnpm preview",
     url: BASE_URL,
-    // Astro 7 daemonizes `astro preview` when am-i-vibing reports an agentic
-    // environment, which Playwright sees as the server exiting early. The env
-    // var is that detection's opt-out, not a request to background it (see
-    // astro/dist/cli/preview/index.js: `!process.env.ASTRO_PREVIEW_BACKGROUND
-    // && isRunByAgent()`). A human terminal and CI never trip the detection;
-    // this only matters when an agent runs the suite, which in this repo is
-    // most of the time.
-    env: { ASTRO_PREVIEW_BACKGROUND: "1" },
     reuseExistingServer: false,
     timeout: 120_000,
   },

@@ -1,15 +1,21 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "portfolio-web",
+  // Pages, not Workers: this key is what makes the file the source of truth for
+  // the project, locking the dashboard's copies of these fields. `wrangler
+  // pages dev` reads it too, so the preview script needs no directory argument.
+  "pages_build_output_dir": "./dist",
   // Matches the installed workerd (1.20260815.1); bump alongside wrangler upgrades.
   "compatibility_date": "2026-08-15",
-  // main, the ASSETS binding and the asset directory are supplied by
-  // @astrojs/cloudflare v14 — do not restate them here.
 
   // Contact endpoint configuration. Non-secret, so it is versioned here rather
-  // than hidden in the dashboard. EMAIL_FROM reaches Resend verbatim, so both
-  // "user@domain" and "Name <user@domain>" are valid; it must stay on the
-  // verified domain.
+  // than hidden in the dashboard. Top-level vars apply to both the preview and
+  // production environments; there are no env blocks because vars is
+  // non-inheritable, so an env.production/env.preview block would have to
+  // restate every key and a partial override silently drops the rest.
+  //
+  // EMAIL_FROM reaches Resend verbatim, so both "user@domain" and
+  // "Name <user@domain>" are valid; it must stay on the verified domain.
   //
   // EMAIL_TO is the same inbox the contact rail advertises — it mirrors
   // profile.email in src/content/profile.ts and the two must move together. It
@@ -19,9 +25,8 @@
     "EMAIL_FROM": "Nicolás Hernández <contact@nicolasmateo.dev>",
     "EMAIL_TO": "nm.hernandez1996@gmail.com",
   },
-  // RESEND_API_KEY is a credential, so it is a Worker secret
-  // (`wrangler secret put`) and lives in the gitignored .dev.vars locally.
-  // Declaring it here is what makes `wrangler types` deterministic: without it
-  // the name is inferred from .dev.vars, which CI does not have.
-  "secrets": { "required": ["RESEND_API_KEY"] },
+  // RESEND_API_KEY is a credential, so it is not here: it is a Pages secret set
+  // per environment in the dashboard (Settings → Variables and Secrets, once
+  // for Production and once for Preview) and lives in the gitignored .dev.vars
+  // locally, which `wrangler pages dev` reads.
 }

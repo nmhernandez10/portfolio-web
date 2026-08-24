@@ -10,27 +10,27 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
-    "preview:worker": "astro build && wrangler dev",
+    "preview": "wrangler pages dev",
     "test:e2e": "astro build && playwright test",
     "astro": "astro",
-    "check": "astro check && tsc --noEmit",
+    "check": "astro check && tsc --noEmit && tsc -p functions",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^14.2.3",
     "@astrojs/react": "^6.0.3",
     "@astrojs/sitemap": "^3.7.3",
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "@fontsource-variable/space-grotesk": "^5.3.0",
     "astro": "^7.2.0",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "sharp": "^0.35.3"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@axe-core/playwright": "^4.13.0",
+    "@cloudflare/workers-types": "^5.20260822.1",
     "@playwright/test": "^1.62.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",

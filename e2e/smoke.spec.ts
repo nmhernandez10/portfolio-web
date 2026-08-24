@@ -1,17 +1,22 @@
 import { expect, test } from "@playwright/test";
 import { NAV } from "../src/content/sections";
 import { profile } from "../src/content/profile";
-import { CONTACT_TOPICS } from "../src/content/contact";
+import {
+  CONTACT_SENT_PARAM,
+  CONTACT_SENT_VALUE,
+  CONTACT_TOPICS,
+} from "../src/content/contact";
 
 /**
  * Few and load-bearing, per the phase brief: the static page, the two phase-4
- * behaviours, the endpoint's two safe paths, and the phase-6 mobile nav.
+ * behaviours, the endpoint's safe paths and gates, and the phase-6 mobile nav.
  *
  * Data comes from src/content so a manifest change fails a test instead of
  * drifting past a hardcoded copy of it.
  *
- * The endpoint cases are deliberately the only two that never reach Resend:
- * a validation failure and a filled honeypot both return before send().
+ * Every endpoint case here returns before send(), so none can reach Resend: the
+ * two gates reject before the body is read, and a validation failure and a
+ * filled honeypot both return short of it.
  */
 
 test("every anchored section is in the static page under one h1", async ({
@@ -66,6 +71,53 @@ test("a filled honeypot answers like a success and sends nothing", async ({
   });
   expect(response.status()).toBe(200);
   expect(await response.json()).toEqual({ ok: true });
+});
+
+/**
+ * The two gates are hand-written here since phase 6.1 — Astro's ALL dispatch
+ * supplied the 405 and its origin-check middleware the 403, and both left with
+ * the adapter. A refactor of the content-type handling could open the CSRF gate
+ * silently, so it is guarded rather than trusted.
+ */
+test("the contact endpoint gates method and origin", async ({ request }) => {
+  const wrongMethod = await request.get("/api/contact");
+  expect(wrongMethod.status()).toBe(405);
+  expect(wrongMethod.headers().allow).toBe("POST");
+
+  // No Origin header — the request context is not a browser, which is exactly
+  // the cross-site shape the gate exists to reject.
+  const noOrigin = await request.post("/api/contact", {
+    form: {
+      name: "Test",
+      email: "test@example.com",
+      topic: CONTACT_TOPICS[0],
+      message: "Hello",
+    },
+  });
+  expect(noOrigin.status()).toBe(403);
+});
+
+test("a form-encoded post redirects instead of answering JSON", async ({
+  request,
+  baseURL,
+}) => {
+  const response = await request.post("/api/contact", {
+    headers: { origin: baseURL! },
+    // Honeypot filled: the only way to prove the no-JS redirect without
+    // reaching Resend.
+    form: {
+      name: "Bot",
+      email: "bot@example.com",
+      topic: CONTACT_TOPICS[0],
+      message: "Hello",
+      company: "spam",
+    },
+    maxRedirects: 0,
+  });
+  expect(response.status()).toBe(303);
+  expect(response.headers().location).toBe(
+    `/?${CONTACT_SENT_PARAM}=${CONTACT_SENT_VALUE}#contact`,
+  );
 });
 
 /**

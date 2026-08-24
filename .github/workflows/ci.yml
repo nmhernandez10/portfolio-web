@@ -20,12 +20,12 @@ jobs:
       - run: pnpm format:check
       - run: pnpm check
       - run: pnpm build
-      # Structural guarantee, not a convenience: wrangler.jsonc declares
-      # RESEND_API_KEY under secrets.required and CI has no .dev.vars, and a
-      # placeholder makes "CI cannot send real email" a property of the
-      # environment rather than of which code paths the tests happen to take.
-      # Written after the build (which does not need it) and before the preview
-      # server (which does).
+      # Structural guarantee, not a convenience: `wrangler pages dev` reads
+      # .dev.vars and CI has none, so a placeholder makes "CI cannot send real
+      # email" a property of the environment rather than of which code paths the
+      # tests happen to take. Every endpoint case the suite exercises returns
+      # before send() anyway. Written after the build (which does not need it)
+      # and before the preview server (which does).
       - name: Placeholder secrets — CI must never send real email
         run: printf 'RESEND_API_KEY=ci-placeholder-not-a-key\n' > .dev.vars
       - uses: actions/cache@v4
