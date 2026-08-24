@@ -1,0 +1,97 @@
+/* The new design system's entry point, ported from the skill.
+
+   Import order is the skill's own styles.css: base.css comes last because it
+   consumes tokens from every other file. Everything below the imports is the
+   adaptation layer — the font families this repo actually self-hosts, the two
+   values the skill's JSX hardcoded, and the contrast corrections. None of it
+   belongs in tokens/, which stays byte-verbatim for the phase-7 parity diff.
+
+   VC3 folds this file into the rewritten global.css. */
+@import url("./tokens/fonts.css");
+@import url("./tokens/colors.css");
+@import url("./tokens/typography.css");
+@import url("./tokens/spacing.css");
+@import url("./tokens/shape.css");
+@import url("./tokens/motion.css");
+@import url("./tokens/base.css");
+
+/* Fontsource registers every variable family under a "Variable" suffix, so the
+   skill's first stack entry never matches. The fallbacks are the skill's. */
+:root {
+  --font-display: "Newsreader Variable", "Iowan Old Style", Georgia, serif;
+  --font-sans:
+    "Instrument Sans Variable", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono:
+    "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Placeholders: the skill's base.css defines no rule for them and no
+   color-scheme anywhere, so without this the UA paints placeholder text, the
+   scrollbars and the textarea resize grip in light chrome under
+   data-theme="dark". --text-meta measures 5.06 light / 4.89 dark against
+   --surface-card, the only surface a field ever sits on. */
+::placeholder {
+  color: var(--text-meta);
+}
+
+/* --- Light theme -------------------------------------------------------
+   Scoped with :not() rather than [data-theme="light"] so the corrections also
+   hold with no attribute at all (JS disabled), and scoped rather than written
+   as a bare :root, which would out-order colors.css's [data-theme="dark"]
+   block and silently break the dark theme.
+
+   Four palette roles miss WCAG AA at the 12-15px sizes the system uses them
+   at. Measured (oklch -> sRGB, WCAG 2.x) against every surface each one lands
+   on, before -> after:
+
+     --ink-3 (--text-meta)  3.63 paper - 3.42 sunk - 3.79 raised
+                         -> 4.85 paper - 4.56 sunk - 5.06 raised
+     --moss                 2.91 on --moss-soft -> 4.58 (5.17 on paper)
+     --rust                 4.17 on --rust-soft -> 4.54 (5.25 on paper)
+     --clay-strong          4.38 on --clay-soft -> 4.57 (5.26 on paper)
+
+   Dark measures clean for all four and is left alone.
+
+   --ink-4 is deliberately NOT corrected. AA on near-white pins any readable
+   ink at L ~ 0.540 -- the value --ink-3 already needs -- so correcting it
+   would collapse the fourth step of the ink ramp into the third. Its four
+   word-and-digit uses read --text-meta instead (see src/kit). The three
+   decorative marks that keep it need no exemption: axe reports none of them
+   (e2e/a11y.spec.ts records why).
+
+   --clay is not corrected either: its value is design law (AGENTS.md), and
+   clay-as-text plus paper-on-clay are exempted there for the same reason gold
+   was in phase 2. */
+:root:not([data-theme="dark"]) {
+  color-scheme: light;
+
+  --ink-3: oklch(0.54 0.008 80);
+  --moss: oklch(0.51 0.145 145);
+  --rust: oklch(0.54 0.16 28);
+  --clay-strong: oklch(0.535 0.145 45);
+
+  /* Button's primary hover, the skill's one raw literal, kept verbatim. */
+  --btn-primary-hover: oklch(0.16 0.01 70);
+  /* Tag's amber ink, the skill's other raw literal. 5.52 on --amber-soft. */
+  --tag-amber-ink: oklch(0.48 0.11 85);
+}
+
+/* --- Dark theme --------------------------------------------------------
+   Both values below are theme-blind literals in the skill's JSX; routing them
+   through tokens is what stops the dark theme inheriting them.
+
+   --btn-primary-hover follows one rule in both themes: the hover fill moves
+   further from the page surface, so contrast against the button's own
+   --text-inverse label strictly increases from its resting state. Light
+   deepens below --ink-1 (0.245 -> 0.16) behind a near-white label; dark lifts
+   above it (0.960 -> 0.995) behind a near-black one. The skill's literal did
+   the opposite here -- near-black fill behind near-black text.
+
+   --tag-amber-ink: the skill's light-tuned literal measures 2.11 on dark
+   --amber-soft; the palette's own --amber measures 6.90. */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --btn-primary-hover: oklch(0.995 0.004 85);
+  --tag-amber-ink: var(--amber);
+}

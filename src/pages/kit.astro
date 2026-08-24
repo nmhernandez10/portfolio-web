@@ -1,47 +1,61 @@
 ---
-import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getImage } from "astro:assets";
+import portrait from "@/assets/portrait.jpg";
+import { COPY, profile, SECTIONS, sectionMeta, twoDigit } from "@/content/next";
 import {
-  Avatar,
   Button,
   Card,
-  Icon,
-  IconButton,
+  Divider,
+  ExperienceItem,
   Input,
-  ProjectBrief,
+  Portrait,
   ProjectCard,
+  ProjectDrawer,
   SectionHeader,
-  SegmentedToggle,
-  Select,
   SkillGroup,
   StatBlock,
-  Switch,
   Tag,
   Textarea,
   TextLink,
-  TimelineItem,
-  WorkRow,
-} from "@/ui";
-import { SiteThemeToggle } from "@/sections/SiteThemeToggle";
+} from "@/kit";
+import KitLayout from "@/layouts/KitLayout.astro";
+import { NavBarSpecimen } from "./_kit/NavBarSpecimen";
+import Specimen from "./_kit/Specimen.astro";
+import { SiteThemeToggle } from "@/sections/next/SiteThemeToggle";
 
-const buttonVariants = ["primary", "secondary", "ghost"] as const;
+const buttonVariants = ["primary", "accent", "secondary", "ghost"] as const;
 const buttonSizes = ["sm", "md", "lg"] as const;
+const cardTones = ["raised", "flat", "sunk", "inverse"] as const;
+const portraitShapes = ["arch", "round", "soft", "square"] as const;
 const tagTones = [
   "neutral",
-  "accent",
+  "clay",
+  "moss",
+  "amber",
+  "rust",
   "outline",
-  "success",
-  "info",
-  "danger",
 ] as const;
-const cardTones = ["raised", "sunken", "accent", "inverse", "bare"] as const;
-const cardPaddings = ["none", "sm", "md", "lg"] as const;
-const iconButtonVariants = ["outline", "quiet", "filled"] as const;
-const iconButtonSizes = ["sm", "md", "lg"] as const;
-const uiGlyphs = ["arrow-up-right", "download", "mail", "terminal", "check"];
-const techMarks = ["postgresql", "react", "typescript", "docker", "nestjs"];
+const textLinkTones = ["ink", "accent"] as const;
+
+// astro:assets is unavailable to React, so the portrait is processed here and
+// handed to the component as a plain URL — the same move VC3 makes in Hero.
+const portraitImage = await getImage({
+  src: portrait,
+  width: 320,
+  height: 390,
+  format: "webp",
+});
+
+// Specimens render the real content model rather than invented prose: the
+// brand's voice rules govern every string, and copy has one source.
+const work = sectionMeta("work");
+const [firstProject, secondProject] = profile.projects;
+const currentRole = profile.experience[0];
+const pastRole = profile.experience[1];
+const [firstStat, secondStat] = profile.stats;
 ---
 
-<BaseLayout
+<KitLayout
   title="UI kit — nicolasmateo.dev"
   description="Every component in the design system, in every variant its props allow."
 >
@@ -51,502 +65,318 @@ const techMarks = ["postgresql", "react", "typescript", "docker", "nestjs"];
         <h1>UI kit</h1>
         <SiteThemeToggle client:load />
       </div>
-      <p class="kit-note">
-        Every component in the design system, in every variant its props allow.
-        The theme toggle above is the only interactive island on this page —
-        hover, press and focus states that live in component state stay idle
-        here, so judge them in the running site. The focus ring comes from the
-        stylesheet and does work: tab through the fields below.
+      <p class="kit-lead">
+        Every component in the design system, in every variant its props allow,
+        rendered from the site's own content. The theme toggle above is the only
+        interactive island on this page — hover, press and field-focus states
+        live in component state, so they stay idle here and want judging in the
+        running site. The stylesheet's clay focus ring does work: tab through
+        the buttons and links below. It does not reach the fields, because an
+        unfocused Input writes box-shadow inline.
       </p>
     </header>
 
-    <section class="kit-section">
-      <h2 class="label-mono">Core · Icon</h2>
-      <div class="row">
-        {uiGlyphs.map((name) => <Icon name={name} size={14} />)}
-        {uiGlyphs.map((name) => <Icon name={name} size={18} />)}
-        {uiGlyphs.map((name) => <Icon name={name} size={24} />)}
-      </div>
-      <p>
-        Inline with text at 18px, baseline nudged: I ship systems <Icon
-          name="terminal"
-          size={18}
-          strokeAlign
-        />
-        end to end.
-      </p>
-      <div class="row muted">
-        {techMarks.map((name) => <Icon name={name} set="tech" size={18} />)}
-      </div>
-      <p class="kit-note">
-        Tech marks render in muted ink or currentColor, never in a vendor
-        colour.
-      </p>
-    </section>
+    <section class="kit-group">
+      <h2>Core</h2>
 
-    <section class="kit-section">
-      <h2 class="label-mono">Core · Button</h2>
-      {
-        buttonVariants.map((variant) => (
-          <div class="row">
-            {buttonSizes.map((size) => (
-              <Button variant={variant} size={size}>
-                {variant} {size}
+      <Specimen
+        name="Button"
+        law="Primary is solid ink and the default; accent is clay fill, at most once per screen; secondary is the hairline outline beside a primary; ghost is text-only. All four appear together here because this is an inventory sheet — the accent law governs a composed screen. Buttons are always fully rounded and never squared off."
+      >
+        {
+          buttonVariants.map((variant) => (
+            <div class="row">
+              {buttonSizes.map((size) => (
+                <Button variant={variant} size={size}>
+                  {variant} {size}
+                </Button>
+              ))}
+              <Button variant={variant} disabled>
+                Disabled
               </Button>
-            ))}
-            <Button variant={variant} disabled>
-              Disabled
-            </Button>
-          </div>
-        ))
-      }
-      <div class="row panel-accent">
-        {
-          buttonSizes.map((size) => (
-            <Button variant="inverse" size={size}>
-              Inverse {size}
-            </Button>
+            </div>
           ))
         }
-        <Button variant="inverse" disabled>Disabled</Button>
-      </div>
-      <p class="kit-note">
-        Inverse sits on a gold or photographic panel — never on plain paper.
-      </p>
-      <div class="row">
-        <Button icon="download" iconPosition="left" variant="secondary"
-          >Resume, PDF</Button
-        >
-        <Button icon="arrow-up-right">See selected work</Button>
-        <Button
-          as="a"
-          href="#core-button"
-          variant="secondary"
-          icon="mail"
-          iconPosition="left"
-        >
-          Get in touch
-        </Button>
-      </div>
-      <div class="field">
-        <Button fullWidth>Full width</Button>
-      </div>
-    </section>
+        <div class="row">
+          <Button variant="accent" trailing="→">{COPY.hero.cta.contact}</Button>
+          <Button variant="secondary" href={profile.resumes.fullStack}>
+            {COPY.hero.cta.resume}
+          </Button>
+          <Button variant="ghost" leading="←">Back</Button>
+        </div>
+        <div class="field"><Button full>Full width</Button></div>
+      </Specimen>
 
-    <section class="kit-section">
-      <h2 class="label-mono">Core · IconButton</h2>
-      {
-        iconButtonVariants.map((variant) => (
-          <div class="row">
-            {iconButtonSizes.map((size) => (
-              <IconButton
-                icon="arrow-up-right"
-                label={`Open, ${variant} ${size}`}
-                variant={variant}
-                size={size}
+      <Specimen
+        name="Card"
+        law="Sunk is for code samples and quiet metadata blocks; inverse is used sparingly, at most one dark block per page. A card at rest carries a border and no shadow — the lift and the shadow belong to interactive on hover."
+      >
+        <div class="grid">
+          {
+            cardTones.map((tone) => (
+              <Card tone={tone}>
+                <p>Tone {tone}</p>
+              </Card>
+            ))
+          }
+        </div>
+        <div class="grid">
+          <Card interactive href="#kit-content">
+            <p>Interactive — hover lifts it 2px onto --shadow-md.</p>
+          </Card>
+          <Card as="article" pad="var(--space-4)">
+            <p>as="article", padding overridden to --space-4.</p>
+          </Card>
+        </div>
+      </Specimen>
+
+      <Specimen
+        name="Divider"
+        law="The system's primary separator — prefer it over shadows or background changes."
+      >
+        <div class="stack wide">
+          <Divider />
+          <Divider label={COPY.about.educationLabel} />
+          <Divider tone="strong" label="Strong" space="var(--space-4)" />
+        </div>
+      </Specimen>
+
+      <Specimen
+        name="Portrait"
+        law="The headshot — one per page, in the hero or the about section. Desaturated at rest, colour on hover."
+      >
+        <div class="row">
+          {
+            portraitShapes.map((shape) => (
+              <Portrait
+                src={portraitImage.src}
+                alt={profile.name}
+                size={120}
+                shape={shape}
               />
-            ))}
-          </div>
-        ))
-      }
-      <div class="row">
-        <IconButton
-          as="a"
-          href="https://github.com/nmhernandez10"
-          icon="github"
-          set="tech"
-          label="GitHub"
-        />
-      </div>
+            ))
+          }
+          <Portrait
+            src={portraitImage.src}
+            alt={profile.name}
+            size={120}
+            grayscale={false}
+          />
+        </div>
+      </Specimen>
+
+      <Specimen
+        name="Tag"
+        law="Keep tag rows to one line where possible and sort by relevance, not alphabetically. Non-mono is for human-language labels like “Remote”."
+      >
+        <div class="row">
+          {tagTones.map((tone) => <Tag tone={tone}>{tone}</Tag>)}
+        </div>
+        <div class="row">
+          {
+            tagTones.map((tone) => (
+              <Tag tone={tone} dot>
+                {tone}
+              </Tag>
+            ))
+          }
+        </div>
+        <div class="row">
+          <Tag tone="moss" dot>{COPY.hero.status}</Tag>
+          <Tag tone="outline" mono={false}>{profile.location}</Tag>
+        </div>
+      </Specimen>
     </section>
 
-    <section class="kit-section">
-      <h2 class="label-mono">Core · Tag</h2>
-      <div class="row">
-        {tagTones.map((tone) => <Tag tone={tone}>{tone}</Tag>)}
-      </div>
-      <div class="row">
-        {
-          tagTones.map((tone) => (
-            <Tag tone={tone} size="sm">
-              {tone}
-            </Tag>
-          ))
-        }
-      </div>
-      <div class="row">
-        <Tag tone="success" dot>Open to work</Tag>
-        <Tag tone="neutral" dot>With dot</Tag>
-        <Tag mono={false}>Prose tag, not mono</Tag>
-      </div>
+    <section class="kit-group">
+      <h2>Forms</h2>
+
+      <Specimen
+        name="Input"
+        law="Labels are always mono uppercase; placeholders are lower-case examples, never a repeat of the label. Repeated specimens of one field pass an explicit id: the component derives its id from the label, so two Email fields would otherwise share one and both labels would point at the first."
+      >
+        <div class="row wide">
+          <Input
+            label={COPY.form.name.label}
+            placeholder={COPY.form.name.placeholder}
+          />
+          <Input
+            id="in-email-hint"
+            label={COPY.form.email.label}
+            type="email"
+            placeholder={COPY.form.email.placeholder}
+            hint="I only use this to reply."
+          />
+          <Input
+            id="in-email-error"
+            label={COPY.form.email.label}
+            type="email"
+            placeholder={COPY.form.email.placeholder}
+            error="Enter an email address I can reply to."
+          />
+        </div>
+      </Specimen>
+
+      <Specimen
+        name="Textarea"
+        law="The message field on the contact form — same label and focus rules as Input."
+      >
+        <div class="row wide">
+          <Textarea
+            id="ta-message-default"
+            label={COPY.form.message.label}
+            rows={4}
+            placeholder={COPY.form.message.placeholder}
+          />
+          <Textarea
+            id="ta-message-error"
+            label={COPY.form.message.label}
+            rows={4}
+            placeholder={COPY.form.message.placeholder}
+            error="Tell me a little about the work."
+          />
+        </div>
+      </Specimen>
     </section>
 
-    <section class="kit-section">
-      <h2 class="label-mono">Core · Card</h2>
-      <div class="grid">
-        {
-          cardTones.map((tone) => (
-            <Card tone={tone}>
-              <span
-                class:list={["label-mono", tone === "inverse" && "on-inverse"]}
-              >
-                tone {tone}
-              </span>
-              <p>
-                Structure comes from the hairline, so a card at rest carries no
-                shadow.
-              </p>
-            </Card>
-          ))
-        }
-      </div>
-      <div class="grid">
-        {
-          cardPaddings.map((padding) => (
-            <Card padding={padding}>
-              <span class="label-mono">padding {padding}</span>
-            </Card>
-          ))
-        }
-      </div>
-      <div class="grid">
-        <Card as="a" href="#core-card" interactive>
-          <span class="label-mono">interactive</span>
-          <p>Lifts 2px on hover in the running site.</p>
-        </Card>
-      </div>
+    <section class="kit-group">
+      <h2>Navigation</h2>
+
+      <Specimen
+        name="NavBar"
+        law="One per page, sticky, four links maximum. The active link is marked with a clay underline, never a filled pill."
+      >
+        <div class="nav-frame">
+          <NavBarSpecimen
+            brand={profile.name}
+            items={SECTIONS.map((entry) => ({
+              id: entry.id,
+              label: entry.nav,
+            }))}
+            active="work"
+            resumeHref={profile.resumes.fullStack}
+            resumeLabel={COPY.footer.links.resume}
+          />
+        </div>
+      </Specimen>
+
+      <Specimen
+        name="TextLink"
+        law="Email addresses, profile links, “read more”. The underline wipes in from the left on hover; the arrow nudges right with it."
+      >
+        <div class="row">
+          {
+            textLinkTones.map((tone) => (
+              <TextLink tone={tone} href={`mailto:${profile.email}`}>
+                {profile.email}
+              </TextLink>
+            ))
+          }
+          <TextLink href={`https://${profile.linkedin}`} external arrow>
+            {COPY.footer.links.linkedin}
+          </TextLink>
+          <TextLink
+            tone="accent"
+            href={`https://${profile.github}`}
+            external
+            arrow
+          >
+            {COPY.footer.links.github}
+          </TextLink>
+        </div>
+      </Specimen>
     </section>
 
-    <section class="kit-section">
-      <h2 class="label-mono">Core · Avatar</h2>
-      <div class="row">
-        <Avatar size="sm" />
-        <Avatar size="md" />
-        <Avatar size="lg" />
-        <Avatar size="xl" />
-        <Avatar size={72} />
-      </div>
-      <div class="row">
-        <Avatar size="lg" shape="rounded" />
-        <Avatar size="lg" ring />
-      </div>
-      <p class="kit-note">
-        No portrait is wired yet, so every avatar shows its initials
-        placeholder.
-      </p>
-    </section>
+    <section class="kit-group" id="kit-content">
+      <h2>Content</h2>
 
-    <section class="kit-section">
-      <h2 class="label-mono">Core · StatBlock</h2>
-      <div class="row wide">
-        <StatBlock size="sm" value="200k+" label="Sessions delivered" />
-        <StatBlock size="md" value="85k+" label="Clients reached" />
-        <StatBlock size="lg" value="6+" label="Years in production" />
-        <StatBlock value="4–8" label="Engineers led" align="center" />
-        <StatBlock
-          value="200+"
-          label="Restaurants"
-          note="50–200 partner stores a month."
+      <Specimen
+        name="SectionHeader"
+        law="Opens every major section. Indices run 01, 02, 03… in page order; titles are sentence case and end with a period."
+      >
+        <SectionHeader
+          index={work.index}
+          label={work.label}
+          title={work.title}
+          lead={work.lead}
         />
-      </div>
-    </section>
+        <SectionHeader title={sectionMeta("about").title} align="center" />
+      </Specimen>
 
-    <section class="kit-section">
-      <h2 class="label-mono">Forms · Input</h2>
-      <div class="row wide">
-        <Input label="Name" name="kit-name" placeholder="Nicolás Hernández" />
-        <Input
-          label="Email"
-          name="kit-email"
-          type="email"
-          hint="I reply within a couple of days."
-        />
-        <Input
-          label="Email"
-          name="kit-email-error"
-          type="email"
-          error="Enter an email I can reply to."
-        />
-        <Input
-          label="Disabled"
-          name="kit-disabled"
-          placeholder="Not editable"
-          disabled
-        />
-        <Input
-          label="With affixes"
-          name="kit-affix"
-          prefix="https://"
-          suffix=".dev"
-          placeholder="nicolasmateo"
-        />
-      </div>
-    </section>
+      <Specimen
+        name="ExperienceItem"
+        law="One job in the timeline. Stack them directly — the hairline top border does the separating, and current renders the period in clay."
+      >
+        <div class="stack wide">
+          <ExperienceItem {...currentRole} />
+          <ExperienceItem {...pastRole} />
+        </div>
+      </Specimen>
 
-    <section class="kit-section">
-      <h2 class="label-mono">Forms · Textarea</h2>
-      <div class="row wide">
-        <Textarea
-          label="Message"
-          name="kit-message"
-          placeholder="A sentence or two is plenty."
-        />
-        <Textarea
-          label="Message"
-          name="kit-message-hint"
-          hint="5 rows by default."
-        />
-        <Textarea
-          label="Message"
-          name="kit-message-error"
-          error="Tell me what you are building."
-        />
-        <Textarea
-          label="Disabled"
-          name="kit-message-disabled"
-          rows={3}
-          disabled
-        />
-      </div>
-    </section>
+      <Specimen
+        name="ProjectCard"
+        law="One item in the work grid, two or three per row. Descriptions are one sentence about the problem and one about the outcome — no marketing adjectives."
+      >
+        <div class="grid two">
+          <ProjectCard index={twoDigit(1)} {...firstProject} />
+          <ProjectCard
+            index={twoDigit(2)}
+            {...secondProject}
+            href="#kit-content"
+          />
+        </div>
+      </Specimen>
 
-    <section class="kit-section">
-      <h2 class="label-mono">Forms · Select</h2>
-      <div class="row wide">
-        <Select
-          label="Reason"
-          name="kit-reason"
-          options={["A role", "Contract work", "Something else"]}
-        />
-        <Select
-          label="Lens"
-          name="kit-lens"
-          options={[
-            { value: "be", label: "Backend" },
-            { value: "fs", label: "Full stack" },
-          ]}
-          hint="Objects carry a separate value and label."
-        />
-        <Select
-          label="Disabled"
-          name="kit-select-disabled"
-          options={["Unavailable"]}
-          disabled
-        />
-      </div>
-      <p class="kit-note">
-        Select has no error state in the kit — validation lives on Input and
-        Textarea.
-      </p>
-    </section>
+      <Specimen
+        name="SkillGroup"
+        law="One category of the skills table. Prefer slash-separated runs over tag clouds here; tags are for project cards."
+      >
+        <div class="stack wide">
+          {profile.skills.map((group) => <SkillGroup {...group} />)}
+        </div>
+      </Specimen>
 
-    <section class="kit-section">
-      <h2 class="label-mono">Forms · Switch</h2>
-      <div class="stack">
-        <Switch label="Off" />
-        <Switch label="On" checked />
-        <Switch
-          label="With description"
-          description="The page never uses this one; it is here for completeness."
-        />
-        <Switch label="Disabled" disabled />
-      </div>
-    </section>
+      <Specimen
+        name="StatBlock"
+        law="Real numbers only, taken from shipped work. Never invent metrics; if a number can't be sourced, drop the block rather than round something up."
+      >
+        <div class="grid stats">
+          {profile.stats.map((stat) => <StatBlock {...stat} />)}
+        </div>
+        <div class="grid stats">
+          <StatBlock {...firstStat} align="center" />
+          <StatBlock
+            value={secondStat.value}
+            label={secondStat.label}
+            align="center"
+          />
+        </div>
+      </Specimen>
 
-    <section class="kit-section">
-      <h2 class="label-mono">Navigation · TextLink</h2>
-      <div class="row">
-        <TextLink href="#navigation-textlink">Default link</TextLink>
-        <TextLink href="https://github.com/nmhernandez10" external
-          >GitHub</TextLink
-        >
-        <TextLink href="#navigation-textlink" tone="muted">Muted tone</TextLink>
-        <TextLink href="mailto:nm.hernandez1996@gmail.com"
-          >nm.hernandez1996@gmail.com</TextLink
-        >
-      </div>
-    </section>
-
-    <section class="kit-section">
-      <h2 class="label-mono">Navigation · SegmentedToggle</h2>
-      <div class="row">
-        <SegmentedToggle
-          value="be"
-          options={[
-            { value: "be", label: "Backend" },
-            { value: "fs", label: "Full stack" },
-          ]}
-        />
-        <SegmentedToggle
-          size="sm"
-          value="fs"
-          options={[
-            { value: "be", label: "Backend" },
-            { value: "fs", label: "Full stack" },
-          ]}
-        />
-      </div>
-      <p class="kit-note">
-        Selected state is passed as a prop here. The page itself has no
-        segmented control — this one is kit inventory.
-      </p>
-    </section>
-
-    <section class="kit-section">
-      <h2 class="label-mono">Navigation · ThemeToggle</h2>
-      <p class="kit-note">
-        The live one is in the page header — it writes data-theme on the root
-        element.
-      </p>
-    </section>
-
-    <section class="kit-section">
-      <h2 class="label-mono">Content · SectionHeader</h2>
-      <SectionHeader
-        eyebrow="01 / Selected work"
-        title="Systems I own end to end"
-        lede="No screenshots here on purpose — each card states the system and the part I owned."
-      />
-      <SectionHeader
-        eyebrow="02 / Centred"
-        title="Centred alignment"
-        lede="Same header, centre aligned."
-        align="center"
-      />
-      <SectionHeader
-        eyebrow="03 / No rule"
-        title="Without the top hairline"
-        rule={false}
-      />
-    </section>
-
-    <section class="kit-section">
-      <h2 class="label-mono">Content · ProjectBrief</h2>
-      <div class="grid">
-        <ProjectBrief
-          index="01"
-          title="Keel Mind"
-          role="Feature Architect"
-          period="2022 — now"
-          summary="A regulated mental-health platform: session domain modeling, API surface for web and mobile, and the reporting queries behind it."
-          metrics={["200k+ sessions", "85k+ clients"]}
-          stack={["NestJS", "PostgreSQL", "AWS", "React", "Flutter"]}
-        />
-      </div>
-    </section>
-
-    <section class="kit-section">
-      <h2 class="label-mono">Content · ProjectCard</h2>
-      <div class="grid">
-        <ProjectCard
-          title="Event pipeline and notifications"
-          role="Design and delivery"
-          period="2023 — 2025"
-          summary="Recording, transcription and post-session analysis moved off the request path with Lambda, SQS and S3 — plus the notification fan-out that rides on it."
-          metrics={["Async by default", "Retry and idempotency"]}
-          stack={["AWS Lambda", "SQS", "S3", "Elasticsearch"]}
-        />
-      </div>
-      <p class="kit-note">
-        Without a real screenshot the media band says so, in mono.
-      </p>
-    </section>
-
-    <section class="kit-section">
-      <h2 class="label-mono">Content · WorkRow</h2>
-      <div>
-        <WorkRow
-          index="01"
-          title="Agent tooling for the team"
-          role="Internal platform"
-          period="2024 — now"
-          summary="Internal tooling over agent CLIs: an agent-driven first pass on pull requests, versioned convention files, reusable skills and machine-executable specs."
-          metrics={["Automated PR first pass", "Token budgets tuned"]}
-          stack={["Claude Code", "Codex CLI", "Bedrock"]}
-        />
-        <WorkRow
-          index="02"
-          title="Compras Compartidas"
-          role="Senior Software Developer"
-          period="2020 — 2022"
-          summary="The public REST API used by 50 to 200 partner stores a month — data contracts, PostgreSQL model, and the operational tooling around it."
-          metrics={["50–200 partner stores"]}
-          stack={["Node.js", "Python", "PostgreSQL"]}
-        />
-      </div>
-    </section>
-
-    <section class="kit-section">
-      <h2 class="label-mono">Content · TimelineItem</h2>
-      <ol class="timeline">
-        <TimelineItem
-          current
-          role="Feature Architect"
-          company="Keel Mind, Canada (remote)"
-          period="March 2024 — present"
-          location="Remote"
-          bullets={[
-            "Lead technical design and delivery across backend, web, mobile and QA teams of four to eight engineers.",
-            "Own PostgreSQL modeling for core domains: schema design, migrations, indexing and query tuning.",
-          ]}
-        />
-        <TimelineItem
-          role="Senior Software Engineer"
-          company="Keel Mind, Canada (remote)"
-          period="June 2022 — March 2024"
-          location="Remote"
-          bullets={[
-            "Designed REST and GraphQL APIs for web and mobile clients across first responder, Indigenous, academic and education care programs.",
-          ]}
-        />
-        <TimelineItem
-          last
-          role="Full Stack Developer"
-          company="Meniu"
-          period="June 2019 — October 2020"
-          location="Bogotá"
-          bullets={[
-            "Shipped the platform used daily by 200+ restaurants, where partners ran 10% to 40% of their daily sales through the product.",
-          ]}
-        />
-      </ol>
-      <p class="kit-note">
-        Exactly one item is current; the last item drops the rail.
-      </p>
-    </section>
-
-    <section class="kit-section">
-      <h2 class="label-mono">Content · SkillGroup</h2>
-      <div class="grid">
-        <SkillGroup
-          title="Data"
-          icon="postgresql"
-          items={["PostgreSQL", "Redis", "Elasticsearch"]}
-        />
-        <SkillGroup
-          title="Practices"
-          items={["Code review", "Technical design", "Mentoring"]}
-        />
-      </div>
+      <Specimen
+        name="ProjectDrawer"
+        law="The panel behind a project card, carrying the detail copy the card has no room for. Shown open and static here; VC4 gives it Escape, a focus trap and a scroll lock."
+      >
+        <div class="drawer-frame">
+          <ProjectDrawer
+            project={{ index: twoDigit(1), ...firstProject }}
+            onClose={() => {}}
+            closeLabel={COPY.drawer.close}
+          />
+        </div>
+      </Specimen>
     </section>
   </div>
-</BaseLayout>
+</KitLayout>
 
 <style>
   .kit {
-    max-width: var(--container-max);
-    margin-inline: auto;
-    padding: var(--space-12) var(--gutter-lg) var(--space-20);
+    max-width: var(--width-content);
+    margin: 0 auto;
+    padding: var(--space-9) var(--gutter);
     display: flex;
     flex-direction: column;
-    gap: var(--space-16);
-  }
-
-  /* --text-muted is a light-surface role; on the inverse card it measures
-     2.91 (and 4.32 before phase 6 darkened it). The inverse surface has its
-     own text role — this demo just was not using it. */
-  .on-inverse {
-    color: var(--text-inverse);
+    gap: var(--space-9);
   }
 
   .kit-head {
@@ -563,18 +393,28 @@ const techMarks = ["postgresql", "react", "typescript", "docker", "nestjs"];
     flex-wrap: wrap;
   }
 
-  .kit-note {
-    max-width: var(--measure-prose);
-    color: var(--text-muted);
-    font-size: var(--text-sm);
+  h1 {
+    font: var(--type-statement);
+    letter-spacing: var(--tracking-display);
   }
 
-  .kit-section {
+  .kit-lead {
+    max-width: var(--measure-prose);
+    font: var(--type-lead);
+    color: var(--text-body);
+  }
+
+  /* One h2 per folder group: it is what lets each Specimen sit at h3, which is
+     the only level where every component's own heading stays in order. */
+  .kit-group {
     display: flex;
     flex-direction: column;
-    gap: var(--space-5);
-    padding-top: var(--space-6);
-    border-top: 1px solid var(--border-subtle);
+    gap: var(--space-7);
+  }
+
+  .kit-group > h2 {
+    font: var(--type-h1);
+    letter-spacing: var(--tracking-heading);
   }
 
   .row {
@@ -584,45 +424,64 @@ const techMarks = ["postgresql", "react", "typescript", "docker", "nestjs"];
     gap: var(--space-4);
   }
 
+  /* Fields keep a readable width instead of stretching across the row. */
   .row.wide {
     align-items: flex-start;
     gap: var(--space-6);
   }
-
-  /* Fields keep a readable width instead of stretching across the row. */
-  .row.wide > * {
+  .row.wide > :global(*) {
     flex: 0 1 300px;
-  }
-
-  .row.muted {
-    color: var(--text-muted);
   }
 
   .stack {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
     gap: var(--space-4);
+  }
+  .stack.wide {
+    gap: 0;
   }
 
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: var(--space-6);
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--space-5);
   }
-
-  .panel-accent {
-    background: var(--accent);
-    border-radius: var(--radius-card);
-    padding: var(--space-6);
+  .grid.two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .grid.stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-6);
   }
 
   .field {
     max-width: 340px;
   }
 
-  .timeline {
-    margin: 0;
-    padding: 0;
+  /* The bar is position: sticky, so it needs a scroll container of its own
+     rather than sticking to the top of the page. */
+  .nav-frame {
+    height: 140px;
+    overflow-y: auto;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-lg);
+  }
+  .nav-frame::after {
+    content: "";
+    display: block;
+    height: 200px;
+  }
+
+  /* The drawer is position: fixed. A transform makes this element the
+     containing block for it, which is what keeps the specimen inside the page
+     instead of covering the viewport. */
+  .drawer-frame {
+    position: relative;
+    height: 520px;
+    overflow: hidden;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-lg);
+    transform: translateZ(0);
   }
 </style>

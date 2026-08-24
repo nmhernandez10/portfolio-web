@@ -131,6 +131,10 @@ PR, because the takeover is atomic.
   paint (initial `active` state constant, scrolled=false) or hydration warns.
 - Preview URL checks: `wrangler pages dev` still resolves `functions/` — the endpoint
   is untouched here, but run one form submit anyway.
+- **`SkillGroup` renders an `h4`** (VC2 residue). About opens with a `SectionHeader`
+  `h2`, so stacking SkillGroups straight under it skips a heading level and fails
+  axe's `heading-order`. `/kit` avoids it by sitting each specimen at `h3`; here,
+  either drop the component to `h3` or give the skills column its own heading.
 - The old `Section.astro`/`sectionMeta` numbering pattern is a good abstraction —
   re-derive it for the new manifest only if ≥3 sections share the exact header shape
   (they do: work/experience/about/contact all open with `SectionHeader`); don't force

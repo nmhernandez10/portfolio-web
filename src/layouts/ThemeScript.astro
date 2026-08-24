@@ -1,0 +1,27 @@
+---
+// The pre-paint theme resolution, owned in one file so BaseLayout and
+// KitLayout cannot drift apart on it while the two design systems run in
+// parallel. is:inline is emitted verbatim, so the rendered markup is identical
+// to the copy this replaced.
+//
+// The localStorage key is repeated in the SiteThemeToggle islands because an
+// is:inline script cannot import.
+---
+
+<script is:inline>
+  // Resolves the theme before first paint; SiteThemeToggle adopts it after.
+  (() => {
+    let stored = null;
+    try {
+      stored = localStorage.getItem("theme");
+    } catch {
+      // Site data blocked — fall through to the system preference.
+    }
+    document.documentElement.dataset.theme =
+      stored === "light" || stored === "dark"
+        ? stored
+        : window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+  })();
+</script>

@@ -1,0 +1,54 @@
+---
+// One component's entry in the kit. `law` is required so a component cannot
+// land on /kit without the rule its .prompt.md states being quoted beside it.
+//
+// The heading is an h3 on purpose: the page shell owns the only h1, each
+// folder group owns an h2, and several kit components emit headings of their
+// own (SectionHeader an h2, ExperienceItem and ProjectCard an h3, SkillGroup
+// an h4). At h3 every one of those is a legal one-step increase or a decrease;
+// at h2 the SkillGroup specimen would jump h2 → h4.
+//
+// Lives under src/pages/_kit/ because Astro does not route underscore-prefixed
+// directories, and /kit is permanent documentation rather than a throwaway.
+interface Props {
+  name: string;
+  law: string;
+}
+
+const { name, law } = Astro.props;
+---
+
+<section class="kit-section">
+  <h3>{name}</h3>
+  <div class="kit-body"><slot /></div>
+  <p class="kit-law">{law}</p>
+</section>
+
+<style>
+  .kit-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--border-hairline);
+  }
+
+  h3 {
+    font: var(--type-label);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--text-meta);
+  }
+
+  .kit-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  .kit-law {
+    max-width: var(--measure-prose);
+    font: var(--type-small);
+    color: var(--text-meta);
+  }
+</style>

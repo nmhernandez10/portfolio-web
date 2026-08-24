@@ -11,7 +11,7 @@ at VC0/VC1 time, not at launch). What remains:
 
 | Phase   | Title                                                                                   | PR  | Status          | Preview URL |
 | ------- | --------------------------------------------------------------------------------------- | --- | --------------- | ----------- |
-| VC0–VC5 | [Visual correction](visual-correction/README.md) — rebrand to the replaced design skill | —   | VC1 implemented | —           |
+| VC0–VC5 | [Visual correction](visual-correction/README.md) — rebrand to the replaced design skill | —   | VC2 implemented | —           |
 | 7       | [Launch](phase-7-launch.md)                                                             | —   | Not started     | —           |
 
 Dependencies are linear: the six visual-correction phases run in order (their own

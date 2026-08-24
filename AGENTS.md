@@ -8,7 +8,7 @@ Implementation runs phase by phase from `todo/`. Before any work: read `todo/REA
 
 ## Stack
 
-Astro 7 (latest, decided 2026-08-19, superseding the original "Astro 5" note), `@astrojs/react` (React 19), TypeScript strict, pnpm (via corepack), Node 24. No ESLint — `astro check` + `tsc --noEmit` + Prettier is the whole quality toolchain. Path alias `@/*` → `src/*`.
+Astro 7 (latest, decided 2026-08-19, superseding the original "Astro 5" note), `@astrojs/react` (React 19), TypeScript strict, pnpm (via corepack), Node 24. Fonts are self-hosted through fontsource, which registers every family with a `Variable` suffix: `Newsreader Variable` (normal + `wght-italic.css`), `Instrument Sans Variable`, `JetBrains Mono Variable` — and `Space Grotesk Variable`, which leaves with the old system in VC3. No ESLint — `astro check` + `tsc --noEmit` + Prettier is the whole quality toolchain. Path alias `@/*` → `src/*`.
 
 Note: pnpm's `minimumReleaseAge` supply-chain policy (24h) is active on this machine. If an install rejects fresh releases, resolve with `pnpm clean --lockfile && pnpm install` (age-aware resolution) — do not disable the policy.
 
@@ -20,6 +20,13 @@ Target layout — each line tagged with the phase that lands or removes it where
 
 ```
 src/
+  kit/{core,forms,navigation,content}/*.tsx  the new 15 (VC2); internal.ts + index.ts
+                           promoted over src/ui/ by `git mv` in VC3
+  styles/redesign/         the new token set + index.css (VC2); promoted in VC3
+  sections/next/SiteThemeToggle.tsx  the icon-free toggle (VC2); promoted in VC3
+  layouts/ThemeScript.astro  the shared pre-paint theme script
+  layouts/KitLayout.astro  temporary (VC2) — /kit on the new system; deleted in VC3
+  pages/_kit/              /kit's own Specimen.astro + NavBarSpecimen.tsx (not routed)
   styles/tokens/*.css      7 token files
   styles/sections.css      page layout, one class block per page section
   styles/global.css        imports tokens in skill order, then sections + site utilities
@@ -47,6 +54,8 @@ docs/brand.md              phase 7: brand laws migrated from the skill
 - The UI kit styles itself inline and is never forked. Section layout lives in `src/styles/sections.css` behind class hooks, so VC5 can add media queries without `!important`.
 - Breakpoints live in `src/styles/global.css`, below the `@import` block and in descending order. **VC5 measures and documents them**: the kit defines desktop only (1280, zero media queries), and the new header — 15px brand, four 12px mono links, the theme pill and the résumé button — measures differently from the old one, so the boundary is re-derived there with its arithmetic recorded, not inherited. One narrow-mode boundary; a second, smaller step only if measurement demands it. What is fixed regardless: `global.css` is last in the cascade, so equal-specificity rules beat `sections.css` and the order between the two blocks is load-bearing; media queries group against base class hooks, not both modifiers; and where the kit sets a property inline, a **token override** is the only lever — `--section-y`, `--gutter`, never `!important` and never an edit inside `tokens/`.
 - A class hook always sits on a section-owned element, never on a kit component: Astro deletes `class` on framework components and the kit's frozen props have no `className`. Kit components take their own `style` prop instead (as the skill's component JSX does). This applies to **hiding** as much as to layout — the kit writes `display` inline, so a stylesheet `display: none` aimed at a kit component loses. Wrap it — VC5's narrow mode, which hides one of the two nav presentations per side of the breakpoint, is where this bites.
+- **Two design systems run in parallel until VC3.** `src/kit/` + `src/styles/redesign/` are the new one; `src/ui/` + `src/styles/tokens/` are the old one. No module imports from both, and the two stylesheets never load on the same page — `/` is on `global.css`, `/kit` on `redesign/index.css` via `KitLayout`. `src/kit/` reaches the design system only through `var(--token)`: it imports nothing from `src/content`, `src/sections`, `src/styles` or `src/ui`, and `src/kit/internal.ts` (its shared hooks and style constants) is not re-exported from the barrel.
+- The pre-paint theme script lives in `src/layouts/ThemeScript.astro` and is rendered by both layouts, so they cannot drift on the `localStorage["theme"]` contract. It is `is:inline`, so it still cannot import — the key is repeated in the toggle islands on purpose.
 - `BaseLayout` owns `<main id="main" tabindex="-1">` and pages fill the `header` / `footer` named slots. The skip link and its target live in one file on purpose: a page cannot ship without a main landmark, which is how `/kit` went three phases without one.
 
 ## Commands
