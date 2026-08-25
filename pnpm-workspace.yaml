@@ -1,4 +1,0 @@
-# pnpm 11 blocks postinstall scripts by default; these need their native binary install to run.
-allowBuilds:
-  esbuild: true
-  workerd: true # Cloudflare Workers runtime, used by wrangler pages dev

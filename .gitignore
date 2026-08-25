@@ -27,7 +27,6 @@ playwright/.cache/
 # logs
 *.log
 npm-debug.log*
-pnpm-debug.log*
 
 # macOS
 .DS_Store
