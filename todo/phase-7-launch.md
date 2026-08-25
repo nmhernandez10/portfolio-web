@@ -32,19 +32,25 @@ branch and the protection rule:
 
 **B. Cloudflare Pages project — when: before the VC2 PR**, the first preview anyone
 reviews. VC0 has nothing to preview and VC1's endpoint validation runs locally on
-`pnpm preview`, so neither blocks on this. (Confirmed still not created with the user on
-2026-08-24; phase 6.1's dashboard walkthrough never ran.)
+`pnpm preview`, so neither blocks on this. (Created 2026-08-25 — creation surfaced the
+`wrangler.jsonc` dashboard lock, so the file was removed the same day; all Pages config
+is dashboard-managed now.)
 
 - `HUMAN:` pause/disconnect the old `portfolio-web` **Worker**'s git connection first,
   then create the **Pages** project `portfolio-web` connected to
   `github.com/nmhernandez10/portfolio-web`: production branch `main`, build command
   `pnpm build`, output `dist`, build system V2+ (confirm `.nvmrc` Node 24 + pnpm 11
-  are honored; set `NODE_VERSION`/`PNPM_VERSION` only if not).
+  are honored; set `NODE_VERSION`/`PNPM_VERSION` only if not). (The project exists as
+  of 2026-08-25; confirm the old Worker's git connection is paused — group D
+  decommissions it.)
 - `HUMAN:` Settings → Variables and Secrets, **once for Production and once for
   Preview**: `EMAIL_FROM` = `Nicolás Hernández <contact@nicolasmateo.dev>` and
   `EMAIL_TO` = `nm.hernandez1996@gmail.com` as plain variables, `RESEND_API_KEY`
-  (test key) as a Secret. **This must precede the next push** — a preview deploy
-  without the two addresses sends with undefined values.
+  (test key) as a Secret. **Unlock order (2026-08-25)**: the dashboard only accepts
+  variables once an environment has a deployment without `wrangler.jsonc` — Preview
+  after the next `dev` push, Production after the dedicated `dev → main` PR merges.
+  A var-less deploy is safe — the endpoint's missing-binding guard answers `502` and
+  sends nothing — so the order is deploy, set the keys, redeploy.
 - Preview validation: branch alias `dev.portfolio-web.pages.dev` + per-commit URLs
   live; previews carry `X-Robots-Tag: noindex`; the endpoint's safe matrix rows
   (missing-email `400`, honeypot `200`, `GET` `405`, no-Origin `403`) pass against a

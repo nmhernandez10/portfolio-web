@@ -10,7 +10,8 @@ const BASE_URL = "http://localhost:8788";
  * Cloudflare Pages deploys to, so functions/api/contact.ts is exercised for
  * real rather than stubbed. It serves the built dist/, so the `test:e2e` script
  * owns that build and a stale dist/ can never go green. CI already builds, so
- * it calls `playwright test` directly.
+ * it calls `playwright test` directly. BASE_URL's port must match the `--port`
+ * the `preview` script pins — the two move together.
  */
 export default defineConfig({
   testDir: "e2e",
