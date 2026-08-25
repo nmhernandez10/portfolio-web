@@ -32,17 +32,20 @@ branch and the protection rule:
 
 **B. Cloudflare Pages project — when: before the VC2 PR**, the first preview anyone
 reviews. VC0 has nothing to preview and VC1's endpoint validation runs locally on
-`pnpm preview`, so neither blocks on this. (Created 2026-08-25 — creation surfaced the
+`npm run preview`, so neither blocks on this. (Created 2026-08-25 — creation surfaced the
 `wrangler.jsonc` dashboard lock, so the file was removed the same day; all Pages config
 is dashboard-managed now.)
 
 - `HUMAN:` pause/disconnect the old `portfolio-web` **Worker**'s git connection first,
   then create the **Pages** project `portfolio-web` connected to
   `github.com/nmhernandez10/portfolio-web`: production branch `main`, build command
-  `pnpm build`, output `dist`, build system V2+ (confirm `.nvmrc` Node 24 + pnpm 11
-  are honored; set `NODE_VERSION`/`PNPM_VERSION` only if not). (The project exists as
+  `npm run build`, output `dist`, build system V2+ (confirm `.nvmrc` Node 24 is
+  honored; set `NODE_VERSION` only if not). (The project exists as
   of 2026-08-25; confirm the old Worker's git connection is paused — group D
-  decommissions it.)
+  decommissions it.) **The build command must read `npm run build` in both
+  Production and Preview before `dev` merges to `main`** — the repo moved off
+  pnpm on 2026-08-25 and the dashboard string does not follow the lockfile.
+  Remove any `PNPM_VERSION` variable from both environments in the same pass.
 - `HUMAN:` Settings → Variables and Secrets, **once for Production and once for
   Preview**: `EMAIL_FROM` = `Nicolás Hernández <contact@nicolasmateo.dev>` and
   `EMAIL_TO` = `nm.hernandez1996@gmail.com` as plain variables, `RESEND_API_KEY`

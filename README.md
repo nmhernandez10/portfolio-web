@@ -10,20 +10,19 @@ theme toggle and the contact form. Nothing else needs JavaScript to work.
 ## Prerequisites
 
 - **Node 24** — the version is pinned in `.nvmrc`.
-- **pnpm** — enable it with `corepack enable`; the version is pinned in
-  `package.json`.
 
 ## First run
 
 ```sh
-pnpm install
+npm install
 ```
 
-If you plan to run the end-to-end suite, also fetch the browser once. pnpm 11
-blocks Playwright's postinstall, so the download is explicit:
+If you plan to run the end-to-end suite, fetch the browser once. Playwright
+ships no install script, so `npm install` downloads nothing and the runner does
+not self-heal — it fails with "Executable doesn't exist" until you run:
 
 ```sh
-pnpm exec playwright install chromium
+npx playwright install chromium
 ```
 
 ### `.dev.vars`
@@ -45,21 +44,22 @@ RESEND_API_KEY=re_your_test_key
   environment is committed; `.dev.vars` is what your local runs read.
 - Use a Resend **test** key until launch. Production and Preview each carry
   their own copy of all three keys.
-- `pnpm preview` reads this file, because it runs the real Pages runtime.
-  `pnpm dev` does not — `astro dev` serves static output only, so submitting the
-  form there 404s. Use `pnpm build && pnpm preview` to exercise the endpoint.
+- `npm run preview` reads this file, because it runs the real Pages runtime.
+  `npm run dev` does not — `astro dev` serves static output only, so submitting
+  the form there 404s. Use `npm run build && npm run preview` to exercise the
+  endpoint.
 
 ## Commands
 
-| Command             | What it does and when you want it                                                                                              |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `pnpm dev`          | Dev server on `localhost:4321`. The everyday loop — static only, no `/api/contact`.                                            |
-| `pnpm build`        | Production build to `dist/`, a plain static directory.                                                                         |
-| `pnpm preview`      | Serves the last build plus `functions/` on `localhost:8788`, on the real Pages runtime. Build first.                           |
-| `pnpm check`        | `astro check` + `tsc --noEmit`, over `src/` and `functions/` alike. There is no ESLint — this and Prettier are the whole gate. |
-| `pnpm format`       | Prettier write. Run it before committing; CI checks formatting.                                                                |
-| `pnpm format:check` | Prettier verify, the way CI runs it.                                                                                           |
-| `pnpm test:e2e`     | Builds, then runs the Playwright suite against the build.                                                                      |
+| Command                | What it does and when you want it                                                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run dev`          | Dev server on `localhost:4321`. The everyday loop — static only, no `/api/contact`.                                            |
+| `npm run build`        | Production build to `dist/`, a plain static directory.                                                                         |
+| `npm run preview`      | Serves the last build plus `functions/` on `localhost:8788`, on the real Pages runtime. Build first.                           |
+| `npm run check`        | `astro check` + `tsc --noEmit`, over `src/` and `functions/` alike. There is no ESLint — this and Prettier are the whole gate. |
+| `npm run format`       | Prettier write. Run it before committing; CI checks formatting.                                                                |
+| `npm run format:check` | Prettier verify, the way CI runs it.                                                                                           |
+| `npm run test:e2e`     | Builds, then runs the Playwright suite against the build.                                                                      |
 
 ## Tests
 

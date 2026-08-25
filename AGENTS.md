@@ -8,11 +8,9 @@ Implementation runs phase by phase from `todo/`. Before any work: read `todo/REA
 
 ## Stack
 
-Astro 7 (latest, decided 2026-08-19, superseding the original "Astro 5" note), `@astrojs/react` (React 19), TypeScript strict, pnpm (via corepack), Node 24. Fonts are self-hosted through fontsource — `@fontsource-variable/newsreader`, `@fontsource-variable/instrument-sans` and `@fontsource-variable/jetbrains-mono` — which registers every family with a `Variable` suffix: `Newsreader Variable` (normal + `wght-italic.css`), `Instrument Sans Variable`, `JetBrains Mono Variable`. Space Grotesk left with the old system in VC3. No ESLint — `astro check` + `tsc --noEmit` + Prettier is the whole quality toolchain. Path alias `@/*` → `src/*`.
+Astro 7 (latest, decided 2026-08-19, superseding the original "Astro 5" note), `@astrojs/react` (React 19), TypeScript strict, npm, Node 24. Fonts are self-hosted through fontsource — `@fontsource-variable/newsreader`, `@fontsource-variable/instrument-sans` and `@fontsource-variable/jetbrains-mono` — which registers every family with a `Variable` suffix: `Newsreader Variable` (normal + `wght-italic.css`), `Instrument Sans Variable`, `JetBrains Mono Variable`. Space Grotesk left with the old system in VC3. No ESLint — `astro check` + `tsc --noEmit` + Prettier is the whole quality toolchain. Path alias `@/*` → `src/*`.
 
-Note: pnpm's `minimumReleaseAge` supply-chain policy (24h) is active on this machine. If an install rejects fresh releases, resolve with `pnpm clean --lockfile && pnpm install` (age-aware resolution) — do not disable the policy.
-
-That rebuild can add `minimumReleaseAgeExclude` entries to `pnpm-workspace.yaml`: when a package.json range only matches a release younger than the cutoff, pnpm grandfathers that exact version rather than downgrading it. Those entries are pnpm's own doing, not a policy override, and they stop being needed once the release ages past 24h — drop them on the next lockfile touch instead of letting them accumulate.
+npm, not pnpm — decided 2026-08-25, superseding the original phase-0 choice. Every other Node repo on this machine is npm, and pnpm 11 reads its settings only from `pnpm-workspace.yaml`, so staying would mean carrying a second root config file forever. The trade is deliberate and it is a real cost: pnpm's 24h `minimumReleaseAge` cooldown, its per-package install-script allowlist and its phantom-dependency-proof isolated layout all leave with it, and npm has no equivalent for any of the three.
 
 ## Project map
 
@@ -47,7 +45,7 @@ docs/brand.md              phase 7: brand laws migrated from the skill
 ### Layering rules
 
 - Dependencies run one way: `pages → layouts → sections → {ui, content} → styles`. `src/ui/` never imports `src/content/`; `src/content/` holds data only — no React, no styling, no imports from `src/ui/`.
-- `functions/` is the delivery layer outside `src/`. It may import `src/content` contract modules (data only) by **relative** path — the Pages Functions bundler follows relative imports repo-wide but resolves no aliases, so `@/content` cannot appear there — and never `src/ui`, `src/sections` or styles. Since 2026-08-23 `functions/` shares the root TypeScript program, which **does** define the `@/*` path, so an alias import there now typechecks and fails only at runtime: this rule is convention, not compiler-enforced. `pnpm test:e2e` is what catches it. Nothing in `src/` ever imports from `functions/`. Import the `content/contact` subpath, not the `@/content` barrel: the barrel re-exports the whole of `profile.ts`, and keeping the contract's only door a subpath is what makes it structurally impossible for the résumé to reach the browser bundle.
+- `functions/` is the delivery layer outside `src/`. It may import `src/content` contract modules (data only) by **relative** path — the Pages Functions bundler follows relative imports repo-wide but resolves no aliases, so `@/content` cannot appear there — and never `src/ui`, `src/sections` or styles. Since 2026-08-23 `functions/` shares the root TypeScript program, which **does** define the `@/*` path, so an alias import there now typechecks and fails only at runtime: this rule is convention, not compiler-enforced. `npm run test:e2e` is what catches it. Nothing in `src/` ever imports from `functions/`. Import the `content/contact` subpath, not the `@/content` barrel: the barrel re-exports the whole of `profile.ts`, and keeping the contract's only door a subpath is what makes it structurally impossible for the résumé to reach the browser bundle.
 - `src/sections/` is `.astro`. A section file is `.tsx` only if it is, or becomes, a hydrated island — three of them: `SiteNav.tsx` (`client:load`) renders the kit `NavBar` and hosts the theme toggle, the résumé action and the narrow-mode `SiteNavMenu` disclosure through `NavBar`'s `action` prop — all three plain React, since an island cannot hydrate inside another; `ContactForm.tsx` (`client:visible`); `WorkGrid.tsx` (VC4, `client:visible`) owns the project cards and the drawer. This keeps every section free to host an island without restructuring, and makes shipping JS by accident impossible.
 - The UI kit styles itself inline and is never forked. Section layout lives in `src/styles/sections.css` behind class hooks, which is what lets the narrow-mode media query fold the page without one `!important`.
 - **The drawer is a viewport-level layer, so `WorkGrid` portals it to `document.body`** rather than rendering it in place: `.reveal` puts a `transform` on `.section__inner` until a block has revealed, which would otherwise make the section the containing block for the drawer's `position: fixed` scrim and panel. The portal is the call site's decision, which is what lets `/kit` frame the same component inside `.drawer-frame`; `react-dom/server` cannot render portals, hence the island's mount flag. `<html>` carries `scrollbar-gutter: stable` for the same feature — the drawer locks body scroll, and without a reserved gutter the page shifts sideways behind the scrim.
@@ -61,12 +59,12 @@ docs/brand.md              phase 7: brand laws migrated from the skill
 
 ## Commands
 
-- `pnpm dev` — dev server at `localhost:4321`. Static only: it does **not** serve `/api/contact`, so submitting the form in dev 404s. UI work is unaffected; the endpoint loop is `pnpm build && pnpm preview`.
-- `pnpm build` — production build to `dist/`, a plain static directory
-- `pnpm preview` — serve the last build from the real Pages runtime at `localhost:8788` (`wrangler pages dev`, which also runs `functions/`). Build first.
-- `pnpm check` — `astro check && tsc --noEmit`
-- `pnpm format` / `pnpm format:check` — Prettier write / verify
-- `pnpm test:e2e` — build, then run the Playwright suite against it
+- `npm run dev` — dev server at `localhost:4321`. Static only: it does **not** serve `/api/contact`, so submitting the form in dev 404s. UI work is unaffected; the endpoint loop is `npm run build && npm run preview`.
+- `npm run build` — production build to `dist/`, a plain static directory
+- `npm run preview` — serve the last build from the real Pages runtime at `localhost:8788` (`wrangler pages dev`, which also runs `functions/`). Build first.
+- `npm run check` — `astro check && tsc --noEmit`
+- `npm run format` / `npm run format:check` — Prettier write / verify
+- `npm run test:e2e` — build, then run the Playwright suite against it
 
 ## Testing
 
@@ -118,30 +116,33 @@ accessibility — it is not chasing coverage.
   the two gates reject before the body is read, and the validation-failure and
   honeypot paths both stop short of it. CI writes a placeholder
   `RESEND_API_KEY` so the guarantee is environmental, not incidental.
-- Browsers install explicitly (`pnpm exec playwright install chromium`) because
-  pnpm's `allowBuilds` allowlist blocks Playwright's postinstall. Do not add
-  `playwright` to that list.
-- CI runs `pnpm exec playwright test` directly after its own `pnpm build`, so
-  the build happens once; `pnpm test:e2e` builds first for local use.
+- Browsers install explicitly (`npx playwright install chromium`) because
+  Playwright ships no install script: `npm install` fetches none of them and
+  the runner does not self-heal, it fails with "Executable doesn't exist". This
+  survived the npm migration unchanged — pnpm's `allowBuilds` was never what
+  blocked it. CI runs the same command with `--with-deps`, which is what adds
+  the OS-level libs.
+- CI runs `npx playwright test` directly after its own `npm run build`, so
+  the build happens once; `npm run test:e2e` builds first for local use.
 
 ## Git conventions
 
 - Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `ci:`, `refactor:`); commit small.
 - Work on `dev`; phases merge to `main` via PR with a **merge commit — never squash** (`dev` is long-lived; squashing causes phantom-diff conflicts).
-- CI (`.github/workflows/ci.yml`, job id `ci`) is the quality gate: format check, `pnpm check`, build. It never deploys; Cloudflare Pages deploys from git.
-- Run `pnpm format` before every commit so new files pass the CI format gate.
+- CI (`.github/workflows/ci.yml`, job id `ci`) is the quality gate: format check, `npm run check`, build. It never deploys; Cloudflare Pages deploys from git.
+- Run `npm run format` before every commit so new files pass the CI format gate.
 
 ## Deploy
 
 GitHub Actions owns quality, Cloudflare owns delivery — Actions never deploys.
 
 - Cloudflare **Pages** deploys from git: `main` → production, every other branch and PR → a preview deployment with its own URL. Project `portfolio-web`. There is no adapter and no `wrangler deploy` — Pages builds and publishes from the repo.
-- Build command `pnpm build`, output directory `dist`. The build is plain static; `functions/api/contact.ts` is picked up by Pages' file-based routing and invoked on `/api/contact` only.
+- Build command `npm run build`, output directory `dist`. The build is plain static; `functions/api/contact.ts` is picked up by Pages' file-based routing and invoked on `/api/contact` only.
 - **There is no wrangler config file, by decision (2026-08-25, superseding 6.2's arrangement).** A deployed config carrying `pages_build_output_dir` makes the file the project's source of truth and locks the dashboard **project-wide** — not per-field, as the 6.2 record assumed: even with zero `vars` in the file, the Variables UI refuses edits. All Pages configuration — build command, output directory, compatibility date, and every variable and secret — is managed in the dashboard, per environment. The lock and its release travel with deployments: an environment unlocks only once a deployment without the file lands in it.
 - What the file carried now rides the `preview` script as flags (`dist`, `--port=8788`, `--compatibility-date=2026-08-15`). The compatibility date must match the dashboard's (both environments) and the installed workerd (1.20260815.1) — bump all three together when upgrading wrangler. The port is pinned because `playwright.config.ts` hardcodes `localhost:8788`.
 - `public/_headers` owns response headers; it ships to `dist/_headers`. Today it carries the `/_astro/*` immutable-cache rule; phase 7 appends security headers to the same file.
-- `sharp` is a direct dependency, not just astro's optional one. The static image service emits a chunk under `dist/` that does a bare `import("sharp")`, which under pnpm's strict layout resolves from the project root — where an optional transitive dep is not linked. Without it every `astro:assets` transform fails the build.
-- Local loop: `pnpm preview` (`wrangler pages dev`) serves the built `dist/` plus `functions/` from workerd at `localhost:8788`, taking the directory, port and compatibility date from the script's flags. It watches `functions/` and its relative imports, so Function edits hot-reload; only static HTML changes need a rebuild.
+- `sharp` is a direct dependency, not just astro's optional one. The static image service emits a chunk under `dist/` that does a bare `import("sharp")`, so it needs a declared dependency rather than an optional transitive one. **The build no longer proves this.** Under npm's flat layout sharp is hoisted to the top of `node_modules/` as astro's own optional dep, so dropping the direct declaration would leave every `astro:assets` transform working here and break only where hoisting differs. pnpm's isolated layout used to fail the build outright; that guard left with it, so check the declaration (`npm ls sharp`), not the build.
+- Local loop: `npm run preview` (`wrangler pages dev`) serves the built `dist/` plus `functions/` from workerd at `localhost:8788`, taking the directory, port and compatibility date from the script's flags. It watches `functions/` and its relative imports, so Function edits hot-reload; only static HTML changes need a rebuild.
 - Do not leave a stale `.wrangler/deploy/config.json` around. `wrangler pages dev` resolves config through that redirect and **throws** if its target is missing rather than falling back — the adapter used to write one pointing into `dist/server/`.
 
 ## Environment
@@ -156,7 +157,7 @@ Secrets are credentials, vars are configuration. Three keys, all consumed by `fu
 
 - **Access is `context.env`**, the Pages Function's first argument — typed by a three-key `interface Env` colocated in the Function and passed to `send()`. Nothing imports the environment from a module; there is no ambient `env` on the Pages path.
 - **Typing is hand-written, not generated.** A three-key `interface Env` and the handler's `RequestContext` are both written out in the Function. `functions/` shares the repo's one TypeScript program, so `Request` and `Response` come from the DOM lib there as they do in `src/`; the Function needs nothing workerd-specific. There is no `@cloudflare/workers-types` dependency, no `functions/tsconfig.json`, no `wrangler types` step and no `worker-configuration.d.ts` to commit — dropped 2026-08-23 in phase 6.2, superseding phase 6.1's split-project decision.
-- **Local setup**: create `.dev.vars` (gitignored) with all three keys. Quote `EMAIL_FROM` — the display-name form contains spaces and angle brackets. `pnpm preview` reads it; `pnpm dev` does not, because `astro dev` no longer serves the endpoint at all.
+- **Local setup**: create `.dev.vars` (gitignored) with all three keys. Quote `EMAIL_FROM` — the display-name form contains spaces and angle brackets. `npm run preview` reads it; `npm run dev` does not, because `astro dev` no longer serves the endpoint at all.
 - Every key is set twice in the dashboard — once for **Production**, once for **Preview** (Settings → Variables and Secrets). `RESEND_API_KEY` is type Secret; the two addresses are plain variables. Per-environment values are the reason this project moved to Pages.
 - **A missing binding is caught, a wrong one is not.** `send()` returns early if any of the three is absent, logging that fact and nothing else, so the endpoint answers `502` with the brand-voice failure copy rather than an opaque Resend rejection. It cannot tell a typo'd address from a correct one.
 - `EMAIL_FROM` reaches Resend verbatim, so `user@domain` and `Name <user@domain>` are both valid. It must stay on the verified domain — Resend cannot send from the Gmail address.

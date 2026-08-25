@@ -28,9 +28,9 @@ Phase 7 is the last one.
 
 ## Definition of Done (inherited by every phase)
 
-- `pnpm build` succeeds and `pnpm check` (`astro check` + `tsc --noEmit`) is clean.
+- `npm run build` succeeds and `npm run check` (`astro check` + `tsc --noEmit`) is clean.
 - CI is green on the PR.
-- No new console errors or warnings in `pnpm dev`.
+- No new console errors or warnings in `npm run dev`.
 - Status table updated; `CLAUDE.md` amended if needed.
 - Nothing listed under the phase's "Out of scope" leaked in.
 
@@ -38,7 +38,7 @@ Phases add their own items on top of this.
 
 ## Stack and architecture (locked — do not revisit)
 
-- **Astro 7 (latest; supersedes the original "Astro 5" — decided with the user 2026-08-19) + React 19 islands, TypeScript strict, pnpm.** Keep every dependency on its latest compatible release; where phase docs assumed Astro 5 semantics, current official docs win. Static-first: sections are `.astro` and ship zero JS; only islands hydrate, and `AGENTS.md` § Layering rules enumerates them.
+- **Astro 7 (latest; supersedes the original "Astro 5" — decided with the user 2026-08-19) + React 19 islands, TypeScript strict, npm (moved off pnpm 2026-08-25; see `AGENTS.md` § Stack).** Keep every dependency on its latest compatible release; where phase docs assumed Astro 5 semantics, current official docs win. Static-first: sections are `.astro` and ship zero JS; only islands hydrate, and `AGENTS.md` § Layering rules enumerates them.
 - **Cloudflare Pages, adapter-less** (decided with the user 2026-08-22, superseding the original phase-1 Workers decision; `@astrojs/cloudflare` dropped Pages support in v13 and Astro 7 requires v14, so no adapter can target Pages). `astro build` emits a plain static `dist/`; the contact endpoint is a hand-written Pages Function, `functions/api/contact.ts`. Pages git integration deploys: `main` → production, every other branch/PR → preview, with separate vars and secrets per environment. GitHub Actions is the quality gate only (it never deploys). Custom domain `nicolasmateo.dev` attaches in phase 7.
 - **UI kit is an in-app module**: `src/styles/tokens/` + `src/ui/`, ported from the design skill and fully independent of it. The skill is deleted in phase 7 after a parity check.
 - **Layout**: the target tree lives in `AGENTS.md` § Project map — one owner, so the two docs cannot drift.
@@ -47,7 +47,7 @@ Phases add their own items on top of this.
 - **Theme**: inline `is:inline` head script before paint (localStorage → `prefers-color-scheme` → light) sets `data-theme` on `<html>`; the `SiteThemeToggle` island syncs from the attribute and writes attribute + localStorage.
 - **Reveal**: vanilla `src/scripts/reveal.ts` binding the `.reveal` / `.reveal-ready` / `.is-in` contract that already exists in `tokens/base.css`. Observer `rootMargin: "-40px"`, 900ms reveal-everything fallback, reduced-motion bail.
 - **Fonts**: the three faces are self-hosted via fontsource — the packages are named in `AGENTS.md` § Stack, the law in its § Design laws, and the per-phase check in gotcha 4 below.
-- **Contact**: one route, `POST /api/contact` — since phase 6.1 a hand-written Pages Function (`functions/api/contact.ts`) reading `context.env`; the rest of the site is fully static. Resend via plain `fetch` (no SDK). Config via environment: all three keys are set per environment in the Pages dashboard — `EMAIL_FROM` / `EMAIL_TO` as plain variables, `RESEND_API_KEY` as a secret — and live in the gitignored `.dev.vars` locally. (**Revised 2026-08-23 in phase 6.2**: the two addresses were `vars` in `wrangler.jsonc` until naming them there proved to lock the dashboard's copies. **Revised again 2026-08-25**: the file is gone entirely — any deployed `pages_build_output_dir` locks the whole dashboard, not just named fields — all Pages config is dashboard-managed, and `pnpm preview` passes `dist`, the port and the compatibility date as flags.) Honeypot only; Turnstile is a documented follow-up if spam appears.
+- **Contact**: one route, `POST /api/contact` — since phase 6.1 a hand-written Pages Function (`functions/api/contact.ts`) reading `context.env`; the rest of the site is fully static. Resend via plain `fetch` (no SDK). Config via environment: all three keys are set per environment in the Pages dashboard — `EMAIL_FROM` / `EMAIL_TO` as plain variables, `RESEND_API_KEY` as a secret — and live in the gitignored `.dev.vars` locally. (**Revised 2026-08-23 in phase 6.2**: the two addresses were `vars` in `wrangler.jsonc` until naming them there proved to lock the dashboard's copies. **Revised again 2026-08-25**: the file is gone entirely — any deployed `pages_build_output_dir` locks the whole dashboard, not just named fields — all Pages config is dashboard-managed, and `npm run preview` passes `dist`, the port and the compatibility date as flags.) Honeypot only; Turnstile is a documented follow-up if spam appears.
 
 ## Design source of truth
 
