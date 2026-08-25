@@ -24,7 +24,10 @@ interface Exemption {
 }
 
 /**
- * The brand, light theme. --clay oklch(0.620 0.145 45) is design law and
+ * The brand, light theme. This one pair is also why Lighthouse scores this site
+ * 96 rather than 100 for accessibility — docs/brand.md carries that decision.
+ *
+ * --clay oklch(0.620 0.145 45) is design law and
  * computes to #cb6532, which measures 3.69 both ways: as text on --paper (the
  * section ordinal, the current role's period) and as the accent button's fill
  * behind a --paper label, which is why that one is matched on the background.
@@ -193,4 +196,16 @@ test("the kit page is clean in the dark theme", async ({ page }) => {
   await visit(page, "/kit");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expectClean(page, BRAND_DARK);
+});
+
+/**
+ * The 404 passes an empty exemption list rather than BRAND_LIGHT: it renders no
+ * clay at rest, so the stale-exemption canary in expectClean would fire on a
+ * page that is genuinely clean. One theme is enough — the page carries no
+ * toggle and no .reveal, so a dark pass would exercise nothing the two scans of
+ * / do not.
+ */
+test("the 404 page is clean", async ({ page }) => {
+  await visit(page, "/no-such-page");
+  await expectClean(page, []);
 });

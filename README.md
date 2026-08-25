@@ -4,8 +4,9 @@ Personal portfolio for Nicolás Hernández — a one-page, static-first site bui
 with Astro 7 and React 19, deployed to Cloudflare Pages.
 
 Everything ships as static HTML except one route, `POST /api/contact` — a Pages
-Function that hands the contact form to Resend. Two React islands hydrate: the
-theme toggle and the contact form. Nothing else needs JavaScript to work.
+Function that hands the contact form to Resend. Three React islands hydrate: the
+header nav (which hosts the theme toggle), the contact form and the project
+grid. Nothing else needs JavaScript to work.
 
 ## Prerequisites
 
@@ -63,11 +64,15 @@ RESEND_API_KEY=re_your_test_key
 
 ## Tests
 
-Two specs in `e2e/`, deliberately few:
+Three specs in `e2e/`, deliberately few — one per concern:
 
 - `smoke.spec.ts` — the static page, the theme toggle, the résumés, the contact
-  endpoint's safe paths and its method and origin gates, and the mobile menu.
-- `a11y.spec.ts` — axe over `/` in both themes and over `/kit`.
+  endpoint's safe paths and its method and origin gates, the project drawer and
+  the mobile menu.
+- `a11y.spec.ts` — axe over `/` in both themes, the open drawer, the open mobile
+  menu, `/kit` and the 404.
+- `launch.spec.ts` — the surface no visitor sees: robots, sitemap, security
+  headers, the canonical/OG/JSON-LD set, and a real 404 on an unknown path.
 
 **Tests never send real email.** Every endpoint case exercised returns before the
 code that talks to Resend: the method and origin gates reject before the body is
@@ -79,18 +84,18 @@ real inbox.
 
 ```
 src/
-  content/    data only — profile, section manifest, form contract
-  ui/         the design-system kit: 20 components, self-styled, frozen API
-  sections/   one component per page section, plus the two islands
+  content/    data only — profile, section manifest, form contract, JSON-LD
+  ui/         the design-system kit: 15 components, self-styled, frozen API
+  sections/   one component per page section, plus the three islands
   layouts/    BaseLayout — head, fonts, theme script, main landmark
-  pages/      index.astro · kit.astro
+  pages/      index.astro · kit.astro · 404.astro · robots.txt.ts
   styles/     tokens/, sections.css (page layout), global.css (entry + breakpoints)
-  scripts/    reveal.ts, the scroll-reveal observer
+  scripts/    reveal.ts (scroll reveal) and theme.ts (the theme contract)
 functions/    api/contact.ts — the contact endpoint, as a Pages Function
-public/       icons, résumés, favicon, _headers
+public/       résumés, favicon, og.png, _headers
 ```
 
-Dependencies run one way: `pages → layouts → sections → {ui, content} → styles`.
+Dependencies run one way: `pages → layouts → sections → {ui, content, scripts} → styles`.
 `src/ui/` never imports `src/content/`. `functions/` sits outside `src/` and may
 import `src/content` contract modules by relative path — nothing else, and never
 the reverse.
@@ -112,4 +117,6 @@ GitHub Actions owns quality, Cloudflare owns delivery.
 
 - **`AGENTS.md`** — conventions, design laws, environment and deploy detail.
   It is the canonical contributor doc; this README is the short path to running.
+- **`docs/brand.md`** — the design reference: tokens, voice, the visual laws and
+  the interaction contracts.
 - **`todo/`** — the phase-by-phase implementation plan.

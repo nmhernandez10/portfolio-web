@@ -1,3 +1,14 @@
-# Phase 7 appends security headers here.
+# Cloudflare applies every rule that matches, so these two blocks compose.
+
+# Cloudflare Pages already sends nosniff and this referrer policy by default.
+# They are declared anyway: the posture is the repo's, not the platform's, and
+# it survives a default changing or the site moving. Permissions-Policy is the
+# one genuinely new header — the site uses none of these features.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), geolocation=(), microphone=()
+
+# Hashed filenames: the bytes at one of these URLs never change.
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable

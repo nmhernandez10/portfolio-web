@@ -12,7 +12,7 @@ cases the full record lives in git history, and every item still open was carrie
 
 | Phase | Title                       | PR  | Status      | Preview URL |
 | ----- | --------------------------- | --- | ----------- | ----------- |
-| 7     | [Launch](phase-7-launch.md) | —   | Not started | —           |
+| 7     | [Launch](phase-7-launch.md) | —   | In progress | —           |
 
 Phase 7 is the last one.
 
@@ -40,7 +40,7 @@ Phases add their own items on top of this.
 
 - **Astro 7 (latest; supersedes the original "Astro 5" — decided with the user 2026-08-19) + React 19 islands, TypeScript strict, npm (moved off pnpm 2026-08-25; see `AGENTS.md` § Stack).** Keep every dependency on its latest compatible release; where phase docs assumed Astro 5 semantics, current official docs win. Static-first: sections are `.astro` and ship zero JS; only islands hydrate, and `AGENTS.md` § Layering rules enumerates them.
 - **Cloudflare Pages, adapter-less** (decided with the user 2026-08-22, superseding the original phase-1 Workers decision; `@astrojs/cloudflare` dropped Pages support in v13 and Astro 7 requires v14, so no adapter can target Pages). `astro build` emits a plain static `dist/`; the contact endpoint is a hand-written Pages Function, `functions/api/contact.ts`. Pages git integration deploys: `main` → production, every other branch/PR → preview, with separate vars and secrets per environment. GitHub Actions is the quality gate only (it never deploys). Custom domain `nicolasmateo.dev` attaches in phase 7.
-- **UI kit is an in-app module**: `src/styles/tokens/` + `src/ui/`, ported from the design skill and fully independent of it. The skill is deleted in phase 7 after a parity check.
+- **UI kit is an in-app module**: `src/styles/tokens/` + `src/ui/`, ported from the design skill and fully independent of it. The skill was deleted in phase 7 (2026-08-25) after a parity check; `docs/brand.md` replaced it.
 - **Layout**: the target tree lives in `AGENTS.md` § Project map — one owner, so the two docs cannot drift.
 - **.astro/.tsx split**: `src/sections/` is `.astro`; a section is `.tsx` only if it is, or becomes, a hydrated island (an island cannot hydrate inside a non-hydrated React tree, and `astro:assets` is unavailable to React). React is reserved for the kit and for islands.
 - **One story — decided 2026-08-24.** The page says everything at once, under the positioning label **Senior Backend Engineer & Feature Architect**: a hero, four numbered sections (`01` Work, `02` Experience, `03` About, `04` Contact) and a footer. Both résumés ship, with the full-stack PDF as the primary link and the backend PDF as one extra footer link.
@@ -51,17 +51,18 @@ Phases add their own items on top of this.
 
 ## Design source of truth
 
-`AGENTS.md` § Design source of truth lists the skill paths, and its § Design laws states the
-brand laws. Both are owned there and are not restated here.
+`docs/brand.md` — the design reference, written in phase 7 when the `nicolas-mateo-design`
+skill was deleted. `AGENTS.md` § Design source of truth points at it and its § Design laws
+states the enforceable rules. All of it is owned there and is not restated here.
 
 ## Global gotchas
 
-1. **Never run the kit harnesses** — `ui_kits/portfolio/index.html` and `index-dark.html` load React from unpkg and are recreations, not sources. The section JSX, the skill `readme.md` and the two reference PNGs are the reference.
-2. **React 19**: the skill `.d.ts` files use `JSX.Element` — convert to `React.JSX.Element`/`ReactNode`. Drop `import React from "react"` where only JSX is used (automatic runtime).
+1. **The skill is gone** (phase 7, 2026-08-25) and with it the kit harnesses, the reference PNGs and every `.prompt.md`. `docs/brand.md` is the reference now, `src/styles/tokens/*.css` the machine-readable source and `/kit` the live inventory; anything the skill carried that this repo does not is in git history.
+2. **React 19**: the ported kit types return `React.JSX.Element`/`ReactNode`, never the bare `JSX.Element` the skill's `.d.ts` files used, and carry no `import React from "react"` where only JSX is present (automatic runtime).
 3. **Islands can't nest in static React trees** — anything hydrated must be slotted from a `.astro` file, hence the `.astro` header/footer shells.
 4. **Google Fonts must not ship**: verify `grep -r "fonts.googleapis" dist/` is empty in every phase that builds.
 5. **The brand laws live in `AGENTS.md` § Design laws** — one accent, zero icon files, three typefaces, hairlines not shadows, and the voice rules that govern every string including form errors and the 404 page. They are law, not preference: a phase reaching for an SVG, a second accent or a fourth face has misread the design. Read them before writing any copy or CSS.
 6. **Content never depends on JS**: every section must exist in static HTML; `reveal-ready` is added only after the observer exists; the 900ms fallback is mandatory.
-7. **Resume filenames**: the skill's `uploads/` 2026 PDFs have spaces and accents. Only the URL-safe copies in `public/` are served.
+7. **Resume filenames**: the 2026 PDFs came out of the skill's `uploads/` with spaces and accents in their names. Only the URL-safe copies in `public/` exist now, and only those are ever served.
 8. **Pages preview and production carry separate vars and secrets** (since phase 6.1) — keep a test Resend key in both environments until launch; production rotates to the live key in phase 7.
 9. **Pages/wrangler config drifts**: where a phase doc names `wrangler` Pages fields or flags, the current official docs win. Verify with `wrangler pages dev`, don't trust the doc.

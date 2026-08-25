@@ -1,25 +1,25 @@
 import { useEffect, useState } from "react";
 
-const STORAGE_KEY = "theme";
+import { setTheme } from "@/scripts/theme";
 
 /**
  * The site's theme control, icon-free: the new design system defines no
  * ThemeToggle and no icons, so this is site chrome rather than kit inventory.
  *
  * The inline script in the layout owns the first paint and writes data-theme;
- * this adopts that attribute once React is live, then owns the attribute and
- * storage on every toggle after it. The storage key is duplicated in
- * ThemeScript.astro on purpose: that script is is:inline and cannot import.
+ * this adopts that attribute once React is live, then hands every toggle to
+ * setTheme(), which owns the attribute, the chrome tint and storage together.
  *
  * Rendered by SiteNav on / (plain React — an island cannot hydrate inside
  * another) and mounted directly as an island by /kit.
  */
 export function SiteThemeToggle() {
   // Must start "light" to match the prerendered HTML, or hydration mismatches.
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setThemeState] = useState<"light" | "dark">("light");
 
   useEffect(() => {
-    if (document.documentElement.dataset.theme === "dark") setTheme("dark");
+    if (document.documentElement.dataset.theme === "dark")
+      setThemeState("dark");
   }, []);
 
   const dark = theme === "dark";
@@ -31,13 +31,8 @@ export function SiteThemeToggle() {
       aria-pressed={dark}
       aria-label={`Switch to ${next} theme`}
       onClick={() => {
+        setThemeState(next);
         setTheme(next);
-        document.documentElement.dataset.theme = next;
-        try {
-          localStorage.setItem(STORAGE_KEY, next);
-        } catch {
-          // Site data blocked — the theme still applies for this session.
-        }
       }}
       /* The bar's small control is defined once in global.css and shared with
          the narrow-mode menu summary, so the two pills cannot drift. Legal

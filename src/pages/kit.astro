@@ -58,6 +58,7 @@ const [firstStat, secondStat] = profile.stats;
 <BaseLayout
   title="UI kit — nicolasmateo.dev"
   description="Every component in the design system, in every variant its props allow."
+  noindex
 >
   <div class="kit">
     <header class="kit-head">
@@ -469,8 +470,9 @@ const [firstStat, secondStat] = profile.stats;
      nowrap inline, and ExperienceItem's minmax(150px, 200px) rail, which reads
      no --rail-cols because a specimen renders the kit's default rather than the
      site's call site. Closing those 7px means giving each a call-site style
-     prop, which is the one thing a specimen must not do, so it is carried to
-     phase 7's /kit parity pass with the other two /kit items. */
+     prop, which is the one thing a specimen must not do — decided rather than
+     fixed, alongside the other two /kit-only records in docs/brand.md
+     § Site decisions. */
   @media (width < 900px) {
     .grid.two,
     .grid.stats {

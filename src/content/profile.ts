@@ -8,8 +8,10 @@ import type { Profile } from "./types";
  *
  * Four deliberate departures from data.js:
  *
- * - `fullName` and `site` are carried from the pre-rebrand model; phase 7's
- *   JSON-LD needs both and the design never rendered either.
+ * - `fullName` and `alternateName` are carried for the Person JSON-LD, which is
+ *   the only thing that reads them; the design renders neither. The site's own
+ *   origin is not here — astro.config.mjs owns it, and every absolute URL the
+ *   head emits derives from that one value.
  * - `github` and `resumes` are additions — the design omits GitHub and ships one
  *   résumé, while this site keeps the GitHub links and both résumés, with the
  *   full-stack PDF as the primary one (AGENTS.md § Design source of truth).
@@ -22,13 +24,15 @@ import type { Profile } from "./types";
 export const profile: Profile = {
   name: "Nicolás Hernández",
   fullName: "Nicolás Mateo Hernández Rojas",
+  alternateName: "Nicolás Mateo",
   role: "Senior Backend Engineer & Feature Architect",
   location: "Bogotá, Colombia",
   email: "nm.hernandez1996@gmail.com",
-  site: "nicolasmateo.dev",
   github: "github.com/nmhernandez10",
   linkedin: "linkedin.com/in/nicohero",
   lead: "I design, build and own production backend services — service and API design, relational data modeling, and event-driven architecture, with correctness and observability built in rather than added later.",
+  metaDescription:
+    "I design and own production backend services — event-driven architecture, relational data modeling, observability. Six years, 200k+ sessions delivered.",
 
   resumes: {
     fullStack: "/resume-fullstack.pdf",

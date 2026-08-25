@@ -5,13 +5,29 @@ import "@fontsource-variable/instrument-sans";
 import "@fontsource-variable/jetbrains-mono";
 import "@/styles/global.css";
 import ThemeScript from "./ThemeScript.astro";
+import { THEME_COLOR } from "@/scripts/theme";
 
 interface Props {
   title: string;
   description: string;
+  /** Keeps the page out of the index. The sitemap filter must agree. */
+  noindex?: boolean;
 }
 
-const { title, description } = Astro.props;
+const { title, description, noindex = false } = Astro.props;
+
+// astro.config.mjs sets `site`, and every absolute URL below derives from it —
+// the origin has one owner. Astro types it optional, so it is narrowed once
+// here rather than asserted at each use.
+const site = Astro.site;
+if (!site) {
+  throw new Error(
+    "astro.config.mjs must set `site`: canonical, OG and sitemap URLs derive from it.",
+  );
+}
+
+const canonical = new URL(Astro.url.pathname, site);
+const ogImage = new URL("/og.png", site);
 ---
 
 <!doctype html>
@@ -19,24 +35,38 @@ const { title, description } = Astro.props;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Above ThemeScript on purpose: that script runs as it is parsed, and
+         cannot rewrite a meta the parser has not reached yet. The value here is
+         the light tint, which is also what a visitor with JS off gets, because
+         the theme only ever becomes dark by script. Caveat worth knowing:
+         Safari reads theme-color at parse time and may not re-read a mutated
+         content, so a Safari toggle can keep the previous tint; Chromium and
+         Firefox re-read on mutation. -->
+    <meta name="theme-color" content={THEME_COLOR.light} />
     <ThemeScript />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <!-- The two --paper values, converted oklch -> sRGB: light
-         oklch(0.985 0.004 85) and dark oklch(0.205 0.008 70). Keyed to system
-         preference, not data-theme: a user who toggles against their system
-         gets a mismatched chrome tint. Deferred to phase 7. -->
-    <meta
-      name="theme-color"
-      content="#FBFAF7"
-      media="(prefers-color-scheme: light)"
-    />
-    <meta
-      name="theme-color"
-      content="#1A1713"
-      media="(prefers-color-scheme: dark)"
-    />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+
+    <!-- One card for the whole site, so nothing here is per-page but the title
+         and description. No og:image:alt: the card's pixels are the name and the
+         role, so alt would only restate the title. Twitter reads the og:* triple
+         when its own twins are absent, and every other unfurler does too — the
+         card type is the one tag that has no OG equivalent. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.host} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <slot name="head" />
   </head>
   <body>
     <!-- The landmark lives here, not in the pages: the skip link above targets
