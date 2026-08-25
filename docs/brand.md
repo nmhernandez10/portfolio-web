@@ -1,26 +1,14 @@
 # Brand — nicolasmateo.dev
 
-The design reference for Nicolás Hernández's portfolio, condensed in phase 7 from the
-`nicolas-mateo-design` skill that produced it. The skill was deleted once this file existed and
-a parity check passed; its full text is in git history.
+The design reference for Nicolás Hernández's portfolio: the values, the reasoning and the
+inventory. It is a **personal brand** system, not a product system — one voice, one site, one
+résumé — and there is **no logo**: the name set in type is the mark.
 
-It is a **personal brand** system, not a product system: one voice, one site, one résumé. There
-is **no logo** — the name set in type is the mark.
-
-## What this file owns, and what it does not
-
-`docs/brand.md` owns the **values, the reasoning and the inventory**: what the tokens are, why
-each law exists, which components exist and how the site behaves.
-
-`AGENTS.md` § Design laws owns the **enforceable rules** an agent must not break, stated
-tersely so they stay in context without opening this file. Where a rule here and a rule there
-describe the same thing, AGENTS.md states the law and this file carries the number behind it.
-
-The machine-readable source is `src/styles/tokens/*.css`. Those files are the vocabulary, not a
-draft of it: reference colour, type, spacing and motion **only** through `var(--token)`. A
-value that is not a token is a signal the design is drifting — add a token or reuse one rather
-than hardcoding a literal. Corrections belong in `src/styles/global.css`'s site layer, never
-inside `tokens/`.
+[`AGENTS.md`](../AGENTS.md) states each law as a rule; this file carries the number behind it.
+The machine-readable source is `src/styles/tokens/*.css` — reference colour, type, spacing and
+motion **only** through `var(--token)`. A value that is not a token is a signal the design is
+drifting. Corrections belong in `src/styles/global.css`'s site layer, never inside `tokens/`.
+Where this file came from is in [decisions](decisions.md).
 
 ---
 
@@ -109,12 +97,10 @@ narrow, documented axe exemption rather than silencing the rule. Everything else
 below AA was corrected in `global.css`'s theme-scoped blocks, each with its before → after
 ratio in a comment: `--ink-3`, `--moss`, `--rust`, `--clay-strong`.
 
-**This is why Lighthouse reports Accessibility 96, not 100** — one `color-contrast` audit, on
-the hero's accent call-to-action. Decided 2026-08-25: the accent stays and the budget reads
-"100 net of this exemption". Two alternatives were costed and rejected — restyling the CTA to
-`--clay-strong` would sit the primary button at its own hover colour at rest, and changing
-`--clay` would repaint the accent everywhere and edit `tokens/`. **A score below 96 is a real
-regression**: the exemption covers exactly one colour pair, not the category.
+This is why Lighthouse reports Accessibility 96, not 100 — one `color-contrast` audit, on the
+hero's accent call-to-action. The budget is written against that in
+[operations](operations.md#performance-budgets) and the decision, with the two alternatives that
+were costed and rejected, in [decisions](decisions.md#the-clay-contrast-exemption--2026-08-25).
 
 ---
 
@@ -155,11 +141,10 @@ the three stacks with the skill's fallbacks intact.
 Generous vertical space is load-bearing: when a section looks empty, the fix is stronger copy,
 never a filler card.
 
-**One breakpoint, `width < 900px`**, declared in `global.css` with its arithmetic. It is set by
-readability, not by the header: measured, the bar fits on one line down to 691px, while 900 is
-where the hero copy column falls under ~41ch and a project card under 392px. Below 691 the
-brand wraps to two lines and the bar still measures `--nav-h` (63px), which is what keeps
-`scroll-padding-top` honest.
+**One breakpoint, `width < 900px`.** It is set by readability, not by the header: 900 is where
+the hero copy column falls under ~41ch and a project card under 392px. The measured arithmetic —
+including why the header is only a floor — is in the comment above the media query in
+`global.css`, which is its one home.
 
 ---
 
@@ -290,33 +275,20 @@ the page does not shift behind the scrim.
 
 ## Site decisions
 
-Where the site deliberately differs from the system as delivered. These were departures while
-the skill existed; with it gone they are simply how the site is built.
+Where the site deliberately differs from the system as delivered. These were departures while the
+skill existed; with it gone they are simply how the site is built.
 
-1. **Both themes ship**, on the system's own `[data-theme="dark"]` mechanism, with an icon-free
-   site-owned toggle — the kit defines no `ThemeToggle`.
-2. **The project drawer ships as an island**, with the accessibility listed above.
-3. **The contact contract is name / email / message** (+ a honeypot); the design's topic select
-   is dropped.
-4. **Three omitted things are kept**: the scroll-reveal animation, the GitHub links, and **both
-   résumés — the full-stack PDF is the primary one** (nav action, hero CTA, footer link), with
-   the backend PDF as a single extra footer link. The contact section lists no résumés, per the
-   design.
+| Decision                                                                                     | Note                                                                                                                                                                      |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Both themes ship**, on the system's own `[data-theme="dark"]` mechanism                    | the toggle is icon-free site chrome; the kit defines no `ThemeToggle`                                                                                                     |
+| **The project drawer ships as an island**                                                    | with the modal contract above, which the prototype lacked                                                                                                                 |
+| **The contact contract is name / email / message** (+ honeypot)                              | the design's topic select is dropped                                                                                                                                      |
+| **Three omitted things are kept**: the scroll reveal, the GitHub links, and **both résumés** | the full-stack PDF is the primary one — nav action, hero CTA, footer link; the backend PDF is one extra footer link. The contact section lists no résumés, per the design |
 
 Three `/kit`-only records, decided rather than fixed:
 
-- **Static kit components have no hover state.** The kit computes hover in `useState` and writes
-  the result inline, which no stylesheet can override without `!important`. On `/` only the
-  three islands react; the hero CTAs, project cards, portrait desaturation and `TextLink`
-  underline wipes are inert at rest. Fixing it means the kit reading state through custom
-  properties and shipping a `:hover` stylesheet, which forks seven components.
-- **`/kit`'s drawer specimen carries `aria-modal="true"` while nothing about it is modal.** The
-  specimen renders the panel open and static, and the role group derives from `open`.
-  `ProjectDrawerProps` extends no `HTMLAttributes` and spreads no rest props, so the attribute
-  cannot be overridden without adding a prop to a component whose whole point is that it needs
-  none.
-- **`/kit` scrolls 7px sideways at 320px.** Two specimens exceed the 272px content box on their
-  own inline values: the hero status `Tag` (300px, `white-space: nowrap`) and `ExperienceItem`'s
-  `minmax(150px, 200px)` rail, which reads no `--rail-cols` because a specimen shows the
-  component's default rather than the site's call site. `/` is clean at every width; the
-  arithmetic is recorded in `kit.astro`.
+| Record                                                                              | Why it stands                                                                                                                                                                                                                                                                                                                               |
+| ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Static kit components have no hover state**                                       | the kit computes hover in `useState` and writes it inline, which no stylesheet overrides without `!important`. On `/` only the three islands react. Fixing it forks seven components.                                                                                                                                                       |
+| **The drawer specimen carries `aria-modal="true"`** while nothing about it is modal | the specimen renders the panel open and static, and the role group derives from `open`. `ProjectDrawerProps` spreads no rest props, so the attribute cannot be overridden without adding a prop to a component whose whole point is that it needs none.                                                                                     |
+| **`/kit` scrolls 7px sideways at 320px**                                            | two specimens exceed the 272px content box on their own inline values — the hero status `Tag` (300px, `nowrap`) and `ExperienceItem`'s `minmax(150px, 200px)` rail, which reads no `--rail-cols` because a specimen shows the component's default, not the site's call site. `/` is clean at every width; the arithmetic is in `kit.astro`. |

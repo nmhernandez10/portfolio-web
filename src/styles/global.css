@@ -301,8 +301,8 @@ main[tabindex="-1"]:focus-visible {
    cannot reach this.
 
    One narrow boundary, not two: the stats survive 2-up all the way down (their
-   min-content column is 86px against 120px available at 320), so the second,
-   smaller step the phase doc allows for is not needed and is not written.
+   min-content column is 86px against 120px available at 320), so a second,
+   smaller step is not needed and is not written.
 
    Rhythm is swapped as tokens, never as a rule. `.section { padding }` here
    would out-order sections.css's `.hero { padding-bottom }` at equal
@@ -385,8 +385,9 @@ main[tabindex="-1"]:focus-visible {
    (e2e/a11y.spec.ts records why).
 
    --clay is not corrected either: its value is design law (AGENTS.md), and
-   clay-as-text plus paper-on-clay are exempted there for the same reason gold
-   was in phase 2. */
+   clay-as-text plus paper-on-clay are exempted rather than silenced --
+   docs/brand.md, "Known contrast exception", carries the measurement and the
+   decision. */
 :root:not([data-theme="dark"]) {
   color-scheme: light;
 

@@ -10,7 +10,7 @@ import { THEME_COLOR } from "../src/scripts/theme";
 import { openDrawer, openMenu, requiredAt } from "./support";
 
 /**
- * Few and load-bearing, per the phase brief: the static page, the islands'
+ * Few and load-bearing by design (docs/testing.md): the static page, the islands'
  * behaviour, the endpoint's safe paths and gates, and the structural guarantee
  * that the résumé never reaches the browser.
  *
@@ -197,10 +197,11 @@ test("a filled honeypot answers like a success and sends nothing", async ({
 });
 
 /**
- * The two gates are hand-written here since phase 6.1 — Astro's ALL dispatch
- * supplied the 405 and its origin-check middleware the 403, and both left with
- * the adapter. A refactor of the content-type handling could open the CSRF gate
- * silently, so it is guarded rather than trusted.
+ * The two gates are hand-written here because the site builds adapter-less
+ * (docs/decisions.md) — Astro's ALL dispatch supplied the 405 and its
+ * origin-check middleware the 403, and both left with the adapter. A refactor
+ * of the content-type handling could open the CSRF gate silently, so it is
+ * guarded rather than trusted.
  */
 test("the contact endpoint gates method and origin", async ({ request }) => {
   const wrongMethod = await request.get("/api/contact");
