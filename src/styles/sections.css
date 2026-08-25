@@ -1,0 +1,205 @@
+/* Page layout, one block per page section, in page order. Every hook sits on a
+   section-owned element: Astro deletes `class` on framework components, and the
+   kit's frozen props carry no className, so a kit component is reached only
+   through its own `style` prop or a token override.
+
+   This file is imported by global.css *before* the site layer, so at equal
+   specificity global.css wins. Nothing here styles the nav — NavBar owns its
+   own sticky positioning, blur and scrolled hairline. No media queries either:
+   the design defines desktop only, and the one measured breakpoint that folds
+   these hooks lives in global.css, where it can also override tokens. */
+
+/* --- The shell every block shares ------------------------------------- */
+.section {
+  padding: var(--section-y) var(--gutter);
+}
+/* Surface alternation is design law: hero and work sit on the page's --paper,
+   experience, contact and the footer on --surface-sunk. There is no third. */
+.section--sunk {
+  background: var(--surface-sunk);
+}
+.section__inner {
+  max-width: var(--width-content);
+  margin-inline: auto;
+}
+
+/* --- Hero ------------------------------------------------------------- */
+.hero {
+  padding-bottom: var(--space-8);
+}
+.hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-8);
+  align-items: end;
+}
+.hero__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+.hero__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+/* The system's one fluid type size; --type-hero is never referenced. */
+.hero__name {
+  font: var(--weight-light) clamp(3rem, 7vw, var(--size-display-xl)) /
+    var(--lh-tight) var(--font-display);
+  letter-spacing: var(--tracking-display);
+  color: var(--ink-1);
+}
+.hero__role {
+  font: var(--type-h2);
+  letter-spacing: var(--tracking-heading);
+  color: var(--ink-2);
+  max-width: 20ch;
+}
+.hero__lead {
+  font: var(--type-lead);
+  color: var(--text-body);
+  max-width: var(--measure-prose);
+}
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+.hero__stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-6);
+  margin-top: var(--space-9);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border-hairline);
+}
+
+/* --- 01 Work ---------------------------------------------------------- */
+.work__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+/* --- 02 Experience ---------------------------------------------------- */
+/* Each ExperienceItem carries its own grid and hairline, so the stack needs
+   nothing of its own. */
+
+/* --- 03 About --------------------------------------------------------- */
+.about__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: var(--space-8);
+}
+.about__prose {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: var(--measure-prose);
+  font: var(--type-body);
+  color: var(--text-body);
+}
+.about__education {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.about__degree {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.about__degree-name {
+  font: var(--type-h3);
+  color: var(--ink-1);
+}
+.about__degree-meta {
+  font: var(--type-meta);
+  color: var(--text-meta);
+}
+
+/* --- 04 Contact ------------------------------------------------------- */
+.contact {
+  padding-bottom: var(--space-8);
+}
+.contact__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-8);
+}
+.contact__details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.contact__row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.contact__label {
+  font: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-meta);
+}
+.contact__value {
+  font: var(--type-body);
+  color: var(--ink-1);
+}
+/* The links stack so a second one (GitHub, under "Elsewhere") sits under the
+   first rather than beside it. */
+.contact__links {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+/* The form itself; the Card around it supplies the surface, hairline and pad. */
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.contact-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+.contact-form__success {
+  font: var(--type-meta);
+  color: var(--moss);
+}
+.contact-form__error {
+  font: var(--type-meta);
+  color: var(--rust);
+}
+
+/* --- Footer ----------------------------------------------------------- */
+.site-footer {
+  padding: var(--space-6) var(--gutter);
+  border-top: 1px solid var(--border-hairline);
+  background: var(--surface-sunk);
+}
+.site-footer__inner {
+  max-width: var(--width-content);
+  margin-inline: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+.site-footer__copy {
+  font: var(--type-meta);
+  color: var(--text-meta);
+}
+.site-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  font: var(--type-meta);
+}

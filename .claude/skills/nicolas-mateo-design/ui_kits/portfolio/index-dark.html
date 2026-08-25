@@ -1,0 +1,32 @@
+<!-- @dsCard group="Portfolio site" viewport="1280x820" name="Portfolio — dark theme" subtitle="The same site on the dark palette — data-theme=\"dark\" on <html>, no component changes" -->
+<!-- @startingPoint section="Portfolio" subtitle="Portfolio site, dark theme" viewport="1280x820" -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../styles.css">
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+<script src="../../ds-preview-fallback.js"></script>
+<style>html{scroll-behavior:smooth}</style>
+</head><body><div id="root"></div>
+<script type="text/plain" id="app">
+(async () => { try {
+  const DS = await dsResolve(["PortfolioSite"], { root: '../../', kit: true });
+
+  const { PortfolioSite } = DS;
+  ReactDOM.createRoot(document.getElementById('root')).render(<PortfolioSite />);
+} catch (e) { console.error("DS render failed", e); document.getElementById("root").textContent = "Failed to load: " + e.message; } })();
+</script>
+<script>
+(function () {
+  function boot() {
+    try {
+      var src = document.getElementById('app').textContent;
+      (0, eval)(Babel.transform(src, { presets: ['react'] }).code);
+    } catch (e) { console.error('DS boot failed', e); }
+  }
+  if (document.readyState === 'complete') boot();
+  else window.addEventListener('load', boot);
+})();
+</script></body></html>

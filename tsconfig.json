@@ -1,6 +1,8 @@
 {
   "extends": "astro/tsconfigs/strict",
   "include": [".astro/types.d.ts", "**/*"],
+  // functions/ is in this program too: the Pages Function is typed against the
+  // DOM lib like the rest of the repo, so it needs no project of its own.
   "exclude": ["dist"],
   "compilerOptions": {
     // no baseUrl: TS 6 deprecates it (TS5101); paths already resolve relative to this file

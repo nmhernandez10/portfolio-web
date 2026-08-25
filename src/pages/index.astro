@@ -1,9 +1,32 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>nicolasmateo.dev</title>
-  </head>
-  <body> nicolasmateo.dev — under construction </body>
-</html>
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { profile } from "@/content";
+import { SiteNav } from "@/sections/SiteNav";
+import Hero from "@/sections/Hero.astro";
+import Work from "@/sections/Work.astro";
+import Experience from "@/sections/Experience.astro";
+import About from "@/sections/About.astro";
+import Contact from "@/sections/Contact.astro";
+import Footer from "@/sections/Footer.astro";
+
+const title = `${profile.name} — ${profile.role}`;
+
+// brand and resumeHref are passed rather than imported by the island: profile.ts
+// carries the whole résumé, and only import-free content leaves may cross into a
+// hydrated bundle. See src/content/index.ts.
+---
+
+<BaseLayout title={title} description={profile.lead}>
+  <SiteNav
+    slot="header"
+    client:load
+    brand={profile.name}
+    resumeHref={profile.resumes.fullStack}
+  />
+  <Hero />
+  <Work />
+  <Experience />
+  <About />
+  <Contact />
+  <Footer slot="footer" />
+</BaseLayout>

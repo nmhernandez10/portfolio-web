@@ -1,0 +1,30 @@
+---
+import { ExperienceItem } from "@/ui";
+import { profile } from "@/content";
+import Section from "./Section.astro";
+---
+
+<Section id="experience" surface="sunk" intro>
+  {
+    /* Every field of ExperienceEntry is an ExperienceItem prop — the content
+       model was written against the kit's contract, so no mapping layer. Each
+       item draws its own hairline, so the stack needs no wrapper.
+
+       The rail is inline in ExperienceItem.tsx (minmax(150px, 200px) 1fr, gap
+       --space-6), so no stylesheet can reach it and the call site is the lever.
+       The fallbacks restate the kit's own values — safe, since the kit's API is
+       frozen — and global.css folds both this and SkillGroup by redefining the
+       shared --rail-* pair. The fallback is not optional: an undefined var() is
+       invalid at computed-value time and would collapse the grid to one
+       implicit column. */
+    profile.experience.map((entry) => (
+      <ExperienceItem
+        {...entry}
+        style={{
+          gridTemplateColumns: "var(--rail-cols, minmax(150px, 200px) 1fr)",
+          gap: "var(--rail-gap, var(--space-6))",
+        }}
+      />
+    ))
+  }
+</Section>

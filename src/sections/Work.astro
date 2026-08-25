@@ -1,0 +1,13 @@
+---
+import { profile } from "@/content";
+import Section from "./Section.astro";
+import { WorkGrid } from "./WorkGrid";
+---
+
+<Section id="work" intro>
+  {
+    /* projects cross as a serialized prop: an island may not import profile.ts,
+       and the drawer needs `detail`, which no card prop carries. */
+  }
+  <WorkGrid client:visible projects={profile.projects} />
+</Section>

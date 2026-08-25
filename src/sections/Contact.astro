@@ -1,0 +1,51 @@
+---
+import { TextLink } from "@/ui";
+import { COPY, profile } from "@/content";
+import Section from "./Section.astro";
+import SectionIntro from "./SectionIntro.astro";
+import { ContactForm } from "./ContactForm";
+---
+
+<Section id="contact" class="contact" surface="sunk">
+  <div class="contact__grid">
+    <div>
+      <SectionIntro id="contact" compact />
+      <div class="contact__details">
+        <div class="contact__row">
+          <span class="contact__label">{COPY.contact.emailLabel}</span>
+          <div class="contact__links">
+            <TextLink
+              href={`mailto:${profile.email}`}
+              style={{ font: "var(--type-lead)" }}
+            >
+              {profile.email}
+            </TextLink>
+          </div>
+        </div>
+        <div class="contact__row">
+          <span class="contact__label">{COPY.contact.elsewhereLabel}</span>
+          <div class="contact__links">
+            <TextLink href={`https://${profile.linkedin}`} external arrow>
+              {profile.linkedin}
+            </TextLink>
+            <TextLink href={`https://${profile.github}`} external arrow>
+              {profile.github}
+            </TextLink>
+          </div>
+        </div>
+        <div class="contact__row">
+          <span class="contact__label">{COPY.contact.locationLabel}</span>
+          {
+            /* Composed here, not in sections.ts: that module is an import-free
+              leaf because islands reach it, so the city can only join the line
+              at a section file. One source for the city, one for the rest. */
+          }
+          <span class="contact__value">
+            {profile.location} · {COPY.contact.locationSuffix}
+          </span>
+        </div>
+      </div>
+    </div>
+    <ContactForm client:visible />
+  </div>
+</Section>

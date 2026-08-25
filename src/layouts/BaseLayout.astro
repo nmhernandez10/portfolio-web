@@ -1,0 +1,54 @@
+---
+import "@fontsource-variable/newsreader";
+import "@fontsource-variable/newsreader/wght-italic.css";
+import "@fontsource-variable/instrument-sans";
+import "@fontsource-variable/jetbrains-mono";
+import "@/styles/global.css";
+import ThemeScript from "./ThemeScript.astro";
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <ThemeScript />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <!-- The two --paper values, converted oklch -> sRGB: light
+         oklch(0.985 0.004 85) and dark oklch(0.205 0.008 70). Keyed to system
+         preference, not data-theme: a user who toggles against their system
+         gets a mismatched chrome tint. Deferred to phase 7. -->
+    <meta
+      name="theme-color"
+      content="#FBFAF7"
+      media="(prefers-color-scheme: light)"
+    />
+    <meta
+      name="theme-color"
+      content="#1A1713"
+      media="(prefers-color-scheme: dark)"
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <!-- The landmark lives here, not in the pages: the skip link above targets
+         #main, and owning both ends of that contract in one file is what keeps
+         a new page from shipping without one. tabindex="-1" is what makes the
+         jump move focus rather than only scroll. -->
+    <a class="skip-link" href="#main">Skip to content</a>
+    <slot name="header" />
+    <main id="main" tabindex="-1"><slot /></main>
+    <slot name="footer" />
+    <script>
+      import "@/scripts/reveal";
+    </script>
+  </body>
+</html>

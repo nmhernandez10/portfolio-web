@@ -1,0 +1,421 @@
+/* The site's stylesheet, in four layers. The order below is load-bearing:
+
+   1. tokens/       the design system, copied byte-verbatim from the skill and
+                    imported in its own styles.css order — base.css last,
+                    because it consumes tokens from every other file.
+   2. sections.css  page layout, one block per page section.
+   3. the site layer (everything below the imports) — the adaptation the repo
+                    owes the system, plus utilities the system has no opinion
+                    on. It comes last so that at equal specificity it wins over
+                    sections.css; nothing here may edit tokens/, which stays
+                    verbatim for the parity diff phase 7 runs.
+   4. theme-scoped contrast corrections, light before dark. */
+@import url("./tokens/fonts.css");
+@import url("./tokens/colors.css");
+@import url("./tokens/typography.css");
+@import url("./tokens/spacing.css");
+@import url("./tokens/shape.css");
+@import url("./tokens/motion.css");
+@import url("./tokens/base.css");
+@import url("./sections.css");
+
+:root {
+  /* Fontsource registers every variable family under a "Variable" suffix, so
+     the skill's first stack entry never matches. The fallbacks are the
+     skill's. */
+  --font-display: "Newsreader Variable", "Iowan Old Style", Georgia, serif;
+  --font-sans:
+    "Instrument Sans Variable", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono:
+    "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* spacing.css defines --section-y as --space-10 (128px), but every section of
+     the design's composed page is --space-9 (96px) and the reference PNGs
+     follow the JSX, not the readme. Retargeted here rather than hardcoded in
+     sections.css, which is what leaves the narrow-mode swap below a token to
+     override rather than a rule to fight. */
+  --section-y: var(--space-9);
+
+  /* The sticky bar's real height, and the offset every in-page anchor needs:
+     NavBar's --space-4 padding twice (32) + the 30px sm-control row (Button
+     size="sm" and the theme toggle are both 30) + its 1px border-bottom, which
+     is painted transparent when unscrolled but still occupies a pixel. */
+  --nav-h: 63px;
+
+  /* How far a revealing block travels. Carried from the old system, which is
+     the only place this value ever lived. */
+  --reveal-offset: 14px;
+}
+
+/* One mechanism for every in-page link — the nav, the hero CTA, the footer and
+   the skip link all land clear of the sticky bar, with or without JS. The
+   island therefore owns scroll-spy only; it intercepts no clicks. */
+html {
+  scroll-padding-top: var(--nav-h);
+  scroll-behavior: smooth;
+  /* The drawer locks body scroll while it is open, and without a reserved
+     gutter the page jumps sideways by the scrollbar's width behind the scrim.
+     Site-wide but free: every page here already scrolls, so the gutter is
+     occupied at rest either way — stable only keeps it during the lock. */
+  scrollbar-gutter: stable;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* The skill's base.css defines no ::placeholder rule and no color-scheme
+   anywhere, so without these the UA paints placeholder text, the scrollbars and
+   the textarea resize grip in light chrome under data-theme="dark".
+   --text-meta measures 5.06 light / 4.89 dark against --surface-card, the only
+   surface a field ever sits on. */
+::placeholder {
+  color: var(--text-meta);
+}
+
+/* Skip link: parked off-canvas until it takes focus, above the sticky nav. */
+.skip-link {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--gutter);
+  z-index: 30;
+  transform: translateY(-200%);
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface-card);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-pill);
+  font: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--ink-1);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.skip-link:focus {
+  transform: none;
+}
+
+/* Submitted but never seen or focused — the contact form's honeypot. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* The skip link's target. It is the whole page, so a ring around it says less
+   than the link that sent you there already did — but the focus must be real,
+   hence the tabindex in BaseLayout. */
+main[tabindex="-1"]:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+/* --- Scroll reveal -------------------------------------------------------
+   Opt-in twice over: the hidden state only applies once reveal.ts has marked
+   the root .reveal-ready, so content is never hidden by CSS alone. The new
+   tokens/base.css carries no reveal contract (the old one did), so it lives
+   here, retimed to the system's own reveal duration and easing. */
+.reveal-ready .reveal {
+  opacity: 0;
+  transform: translateY(var(--reveal-offset));
+  transition:
+    opacity var(--dur-reveal) var(--ease-out),
+    transform var(--dur-reveal) var(--ease-out);
+}
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* reveal.ts bails under reduce, so nothing ever gains .is-in — the pin below is
+   what keeps the page readable. Same for print: an unrevealed section sits at
+   opacity 0 and would print blank. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-ready .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media print {
+  .reveal-ready .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- Site chrome: the nav's two presentations ---------------------------
+   NavBar is sealed and styles itself inline, so the narrow/wide swap is made
+   from the outside. Three things make that legal:
+
+   1. The kit's nav item anchors set colour, border and padding inline but NOT
+      display, so a stylesheet display:none reaches them. (AGENTS.md's "a
+      stylesheet display:none aimed at a kit component loses" is about the
+      components that DO write display inline -- Button is one, see below.)
+   2. SiteNav passes className="site-nav", which NavBar spreads onto its root
+      <nav> through ...rest.
+   3. Everything this file adds to the bar -- the disclosure, the résumé
+      wrapper, the action row -- is section-owned markup from SiteNav, not kit.
+
+   The selector below therefore depends on NavBar's shape, and three couplings
+   have to hold or it silently stops matching:
+     - SiteNav's `action` stays wrapped in an element of its own. A bare
+       <Button> as `action` (the shape NavBarSpecimen.tsx uses) would be a
+       direct child of the row and would be hidden by this rule.
+     - NavBar keeps exactly one inner <div> between <nav> and the items.
+     - the disclosure's own links stay nested inside <details>, never direct
+       children of that row. */
+
+/* The bar's small control, defined once. The theme toggle and the menu summary
+   are the same 30px pill; the résumé Button is the kit's own and is left to it.
+   30px is what --nav-h's arithmetic counts on. */
+.site-nav__control {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 var(--space-3);
+  background: transparent;
+  color: var(--text-meta);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-pill);
+  font: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-control);
+}
+
+.site-nav__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Wide is the default: the disclosure does not exist above the breakpoint, so
+   the narrow block below only has to turn it on. Written this way round so the
+   wide state needs no query of its own and the two presentations can never
+   both be in the accessibility tree. */
+.site-nav__menu {
+  display: none;
+  /* Deliberately not position: relative — the panel below anchors to the
+     <nav>, which is already a containing block, so that it can span the full
+     bar. Making the disclosure one would shrink the panel to the summary. */
+}
+.site-nav__summary {
+  /* list-style covers Chrome and Firefox; the vendor marker covers Safari.
+     Neither is an icon -- the affordance is the word. */
+  list-style: none;
+}
+.site-nav__summary::-webkit-details-marker {
+  display: none;
+}
+.site-nav__summary::marker {
+  content: "";
+}
+/* The label is two spans swapped with display:none rather than ::before
+   content, because pseudo-content is not reliably exposed to assistive tech and
+   the summary's accessible name has to change with the state. */
+.site-nav__menu[open] .site-nav__summary-closed,
+.site-nav__menu:not([open]) .site-nav__summary-open {
+  display: none;
+}
+
+.site-nav__panel {
+  position: absolute;
+  /* The nav is the containing block twice over: position:sticky, and its
+     backdrop-filter. 100% is its padding box, so +1px clears the hairline. */
+  top: calc(100% + 1px);
+  right: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  /* Opaque on purpose: --nav-bg is translucent and the bar's backdrop blur
+     covers only the bar's own box, so inheriting it would show the page
+     through the panel with nothing blurring it. */
+  background: var(--surface-page);
+  border-bottom: 1px solid var(--border-hairline);
+  padding: var(--space-2) var(--gutter) var(--space-4);
+  margin: 0;
+  list-style: none;
+}
+/* Its own presentation, not a copy of the 12px bar row: a column with real
+   touch targets. The active link is still marked the way the system marks it --
+   a 1px clay underline, the same rule NavBar draws -- by recolouring the row's
+   own separator rather than inventing a second marker. */
+.site-nav__panel a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  border-bottom: 1px solid var(--border-hairline);
+  color: var(--text-meta);
+  font: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.site-nav__panel a[aria-current] {
+  color: var(--ink-1);
+  border-bottom-color: var(--clay);
+}
+.site-nav__panel li:last-child a {
+  border-bottom: 0;
+}
+
+/* --- Responsive ----------------------------------------------------------
+   One boundary. The design defines desktop only -- the kit carries zero media
+   queries and was drawn at 1280 -- so this is measured here, not inherited
+   from the pre-rebrand 960.
+
+   Measured against a real build at loaded font metrics (Chromium, the three
+   variable faces resolved), the header is:
+
+       brand      129.5   "Nicolás Hernández", 15px sans medium
+       gap         32     NavBar's --space-6, brand to row
+       links      222.6   34.3 + 85.6 + 42.8 + 59.9
+       link gaps   96     four --space-5 gaps, three between links, one before
+                          the action row
+       actions    146.9   theme pill 60.3 + --space-3 + résumé 74.6
+       gutters     64     --gutter twice
+       ------------------
+                  691     one line
+
+   Below 691 the brand -- the only shrinkable item in the row -- wraps to two
+   lines, and the bar hard-overflows at 616. Neither is the boundary: unlike the
+   old header, which needed 915 and set the fold itself, this one fits ~250px
+   below the width at which the layout stops reading. Folding at the header's
+   floor would mean a hero copy column of ~18ch and a 260px project card.
+
+   So the boundary is the readability one and the header is only a floor. At 900
+   the hero copy column measures 532px (~41ch of the lead face, against the
+   system's own --measure-prose of 62ch) and a project card 392px; below it the
+   lead drops under 40ch while the portrait's fixed 240px takes a third of the
+   row. 900 leaves 209px of slack over the one-line header and 284px over its
+   hard floor -- the old block chose 960 with 45px, so font-metric variance
+   cannot reach this.
+
+   One narrow boundary, not two: the stats survive 2-up all the way down (their
+   min-content column is 86px against 120px available at 320), so the second,
+   smaller step the phase doc allows for is not needed and is not written.
+
+   Rhythm is swapped as tokens, never as a rule. `.section { padding }` here
+   would out-order sections.css's `.hero { padding-bottom }` at equal
+   specificity -- this file loads last -- and silently delete it. */
+@media (width < 900px) {
+  :root {
+    --section-y: var(--section-y-mobile);
+    --gutter: var(--gutter-mobile);
+
+    /* ExperienceItem and SkillGroup are the same shape -- a label rail beside
+       content -- and fold the same way. Their roots are kit components, so no
+       selector can reach them; the call sites read these through var() and
+       custom properties inherit, which is why one :root declaration serves
+       both. Only those two call sites reference them. */
+    --rail-cols: minmax(0, 1fr);
+    --rail-gap: var(--space-3);
+  }
+
+  /* Every asymmetric split folds to one column. */
+  .hero__grid,
+  .work__grid,
+  .about__grid,
+  .contact__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* minmax(0,...) is the load-bearing half, not the 2: a bare 1fr is
+     minmax(auto, 1fr), so the four tracks carry a content-based minimum of
+     ~516px and overflow long before they look wrong. */
+  .hero__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* --space-9 reads as a hole once the column above it is stacked. */
+    margin-top: var(--space-7);
+  }
+
+  /* 64px between the copy and the portrait is a gap between columns, not
+     between stacked blocks. */
+  .hero__grid {
+    gap: var(--space-6);
+  }
+
+  /* The two nav presentations swap here, and only here. */
+  .site-nav > div > a {
+    display: none;
+  }
+  /* Button writes display:inline-flex inline on the <a> it renders, so a
+     stylesheet cannot hide it -- this is the "wrap it" case. The wrapper is
+     SiteNav's, the résumé link reappears inside the panel. */
+  .site-nav__resume {
+    display: none;
+  }
+  .site-nav__menu {
+    display: block;
+  }
+}
+
+/* --- Light theme -------------------------------------------------------
+   Scoped with :not() rather than [data-theme="light"] so the corrections also
+   hold with no attribute at all (JS disabled), and scoped rather than written
+   as a bare :root, which would out-order colors.css's [data-theme="dark"]
+   block and silently break the dark theme.
+
+   Four palette roles miss WCAG AA at the 12-15px sizes the system uses them
+   at. Measured (oklch -> sRGB, WCAG 2.x) against every surface each one lands
+   on, before -> after:
+
+     --ink-3 (--text-meta)  3.63 paper - 3.42 sunk - 3.79 raised
+                         -> 4.85 paper - 4.56 sunk - 5.06 raised
+     --moss                 2.91 on --moss-soft -> 4.58 (5.17 on paper)
+     --rust                 4.17 on --rust-soft -> 4.54 (5.25 on paper)
+     --clay-strong          4.38 on --clay-soft -> 4.57 (5.26 on paper)
+
+   Dark measures clean for all four and is left alone.
+
+   --ink-4 is deliberately NOT corrected. AA on near-white pins any readable
+   ink at L ~ 0.540 -- the value --ink-3 already needs -- so correcting it
+   would collapse the fourth step of the ink ramp into the third. Its four
+   word-and-digit uses read --text-meta instead (see src/ui). The three
+   decorative marks that keep it need no exemption: axe reports none of them
+   (e2e/a11y.spec.ts records why).
+
+   --clay is not corrected either: its value is design law (AGENTS.md), and
+   clay-as-text plus paper-on-clay are exempted there for the same reason gold
+   was in phase 2. */
+:root:not([data-theme="dark"]) {
+  color-scheme: light;
+
+  --ink-3: oklch(0.54 0.008 80);
+  --moss: oklch(0.51 0.145 145);
+  --rust: oklch(0.54 0.16 28);
+  --clay-strong: oklch(0.535 0.145 45);
+
+  /* Button's primary hover, the skill's one raw literal, kept verbatim. */
+  --btn-primary-hover: oklch(0.16 0.01 70);
+  /* Tag's amber ink, the skill's other raw literal. 5.52 on --amber-soft. */
+  --tag-amber-ink: oklch(0.48 0.11 85);
+}
+
+/* --- Dark theme --------------------------------------------------------
+   Both values below are theme-blind literals in the skill's JSX; routing them
+   through tokens is what stops the dark theme inheriting them.
+
+   --btn-primary-hover follows one rule in both themes: the hover fill moves
+   further from the page surface, so contrast against the button's own
+   --text-inverse label strictly increases from its resting state. Light
+   deepens below --ink-1 (0.245 -> 0.16) behind a near-white label; dark lifts
+   above it (0.960 -> 0.995) behind a near-black one. The skill's literal did
+   the opposite here -- near-black fill behind near-black text.
+
+   --tag-amber-ink: the skill's light-tuned literal measures 2.11 on dark
+   --amber-soft; the palette's own --amber measures 6.90. */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --btn-primary-hover: oklch(0.995 0.004 85);
+  --tag-amber-ink: var(--amber);
+}

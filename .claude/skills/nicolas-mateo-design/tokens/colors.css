@@ -1,0 +1,92 @@
+:root {
+  /* ---- Base neutrals: warm paper, warm ink ---- */
+  --paper:            oklch(0.985 0.004 85);   /* page background */
+  --paper-sunk:       oklch(0.964 0.005 85);   /* recessed panels, code blocks */
+  --paper-raised:     oklch(1 0 0);            /* cards on paper */
+  --paper-inverse:    oklch(0.245 0.010 70);   /* rare dark section */
+
+  --ink-1:            oklch(0.245 0.010 70);   /* primary text */
+  --ink-2:            oklch(0.435 0.010 70);   /* secondary text */
+  --ink-3:            oklch(0.610 0.008 80);   /* muted / meta */
+  --ink-4:            oklch(0.760 0.006 80);   /* placeholder, disabled */
+  --ink-on-inverse:   oklch(0.965 0.004 85);
+
+  --line-1:           oklch(0.905 0.005 80);   /* hairline rule */
+  --line-2:           oklch(0.855 0.006 80);   /* stronger border, inputs */
+  --line-inverse:     oklch(0.360 0.010 70);
+
+  /* ---- Accent: clay. One accent only. ---- */
+  --clay:             oklch(0.620 0.145 45);
+  --clay-strong:      oklch(0.545 0.145 45);   /* hover / press */
+  --clay-soft:        oklch(0.940 0.030 45);   /* tint fill */
+  --clay-line:        oklch(0.870 0.055 45);
+
+  /* ---- Semantic status (same L/C family, hue varied) ---- */
+  --moss:             oklch(0.620 0.145 145);
+  --moss-soft:        oklch(0.940 0.030 145);
+  --amber:            oklch(0.620 0.145 85);
+  --amber-soft:       oklch(0.940 0.030 85);
+  --rust:             oklch(0.560 0.160 28);
+  --rust-soft:        oklch(0.940 0.032 28);
+
+  /* ---- Semantic aliases ---- */
+  --surface-page:     var(--paper);
+  --surface-card:     var(--paper-raised);
+  --surface-sunk:     var(--paper-sunk);
+  --surface-inverse:  var(--paper-inverse);
+
+  --text-heading:     var(--ink-1);
+  --text-body:        var(--ink-2);
+  --text-meta:        var(--ink-3);
+  --text-disabled:    var(--ink-4);
+  --text-accent:      var(--clay);
+  --text-inverse:     var(--ink-on-inverse);
+
+  --border-hairline:  var(--line-1);
+  --border-control:   var(--line-2);
+  --border-accent:    var(--clay-line);
+
+  --focus-ring:       oklch(0.620 0.145 45 / 0.38);
+  --selection-bg:     var(--clay-soft);
+
+  /* Surfaces that need their own alpha, so both themes can override them */
+  --nav-bg:           oklch(0.985 0.004 85 / 0.82);
+  --scrim:            oklch(0.245 0.010 70 / 0.28);
+}
+
+/* ---- Dark theme ----
+   Set data-theme="dark" on <html>. Only the palette flips: every component reads
+   the semantic aliases, so no component CSS changes. Ink and paper swap roles,
+   clay is lifted in lightness so it still reads as an accent on a dark ground. */
+[data-theme="dark"] {
+  --paper:            oklch(0.205 0.008 70);
+  --paper-sunk:       oklch(0.175 0.008 70);
+  --paper-raised:     oklch(0.240 0.009 70);
+  --paper-inverse:    oklch(0.965 0.004 85);
+
+  --ink-1:            oklch(0.960 0.004 85);
+  --ink-2:            oklch(0.800 0.006 80);
+  --ink-3:            oklch(0.640 0.008 80);
+  --ink-4:            oklch(0.500 0.008 70);
+  --ink-on-inverse:   oklch(0.245 0.010 70);
+
+  --line-1:           oklch(0.290 0.008 70);
+  --line-2:           oklch(0.360 0.009 70);
+  --line-inverse:     oklch(0.860 0.005 80);
+
+  --clay:             oklch(0.720 0.130 45);
+  --clay-strong:      oklch(0.800 0.115 45);
+  --clay-soft:        oklch(0.300 0.045 45);
+  --clay-line:        oklch(0.400 0.070 45);
+
+  --moss:             oklch(0.740 0.130 145);
+  --moss-soft:        oklch(0.290 0.045 145);
+  --amber:            oklch(0.780 0.125 85);
+  --amber-soft:       oklch(0.295 0.045 85);
+  --rust:             oklch(0.700 0.145 28);
+  --rust-soft:        oklch(0.295 0.048 28);
+
+  --focus-ring:       oklch(0.720 0.130 45 / 0.42);
+  --nav-bg:           oklch(0.205 0.008 70 / 0.84);
+  --scrim:            oklch(0.120 0.008 70 / 0.55);
+}

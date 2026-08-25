@@ -1,6 +1,16 @@
 dist
 .astro
-pnpm-lock.yaml
+package-lock.json
 
 # design source of truth must stay byte-verbatim until its phase-7 deletion
 .claude
+
+# tokens are copied verbatim from the design system; formatting them would break
+# the `diff -r src/styles/tokens` parity check phase 7 runs before deleting the skill
+src/styles/tokens
+
+# e2e artifacts
+test-results
+playwright-report
+blob-report
+playwright/.cache

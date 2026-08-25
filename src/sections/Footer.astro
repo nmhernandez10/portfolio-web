@@ -1,0 +1,45 @@
+---
+import { TextLink } from "@/ui";
+import { COPY, profile } from "@/content";
+
+// One array rather than five near-identical lines, so a link cannot pick up a
+// label from one source and an href from another.
+const links = [
+  { label: COPY.footer.links.email, href: `mailto:${profile.email}` },
+  {
+    label: COPY.footer.links.github,
+    href: `https://${profile.github}`,
+    external: true,
+  },
+  {
+    label: COPY.footer.links.linkedin,
+    href: `https://${profile.linkedin}`,
+    external: true,
+  },
+  { label: COPY.footer.links.resume, href: profile.resumes.fullStack },
+  {
+    label: COPY.footer.links.backendResume,
+    href: profile.resumes.backend,
+  },
+];
+
+// Joined here rather than as two adjacent expressions in the markup: Astro
+// drops the whitespace between expressions a newline separates, and the pair
+// renders "© 2026Nicolás Hernández".
+const copyright = `${COPY.footer.copyright} ${profile.name}`;
+---
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <span class="site-footer__copy">{copyright}</span>
+    <div class="site-footer__links">
+      {
+        links.map((link) => (
+          <TextLink href={link.href} external={link.external}>
+            {link.label}
+          </TextLink>
+        ))
+      }
+    </div>
+  </div>
+</footer>

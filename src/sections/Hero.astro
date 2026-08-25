@@ -1,0 +1,67 @@
+---
+import { getImage } from "astro:assets";
+import portrait from "@/assets/portrait.jpg";
+import { Button, Portrait, StatBlock, Tag } from "@/ui";
+import { COPY, profile } from "@/content";
+import Section from "./Section.astro";
+
+// astro:assets is unavailable to React, so the portrait is processed here and
+// handed to the kit component as a plain URL. Portrait renders 240 x
+// round(240 * 1.22) CSS pixels; these are its 2x dimensions.
+const portraitImage = await getImage({
+  src: portrait,
+  width: 480,
+  height: 586,
+  format: "webp",
+});
+---
+
+<Section id="top" class="hero" reveal={false}>
+  <div class="hero__grid">
+    <div class="hero__copy">
+      <div class="hero__tags">
+        {
+          /* Tag writes white-space: nowrap inline (Tag.tsx), and this one
+            measures 300px — wider than the 272px content box at 320. Its own
+            style prop is the only lever, and it needs no media query: with room
+            the pill never wraps, and min-height pins the single-line box at the
+            kit's exact 26px, so nothing above the breakpoint moves. */
+        }
+        <Tag
+          tone="moss"
+          dot
+          style={{
+            whiteSpace: "normal",
+            height: "auto",
+            minHeight: 26,
+            paddingBlock: 4,
+          }}
+        >
+          {COPY.hero.status}
+        </Tag>
+        <Tag tone="outline">{profile.location}</Tag>
+      </div>
+      <h1 class="hero__name">{profile.name}</h1>
+      <p class="hero__role">{profile.role}</p>
+      <p class="hero__lead">{profile.lead}</p>
+      <div class="hero__actions">
+        <Button variant="accent" size="lg" trailing="→" href="#contact">
+          {COPY.hero.cta.contact}
+        </Button>
+        {
+          /* No target="_blank": ButtonProps extends React.HTMLAttributes, which
+            carries no `target`, and the kit's API is frozen. The old header's
+            résumé button and /kit's NavBar specimen both open in place too. */
+        }
+        <Button variant="secondary" size="lg" href={profile.resumes.fullStack}>
+          {COPY.hero.cta.resume}
+        </Button>
+      </div>
+    </div>
+    <Portrait src={portraitImage.src} alt={profile.name} size={240} />
+  </div>
+
+  <div class="hero__stats">
+    {profile.stats.map((stat) => <StatBlock {...stat} />)}
+  </div>
+</Section>

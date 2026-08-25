@@ -1,0 +1,506 @@
+---
+import { getImage } from "astro:assets";
+import portrait from "@/assets/portrait.jpg";
+import { COPY, profile, SECTIONS, sectionMeta, twoDigit } from "@/content";
+import {
+  Button,
+  Card,
+  Divider,
+  ExperienceItem,
+  Input,
+  Portrait,
+  ProjectCard,
+  ProjectDrawer,
+  SectionHeader,
+  SkillGroup,
+  StatBlock,
+  Tag,
+  Textarea,
+  TextLink,
+} from "@/ui";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { NavBarSpecimen } from "./_kit/NavBarSpecimen";
+import Specimen from "./_kit/Specimen.astro";
+import { SiteThemeToggle } from "@/sections/SiteThemeToggle";
+
+const buttonVariants = ["primary", "accent", "secondary", "ghost"] as const;
+const buttonSizes = ["sm", "md", "lg"] as const;
+const cardTones = ["raised", "flat", "sunk", "inverse"] as const;
+const portraitShapes = ["arch", "round", "soft", "square"] as const;
+const tagTones = [
+  "neutral",
+  "clay",
+  "moss",
+  "amber",
+  "rust",
+  "outline",
+] as const;
+const textLinkTones = ["ink", "accent"] as const;
+
+// astro:assets is unavailable to React, so the portrait is processed here and
+// handed to the component as a plain URL — the same move Hero.astro makes.
+const portraitImage = await getImage({
+  src: portrait,
+  width: 320,
+  height: 390,
+  format: "webp",
+});
+
+// Specimens render the real content model rather than invented prose: the
+// brand's voice rules govern every string, and copy has one source.
+const work = sectionMeta("work");
+const [firstProject, secondProject] = profile.projects;
+const currentRole = profile.experience[0];
+const pastRole = profile.experience[1];
+const [firstStat, secondStat] = profile.stats;
+---
+
+<BaseLayout
+  title="UI kit — nicolasmateo.dev"
+  description="Every component in the design system, in every variant its props allow."
+>
+  <div class="kit">
+    <header class="kit-head">
+      <div class="kit-head-row">
+        <h1>UI kit</h1>
+        <SiteThemeToggle client:load />
+      </div>
+      <p class="kit-lead">
+        Every component in the design system, in every variant its props allow,
+        rendered from the site's own content. The theme toggle above is the only
+        interactive island on this page — hover, press and field-focus states
+        live in component state, so they stay idle here and want judging in the
+        running site. The stylesheet's clay focus ring does work: tab through
+        the buttons and links below. It does not reach the fields, because an
+        unfocused Input writes box-shadow inline.
+      </p>
+    </header>
+
+    <section class="kit-group">
+      <h2>Core</h2>
+
+      <Specimen
+        name="Button"
+        law="Primary is solid ink and the default; accent is clay fill, at most once per screen; secondary is the hairline outline beside a primary; ghost is text-only. All four appear together here because this is an inventory sheet — the accent law governs a composed screen. Buttons are always fully rounded and never squared off."
+      >
+        {
+          buttonVariants.map((variant) => (
+            <div class="row">
+              {buttonSizes.map((size) => (
+                <Button variant={variant} size={size}>
+                  {variant} {size}
+                </Button>
+              ))}
+              <Button variant={variant} disabled>
+                Disabled
+              </Button>
+            </div>
+          ))
+        }
+        <div class="row">
+          <Button variant="accent" trailing="→">{COPY.hero.cta.contact}</Button>
+          <Button variant="secondary" href={profile.resumes.fullStack}>
+            {COPY.hero.cta.resume}
+          </Button>
+          <Button variant="ghost" leading="←">Back</Button>
+        </div>
+        <div class="field"><Button full>Full width</Button></div>
+      </Specimen>
+
+      <Specimen
+        name="Card"
+        law="Sunk is for code samples and quiet metadata blocks; inverse is used sparingly, at most one dark block per page. A card at rest carries a border and no shadow — the lift and the shadow belong to interactive on hover."
+      >
+        <div class="grid">
+          {
+            cardTones.map((tone) => (
+              <Card tone={tone}>
+                <p>Tone {tone}</p>
+              </Card>
+            ))
+          }
+        </div>
+        <div class="grid">
+          <Card interactive href="#kit-content">
+            <p>Interactive — hover lifts it 2px onto --shadow-md.</p>
+          </Card>
+          <Card as="article" pad="var(--space-4)">
+            <p>as="article", padding overridden to --space-4.</p>
+          </Card>
+        </div>
+      </Specimen>
+
+      <Specimen
+        name="Divider"
+        law="The system's primary separator — prefer it over shadows or background changes."
+      >
+        <div class="stack wide">
+          <Divider />
+          <Divider label={COPY.about.educationLabel} />
+          <Divider tone="strong" label="Strong" space="var(--space-4)" />
+        </div>
+      </Specimen>
+
+      <Specimen
+        name="Portrait"
+        law="The headshot — one per page, in the hero or the about section. Desaturated at rest, colour on hover."
+      >
+        <div class="row">
+          {
+            portraitShapes.map((shape) => (
+              <Portrait
+                src={portraitImage.src}
+                alt={profile.name}
+                size={120}
+                shape={shape}
+              />
+            ))
+          }
+          <Portrait
+            src={portraitImage.src}
+            alt={profile.name}
+            size={120}
+            grayscale={false}
+          />
+        </div>
+      </Specimen>
+
+      <Specimen
+        name="Tag"
+        law="Keep tag rows to one line where possible and sort by relevance, not alphabetically. Non-mono is for human-language labels like “Remote”."
+      >
+        <div class="row">
+          {tagTones.map((tone) => <Tag tone={tone}>{tone}</Tag>)}
+        </div>
+        <div class="row">
+          {
+            tagTones.map((tone) => (
+              <Tag tone={tone} dot>
+                {tone}
+              </Tag>
+            ))
+          }
+        </div>
+        <div class="row">
+          <Tag tone="moss" dot>{COPY.hero.status}</Tag>
+          <Tag tone="outline" mono={false}>{profile.location}</Tag>
+        </div>
+      </Specimen>
+    </section>
+
+    <section class="kit-group">
+      <h2>Forms</h2>
+
+      <Specimen
+        name="Input"
+        law="Labels are always mono uppercase; placeholders are lower-case examples, never a repeat of the label. Repeated specimens of one field pass an explicit id: the component derives its id from the label, so two Email fields would otherwise share one and both labels would point at the first."
+      >
+        <div class="row wide">
+          <Input
+            label={COPY.form.name.label}
+            placeholder={COPY.form.name.placeholder}
+          />
+          <Input
+            id="in-email-hint"
+            label={COPY.form.email.label}
+            type="email"
+            placeholder={COPY.form.email.placeholder}
+            hint="I only use this to reply."
+          />
+          <Input
+            id="in-email-error"
+            label={COPY.form.email.label}
+            type="email"
+            placeholder={COPY.form.email.placeholder}
+            error="Enter an email address I can reply to."
+          />
+        </div>
+      </Specimen>
+
+      <Specimen
+        name="Textarea"
+        law="The message field on the contact form — same label and focus rules as Input."
+      >
+        <div class="row wide">
+          <Textarea
+            id="ta-message-default"
+            label={COPY.form.message.label}
+            rows={4}
+            placeholder={COPY.form.message.placeholder}
+          />
+          <Textarea
+            id="ta-message-error"
+            label={COPY.form.message.label}
+            rows={4}
+            placeholder={COPY.form.message.placeholder}
+            error="Tell me a little about the work."
+          />
+        </div>
+      </Specimen>
+    </section>
+
+    <section class="kit-group">
+      <h2>Navigation</h2>
+
+      <Specimen
+        name="NavBar"
+        law="One per page, sticky, four links maximum. The active link is marked with a clay underline, never a filled pill."
+      >
+        <div class="nav-frame">
+          <NavBarSpecimen
+            brand={profile.name}
+            items={SECTIONS.map((entry) => ({
+              id: entry.id,
+              label: entry.nav,
+            }))}
+            active="work"
+            resumeHref={profile.resumes.fullStack}
+            resumeLabel={COPY.footer.links.resume}
+          />
+        </div>
+      </Specimen>
+
+      <Specimen
+        name="TextLink"
+        law="Email addresses, profile links, “read more”. The underline wipes in from the left on hover; the arrow nudges right with it."
+      >
+        <div class="row">
+          {
+            textLinkTones.map((tone) => (
+              <TextLink tone={tone} href={`mailto:${profile.email}`}>
+                {profile.email}
+              </TextLink>
+            ))
+          }
+          <TextLink href={`https://${profile.linkedin}`} external arrow>
+            {COPY.footer.links.linkedin}
+          </TextLink>
+          <TextLink
+            tone="accent"
+            href={`https://${profile.github}`}
+            external
+            arrow
+          >
+            {COPY.footer.links.github}
+          </TextLink>
+        </div>
+      </Specimen>
+    </section>
+
+    <section class="kit-group" id="kit-content">
+      <h2>Content</h2>
+
+      <Specimen
+        name="SectionHeader"
+        law="Opens every major section. Indices run 01, 02, 03… in page order; titles are sentence case and end with a period."
+      >
+        <SectionHeader
+          index={work.index}
+          label={work.label}
+          title={work.title}
+          lead={work.lead}
+        />
+        <SectionHeader title={sectionMeta("about").title} align="center" />
+      </Specimen>
+
+      <Specimen
+        name="ExperienceItem"
+        law="One job in the timeline. Stack them directly — the hairline top border does the separating, and current renders the period in clay."
+      >
+        <div class="stack wide">
+          <ExperienceItem {...currentRole} />
+          <ExperienceItem {...pastRole} />
+        </div>
+      </Specimen>
+
+      <Specimen
+        name="ProjectCard"
+        law="One item in the work grid, two or three per row. Descriptions are one sentence about the problem and one about the outcome — no marketing adjectives."
+      >
+        <div class="grid two">
+          <ProjectCard index={twoDigit(1)} {...firstProject} />
+          <ProjectCard
+            index={twoDigit(2)}
+            {...secondProject}
+            href="#kit-content"
+          />
+        </div>
+      </Specimen>
+
+      <Specimen
+        name="SkillGroup"
+        law="One category of the skills table. Prefer slash-separated runs over tag clouds here; tags are for project cards."
+      >
+        <div class="stack wide">
+          {profile.skills.map((group) => <SkillGroup {...group} />)}
+        </div>
+      </Specimen>
+
+      <Specimen
+        name="StatBlock"
+        law="Real numbers only, taken from shipped work. Never invent metrics; if a number can't be sourced, drop the block rather than round something up."
+      >
+        <div class="grid stats">
+          {profile.stats.map((stat) => <StatBlock {...stat} />)}
+        </div>
+        <div class="grid stats">
+          <StatBlock {...firstStat} align="center" />
+          <StatBlock
+            value={secondStat.value}
+            label={secondStat.label}
+            align="center"
+          />
+        </div>
+      </Specimen>
+
+      <Specimen
+        name="ProjectDrawer"
+        law="The panel behind a project card, carrying the detail copy the card has no room for. It is a modal dialog: Escape closes it, Tab cannot leave it, focus returns to the card and the page behind cannot scroll. Shown open and static here, so none of that behaviour runs."
+      >
+        <div class="drawer-frame">
+          <ProjectDrawer
+            project={{ index: twoDigit(1), ...firstProject }}
+            onClose={() => {}}
+            closeLabel={COPY.drawer.close}
+          />
+        </div>
+      </Specimen>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .kit {
+    max-width: var(--width-content);
+    margin: 0 auto;
+    padding: var(--space-9) var(--gutter);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-9);
+  }
+
+  .kit-head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .kit-head-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+    flex-wrap: wrap;
+  }
+
+  h1 {
+    font: var(--type-statement);
+    letter-spacing: var(--tracking-display);
+  }
+
+  .kit-lead {
+    max-width: var(--measure-prose);
+    font: var(--type-lead);
+    color: var(--text-body);
+  }
+
+  /* One h2 per folder group: it is what lets each Specimen sit at h3, which is
+     the only level where every component's own heading stays in order. */
+  .kit-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-7);
+  }
+
+  .kit-group > h2 {
+    font: var(--type-h1);
+    letter-spacing: var(--tracking-heading);
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  /* Fields keep a readable width instead of stretching across the row. */
+  .row.wide {
+    align-items: flex-start;
+    gap: var(--space-6);
+  }
+  .row.wide > :global(*) {
+    flex: 0 1 300px;
+  }
+
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .stack.wide {
+    gap: 0;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--space-5);
+  }
+  .grid.two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .grid.stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-6);
+  }
+
+  .field {
+    max-width: 340px;
+  }
+
+  /* The specimen page is a shipped route, so it folds at the same boundary the
+     site does — its own page-owned grids only, since every specimen inside them
+     is the kit's and already narrow-safe.
+
+     Measured after the fold: the document is clean from 1440 down to 360 and
+     overflows by 7px at 320. Two specimens exceed the 272px content box there
+     and neither is page-owned — the hero status Tag, 300px and white-space:
+     nowrap inline, and ExperienceItem's minmax(150px, 200px) rail, which reads
+     no --rail-cols because a specimen renders the kit's default rather than the
+     site's call site. Closing those 7px means giving each a call-site style
+     prop, which is the one thing a specimen must not do, so it is carried to
+     phase 7's /kit parity pass with the other two /kit items. */
+  @media (width < 900px) {
+    .grid.two,
+    .grid.stats {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* The bar is position: sticky, so it needs a scroll container of its own
+     rather than sticking to the top of the page. */
+  .nav-frame {
+    height: 140px;
+    overflow-y: auto;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-lg);
+  }
+  .nav-frame::after {
+    content: "";
+    display: block;
+    height: 200px;
+  }
+
+  /* The drawer is position: fixed. A transform makes this element the
+     containing block for it, which is what keeps the specimen inside the page
+     instead of covering the viewport. */
+  .drawer-frame {
+    position: relative;
+    height: 520px;
+    overflow: hidden;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-lg);
+    transform: translateZ(0);
+  }
+</style>
