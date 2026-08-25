@@ -5,8 +5,9 @@
 
    This file is imported by global.css *before* the site layer, so at equal
    specificity global.css wins. Nothing here styles the nav — NavBar owns its
-   own sticky positioning, blur and scrolled hairline. No media queries: the
-   design is desktop-only and VC5 measures the breakpoints. */
+   own sticky positioning, blur and scrolled hairline. No media queries either:
+   the design defines desktop only, and the one measured breakpoint that folds
+   these hooks lives in global.css, where it can also override tokens. */
 
 /* --- The shell every block shares ------------------------------------- */
 .section {

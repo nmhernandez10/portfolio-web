@@ -459,6 +459,25 @@ const [firstStat, secondStat] = profile.stats;
     max-width: 340px;
   }
 
+  /* The specimen page is a shipped route, so it folds at the same boundary the
+     site does — its own page-owned grids only, since every specimen inside them
+     is the kit's and already narrow-safe.
+
+     Measured after the fold: the document is clean from 1440 down to 360 and
+     overflows by 7px at 320. Two specimens exceed the 272px content box there
+     and neither is page-owned — the hero status Tag, 300px and white-space:
+     nowrap inline, and ExperienceItem's minmax(150px, 200px) rail, which reads
+     no --rail-cols because a specimen renders the kit's default rather than the
+     site's call site. Closing those 7px means giving each a call-site style
+     prop, which is the one thing a specimen must not do, so it is carried to
+     phase 7's /kit parity pass with the other two /kit items. */
+  @media (width < 900px) {
+    .grid.two,
+    .grid.stats {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
   /* The bar is position: sticky, so it needs a scroll container of its own
      rather than sticking to the top of the page. */
   .nav-frame {

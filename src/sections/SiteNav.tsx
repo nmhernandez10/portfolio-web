@@ -5,12 +5,19 @@ import { Button, NavBar } from "@/ui";
 // is what keeps the résumé structurally unreachable from the bundle — see the
 // note in src/content/index.ts. Anything from profile arrives as a prop.
 import { COPY, SECTIONS } from "@/content/sections";
+import { SiteNavMenu } from "./SiteNavMenu";
 import { SiteThemeToggle } from "./SiteThemeToggle";
 
 /**
  * The page header. It is the kit's NavBar and nothing else: sticky positioning,
  * the blur and the scrolled hairline all belong to the component, so no
  * stylesheet clones them.
+ *
+ * Below the narrow breakpoint the bar's inline link row is hidden and the
+ * SiteNavMenu disclosure takes its place — one owner for both presentations,
+ * and global.css swaps them so neither can reach the accessibility tree while
+ * the other is showing. The résumé action moves into the panel with them, which
+ * is what makes the bar fit at 320.
  *
  * The island owns exactly one behaviour — scroll-spy. Navigation is left to the
  * anchors NavBar already renders: global.css gives <html> a scroll-padding-top
@@ -58,26 +65,37 @@ export function SiteNav({ brand, resumeHref }: Props) {
 
   return (
     <NavBar
+      className="site-nav"
       brand={brand}
       items={ITEMS}
       active={active}
       action={
-        <span
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "var(--space-3)",
-          }}
-        >
+        /* A div, not a span: <details> is flow content and cannot sit inside
+           phrasing content. Keeping the action wrapped is also what stops the
+           narrow rule in global.css from hiding the résumé link — see the
+           couplings recorded there. */
+        <div className="site-nav__actions">
+          <SiteNavMenu
+            items={ITEMS}
+            active={active}
+            resumeHref={resumeHref}
+            resumeLabel={COPY.nav.resume}
+            menuLabel={COPY.nav.menu}
+            closeLabel={COPY.nav.close}
+          />
           {/* Plain React, not an island: one cannot hydrate inside another. */}
           <SiteThemeToggle />
           {/* No target="_blank" — see Hero.astro: ButtonProps extends
               React.HTMLAttributes, which has no `target`, and the kit's API is
-              frozen. /kit's NavBar specimen renders the same button. */}
-          <Button size="sm" variant="secondary" href={resumeHref}>
-            {COPY.nav.resume}
-          </Button>
-        </span>
+              frozen. /kit's NavBar specimen renders the same button.
+              Wrapped because Button writes display inline on its own anchor, so
+              only a wrapper can hide it at narrow widths. */}
+          <span className="site-nav__resume">
+            <Button size="sm" variant="secondary" href={resumeHref}>
+              {COPY.nav.resume}
+            </Button>
+          </span>
+        </div>
       }
     />
   );

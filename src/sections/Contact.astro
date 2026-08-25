@@ -6,7 +6,7 @@ import SectionIntro from "./SectionIntro.astro";
 import { ContactForm } from "./ContactForm";
 ---
 
-<Section id="contact" surface="sunk">
+<Section id="contact" class="contact" surface="sunk">
   <div class="contact__grid">
     <div>
       <SectionIntro id="contact" compact />
@@ -35,7 +35,14 @@ import { ContactForm } from "./ContactForm";
         </div>
         <div class="contact__row">
           <span class="contact__label">{COPY.contact.locationLabel}</span>
-          <span class="contact__value">{COPY.contact.locationLine}</span>
+          {
+            /* Composed here, not in sections.ts: that module is an import-free
+              leaf because islands reach it, so the city can only join the line
+              at a section file. One source for the city, one for the rest. */
+          }
+          <span class="contact__value">
+            {profile.location} · {COPY.contact.locationSuffix}
+          </span>
         </div>
       </div>
     </div>

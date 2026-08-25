@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { profile } from "../src/content/profile";
-import { openDrawer } from "./support";
+import { openDrawer, openMenu } from "./support";
 
 type AxeResults = Awaited<ReturnType<AxeBuilder["analyze"]>>;
 type AxeNode = AxeResults["violations"][number]["nodes"][number];
@@ -168,6 +168,19 @@ test("the open drawer is clean in the dark theme", async ({ page }) => {
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await openDrawer(page, profile.projects[0].title);
   await expectClean(page, BRAND_DARK);
+});
+
+/**
+ * Every other scan runs at the project's 1280 default, where the narrow
+ * presentation is display:none — so without this one the mobile nav is only
+ * ever scanned in the state that hides it. Open, because a closed <details>
+ * keeps its panel out of the tree too.
+ */
+test("the open mobile menu is clean", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await visit(page, "/");
+  await openMenu(page);
+  await expectClean(page, BRAND_LIGHT);
 });
 
 test("the kit page is clean in the light theme", async ({ page }) => {

@@ -4,18 +4,17 @@ This directory is the implementation plan for the portfolio. Each phase is one m
 
 ## Status
 
-Phases 0–6.2 are implemented and their docs were removed on 2026-08-24 for cohesion —
-the full record lives in git history, and every item still open from them was carried
-into [phase 7, task 0](phase-7-launch.md) with per-item timing tags (several must run
-at VC0/VC1 time, not at launch). What remains:
+Phases 0–6.2 are implemented and their docs were removed on 2026-08-24 for cohesion;
+the six visual-correction phases (VC0–VC5), which rebranded the site to the replaced
+design skill, completed on 2026-08-25 and their docs were removed the same way. In both
+cases the full record lives in git history, and every item still open was carried into
+[phase 7, task 0](phase-7-launch.md) with per-item timing tags. What remains:
 
-| Phase   | Title                                                                                   | PR  | Status          | Preview URL |
-| ------- | --------------------------------------------------------------------------------------- | --- | --------------- | ----------- |
-| VC0–VC5 | [Visual correction](visual-correction/README.md) — rebrand to the replaced design skill | —   | VC4 implemented | —           |
-| 7       | [Launch](phase-7-launch.md)                                                             | —   | Not started     | —           |
+| Phase | Title                       | PR  | Status      | Preview URL |
+| ----- | --------------------------- | --- | ----------- | ----------- |
+| 7     | [Launch](phase-7-launch.md) | —   | Not started | —           |
 
-Dependencies are linear: the six visual-correction phases run in order (their own
-README carries the per-phase table), then phase 7.
+Phase 7 is the last one.
 
 ## How to execute a phase
 
@@ -47,7 +46,7 @@ Phases add their own items on top of this.
 - **One story — decided 2026-08-24.** The page says everything at once, under the positioning label **Senior Backend Engineer & Feature Architect**: a hero, four numbered sections (`01` Work, `02` Experience, `03` About, `04` Contact) and a footer. Both résumés ship, with the full-stack PDF as the primary link and the backend PDF as one extra footer link.
 - **Theme**: inline `is:inline` head script before paint (localStorage → `prefers-color-scheme` → light) sets `data-theme` on `<html>`; the `SiteThemeToggle` island syncs from the attribute and writes attribute + localStorage.
 - **Reveal**: vanilla `src/scripts/reveal.ts` binding the `.reveal` / `.reveal-ready` / `.is-in` contract that already exists in `tokens/base.css`. Observer `rootMargin: "-40px"`, 900ms reveal-everything fallback, reduced-motion bail.
-- **Fonts**: the three faces are self-hosted via fontsource — the packages are named in `visual-correction/phase-vc2-kit.md`, the law in `AGENTS.md` § Design laws, and the per-phase check in gotcha 4 below.
+- **Fonts**: the three faces are self-hosted via fontsource — the packages are named in `AGENTS.md` § Stack, the law in its § Design laws, and the per-phase check in gotcha 4 below.
 - **Contact**: one route, `POST /api/contact` — since phase 6.1 a hand-written Pages Function (`functions/api/contact.ts`) reading `context.env`; the rest of the site is fully static. Resend via plain `fetch` (no SDK). Config via environment: all three keys are set per environment in the Pages dashboard — `EMAIL_FROM` / `EMAIL_TO` as plain variables, `RESEND_API_KEY` as a secret — and live in the gitignored `.dev.vars` locally. (**Revised 2026-08-23 in phase 6.2**: the two addresses were `vars` in `wrangler.jsonc` until naming them there proved to lock the dashboard's copies.) Honeypot only; Turnstile is a documented follow-up if spam appears.
 
 ## Design source of truth

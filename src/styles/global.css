@@ -32,7 +32,8 @@
   /* spacing.css defines --section-y as --space-10 (128px), but every section of
      the design's composed page is --space-9 (96px) and the reference PNGs
      follow the JSX, not the readme. Retargeted here rather than hardcoded in
-     sections.css, so VC5's --section-y-mobile swap keeps a token to override. */
+     sections.css, which is what leaves the narrow-mode swap below a token to
+     override rather than a rule to fight. */
   --section-y: var(--space-9);
 
   /* The sticky bar's real height, and the offset every in-page anchor needs:
@@ -145,6 +146,215 @@ main[tabindex="-1"]:focus-visible {
   .reveal-ready .reveal {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* --- Site chrome: the nav's two presentations ---------------------------
+   NavBar is sealed and styles itself inline, so the narrow/wide swap is made
+   from the outside. Three things make that legal:
+
+   1. The kit's nav item anchors set colour, border and padding inline but NOT
+      display, so a stylesheet display:none reaches them. (AGENTS.md's "a
+      stylesheet display:none aimed at a kit component loses" is about the
+      components that DO write display inline -- Button is one, see below.)
+   2. SiteNav passes className="site-nav", which NavBar spreads onto its root
+      <nav> through ...rest.
+   3. Everything this file adds to the bar -- the disclosure, the résumé
+      wrapper, the action row -- is section-owned markup from SiteNav, not kit.
+
+   The selector below therefore depends on NavBar's shape, and three couplings
+   have to hold or it silently stops matching:
+     - SiteNav's `action` stays wrapped in an element of its own. A bare
+       <Button> as `action` (the shape NavBarSpecimen.tsx uses) would be a
+       direct child of the row and would be hidden by this rule.
+     - NavBar keeps exactly one inner <div> between <nav> and the items.
+     - the disclosure's own links stay nested inside <details>, never direct
+       children of that row. */
+
+/* The bar's small control, defined once. The theme toggle and the menu summary
+   are the same 30px pill; the résumé Button is the kit's own and is left to it.
+   30px is what --nav-h's arithmetic counts on. */
+.site-nav__control {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 var(--space-3);
+  background: transparent;
+  color: var(--text-meta);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-pill);
+  font: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-control);
+}
+
+.site-nav__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Wide is the default: the disclosure does not exist above the breakpoint, so
+   the narrow block below only has to turn it on. Written this way round so the
+   wide state needs no query of its own and the two presentations can never
+   both be in the accessibility tree. */
+.site-nav__menu {
+  display: none;
+  /* Deliberately not position: relative — the panel below anchors to the
+     <nav>, which is already a containing block, so that it can span the full
+     bar. Making the disclosure one would shrink the panel to the summary. */
+}
+.site-nav__summary {
+  /* list-style covers Chrome and Firefox; the vendor marker covers Safari.
+     Neither is an icon -- the affordance is the word. */
+  list-style: none;
+}
+.site-nav__summary::-webkit-details-marker {
+  display: none;
+}
+.site-nav__summary::marker {
+  content: "";
+}
+/* The label is two spans swapped with display:none rather than ::before
+   content, because pseudo-content is not reliably exposed to assistive tech and
+   the summary's accessible name has to change with the state. */
+.site-nav__menu[open] .site-nav__summary-closed,
+.site-nav__menu:not([open]) .site-nav__summary-open {
+  display: none;
+}
+
+.site-nav__panel {
+  position: absolute;
+  /* The nav is the containing block twice over: position:sticky, and its
+     backdrop-filter. 100% is its padding box, so +1px clears the hairline. */
+  top: calc(100% + 1px);
+  right: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  /* Opaque on purpose: --nav-bg is translucent and the bar's backdrop blur
+     covers only the bar's own box, so inheriting it would show the page
+     through the panel with nothing blurring it. */
+  background: var(--surface-page);
+  border-bottom: 1px solid var(--border-hairline);
+  padding: var(--space-2) var(--gutter) var(--space-4);
+  margin: 0;
+  list-style: none;
+}
+/* Its own presentation, not a copy of the 12px bar row: a column with real
+   touch targets. The active link is still marked the way the system marks it --
+   a 1px clay underline, the same rule NavBar draws -- by recolouring the row's
+   own separator rather than inventing a second marker. */
+.site-nav__panel a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  border-bottom: 1px solid var(--border-hairline);
+  color: var(--text-meta);
+  font: var(--type-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.site-nav__panel a[aria-current] {
+  color: var(--ink-1);
+  border-bottom-color: var(--clay);
+}
+.site-nav__panel li:last-child a {
+  border-bottom: 0;
+}
+
+/* --- Responsive ----------------------------------------------------------
+   One boundary. The design defines desktop only -- the kit carries zero media
+   queries and was drawn at 1280 -- so this is measured here, not inherited
+   from the pre-rebrand 960.
+
+   Measured against a real build at loaded font metrics (Chromium, the three
+   variable faces resolved), the header is:
+
+       brand      129.5   "Nicolás Hernández", 15px sans medium
+       gap         32     NavBar's --space-6, brand to row
+       links      222.6   34.3 + 85.6 + 42.8 + 59.9
+       link gaps   96     four --space-5 gaps, three between links, one before
+                          the action row
+       actions    146.9   theme pill 60.3 + --space-3 + résumé 74.6
+       gutters     64     --gutter twice
+       ------------------
+                  691     one line
+
+   Below 691 the brand -- the only shrinkable item in the row -- wraps to two
+   lines, and the bar hard-overflows at 616. Neither is the boundary: unlike the
+   old header, which needed 915 and set the fold itself, this one fits ~250px
+   below the width at which the layout stops reading. Folding at the header's
+   floor would mean a hero copy column of ~18ch and a 260px project card.
+
+   So the boundary is the readability one and the header is only a floor. At 900
+   the hero copy column measures 532px (~41ch of the lead face, against the
+   system's own --measure-prose of 62ch) and a project card 392px; below it the
+   lead drops under 40ch while the portrait's fixed 240px takes a third of the
+   row. 900 leaves 209px of slack over the one-line header and 284px over its
+   hard floor -- the old block chose 960 with 45px, so font-metric variance
+   cannot reach this.
+
+   One narrow boundary, not two: the stats survive 2-up all the way down (their
+   min-content column is 86px against 120px available at 320), so the second,
+   smaller step the phase doc allows for is not needed and is not written.
+
+   Rhythm is swapped as tokens, never as a rule. `.section { padding }` here
+   would out-order sections.css's `.hero { padding-bottom }` at equal
+   specificity -- this file loads last -- and silently delete it. */
+@media (width < 900px) {
+  :root {
+    --section-y: var(--section-y-mobile);
+    --gutter: var(--gutter-mobile);
+
+    /* ExperienceItem and SkillGroup are the same shape -- a label rail beside
+       content -- and fold the same way. Their roots are kit components, so no
+       selector can reach them; the call sites read these through var() and
+       custom properties inherit, which is why one :root declaration serves
+       both. Only those two call sites reference them. */
+    --rail-cols: minmax(0, 1fr);
+    --rail-gap: var(--space-3);
+  }
+
+  /* Every asymmetric split folds to one column. */
+  .hero__grid,
+  .work__grid,
+  .about__grid,
+  .contact__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* minmax(0,...) is the load-bearing half, not the 2: a bare 1fr is
+     minmax(auto, 1fr), so the four tracks carry a content-based minimum of
+     ~516px and overflow long before they look wrong. */
+  .hero__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* --space-9 reads as a hole once the column above it is stacked. */
+    margin-top: var(--space-7);
+  }
+
+  /* 64px between the copy and the portrait is a gap between columns, not
+     between stacked blocks. */
+  .hero__grid {
+    gap: var(--space-6);
+  }
+
+  /* The two nav presentations swap here, and only here. */
+  .site-nav > div > a {
+    display: none;
+  }
+  /* Button writes display:inline-flex inline on the <a> it renders, so a
+     stylesheet cannot hide it -- this is the "wrap it" case. The wrapper is
+     SiteNav's, the résumé link reappears inside the panel. */
+  .site-nav__resume {
+    display: none;
+  }
+  .site-nav__menu {
+    display: block;
   }
 }
 

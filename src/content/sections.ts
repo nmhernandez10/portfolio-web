@@ -88,6 +88,12 @@ export const COPY = {
   nav: {
     /** The header's résumé action. Shorter than the hero's "Résumé, PDF". */
     resume: "Résumé",
+    /** The narrow-mode disclosure, closed then open. The system ships no
+        icons, so the affordance is the word — and the ✕ is the one mark the
+        design sanctions beside it, trailing, as the drawer's own close label
+        below and the skill's ProjectDrawer both write it. */
+    menu: "Menu",
+    close: "Close ✕",
   },
   hero: {
     status: "Open to senior / staff backend roles",
@@ -108,11 +114,12 @@ export const COPY = {
     elsewhereLabel: "Elsewhere",
     locationLabel: "Based in",
     /**
-     * Mirrors profile.location, which nothing here can import. Edit both, or the
-     * contact block advertises a city the rest of the page does not. The "−" is
-     * U+2212, not a hyphen.
+     * Everything in the location line except the city, which Contact.astro
+     * prepends from profile.location — this module imports nothing, and the
+     * section file is where that constraint stops applying. The "−" is U+2212,
+     * not a hyphen.
      */
-    locationLine: "Bogotá, Colombia · UTC−5 · remote-first",
+    locationSuffix: "UTC−5 · remote-first",
   },
   form: {
     name: { label: "Name", placeholder: "your name" },

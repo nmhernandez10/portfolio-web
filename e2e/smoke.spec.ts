@@ -6,7 +6,7 @@ import {
   CONTACT_SENT_PARAM,
   CONTACT_SENT_VALUE,
 } from "../src/content/contact";
-import { openDrawer } from "./support";
+import { openDrawer, openMenu } from "./support";
 
 /**
  * Few and load-bearing, per the phase brief: the static page, the islands'
@@ -56,7 +56,11 @@ test("each block renders its own content", async ({ page }) => {
   await expect(
     page.getByText(profile.education[0].degree, { exact: true }),
   ).toBeVisible();
-  await expect(page.getByText(COPY.contact.locationLine)).toBeVisible();
+  // Composed in Contact.astro from two sources: sections.ts cannot import the
+  // city, so the assertion joins them the same way the section does.
+  await expect(
+    page.getByText(`${profile.location} · ${COPY.contact.locationSuffix}`),
+  ).toBeVisible();
   // Exact, because the failure this guards is a missing space: Astro drops the
   // whitespace between two expressions a newline separates.
   await expect(
@@ -354,38 +358,115 @@ test("the contact form renders a field error inline", async ({ page }) => {
 });
 
 /**
- * TODO(VC5): restore. The design the page now runs on defines desktop only —
- * the kit carries zero media queries and was drawn at 1280 — so sweeping below
- * that measures a layout nobody has designed yet. VC5 designs narrow mode and
- * its Definition of Done restores the full ladder (1280 down to 320, both sides
- * of every breakpoint) together with the header-fit assertion that left here
- * with the wordmark. Tolerable only while production is the unlaunched
- * *.pages.dev URL; if launch is ever reordered ahead of VC5, this comes back
- * first.
+ * Both sides of the one narrow boundary, then down to the narrowest phone worth
+ * supporting. 900 is measured and documented in src/styles/global.css; 901/900/
+ * 899 straddle it, 768 is iPad portrait, and 320 is the floor.
+ *
+ * Three assertions per step, because the page and the header fail differently.
+ * The header is the part that overflowed historically, and it now absorbs the
+ * squeeze by wrapping the brand to two lines — so its height is the real guard:
+ * two 15px lines still measure the 30px control row that --nav-h is derived
+ * from, and a third line would silently move every in-page anchor by breaking
+ * scroll-padding-top. Read from the token rather than restated, and compared
+ * with a pixel of slack because the wrapped brand lands on 63.2.
  */
-const SWEEP = [1440, 1280];
+const SWEEP = [1440, 1280, 901, 900, 899, 768, 480, 430, 390, 375, 360, 320];
 
 test("no viewport scrolls sideways", async ({ page }) => {
   await page.goto("/");
+
   for (const width of SWEEP) {
     await page.setViewportSize({ width, height: 900 });
     // The variable fonts shift metrics after load, and the header's fit is
-    // exactly what moves — measuring before they settle measures nothing.
-    await page.evaluate(() => document.fonts.ready);
-    const overflow = await page.evaluate(() => {
-      const doc = document.documentElement;
-      return doc.scrollWidth - doc.clientWidth;
+    // exactly what moves — measuring before they settle measures nothing. The
+    // callback returns a boolean because the FontFaceSet itself does not
+    // serialize back across the bridge.
+    await page.evaluate(async () => {
+      await document.fonts.ready;
+      return true;
     });
-    expect(overflow, `horizontal overflow at ${width}px`).toBeLessThanOrEqual(
+    const m = await page.evaluate(() => {
+      const doc = document.documentElement;
+      const nav = document.querySelector("nav")!;
+      return {
+        overflow: doc.scrollWidth - doc.clientWidth,
+        navOverflow: nav.scrollWidth - nav.clientWidth,
+        navHeight: nav.getBoundingClientRect().height,
+        navToken: parseFloat(getComputedStyle(doc).getPropertyValue("--nav-h")),
+      };
+    });
+
+    expect(m.overflow, `horizontal overflow at ${width}px`).toBeLessThanOrEqual(
       0,
     );
+    expect(
+      m.navOverflow,
+      `the header does not fit at ${width}px`,
+    ).toBeLessThanOrEqual(0);
+    expect(
+      Math.abs(m.navHeight - m.navToken),
+      `the bar is ${m.navHeight}px at ${width}px but --nav-h says ${m.navToken}px`,
+    ).toBeLessThanOrEqual(1);
   }
 });
 
-/**
- * TODO(VC5): restore. The mobile menu left with the old header — the new one is
- * the kit's NavBar, which has no narrow presentation yet. VC5 builds the
- * <details> disclosure inside SiteNav and re-adds what this deletes: the menu
- * opens, it lists the four nav links plus the résumé action, it navigates, it
- * closes, and the desktop link row is never reachable alongside it.
- */
+/** The width every narrow-mode test runs at: a common phone, well below 900. */
+const NARROW = { width: 390, height: 844 };
+
+test("the mobile menu carries every destination the bar drops", async ({
+  page,
+}) => {
+  await page.setViewportSize(NARROW);
+  await page.goto("/");
+
+  const panel = page.locator(".site-nav__panel");
+  await expect(panel).toBeHidden();
+
+  const menu = await openMenu(page);
+  await expect(panel).toBeVisible();
+
+  // Everything the bar hides has to reappear here: the four sections and the
+  // résumé action, which leaves the bar so the header fits at 320.
+  await expect(panel.getByRole("link")).toHaveText([
+    ...SECTIONS.map((section) => section.nav),
+    COPY.nav.resume,
+  ]);
+  await expect(
+    panel.getByRole("link", { name: COPY.nav.resume, exact: true }),
+  ).toHaveAttribute("href", profile.resumes.fullStack);
+
+  // The two presentations must never be reachable at once. getByRole ignores
+  // display:none, so a count of one per label is the assertion.
+  for (const section of SECTIONS) {
+    await expect(
+      page.locator("nav").getByRole("link", { name: section.nav, exact: true }),
+    ).toHaveCount(1);
+  }
+
+  await page.locator(".site-nav__summary").click();
+  await expect(menu).not.toHaveAttribute("open", "");
+  await expect(panel).toBeHidden();
+
+  // Above the boundary the disclosure is gone and the bar's own row is back.
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(menu).toBeHidden();
+  await expect(
+    page
+      .locator("nav")
+      .getByRole("link", { name: SECTIONS[0].nav, exact: true }),
+  ).toBeVisible();
+});
+
+test("the mobile menu navigates and closes behind itself", async ({ page }) => {
+  await page.setViewportSize(NARROW);
+  await page.goto("/");
+
+  const menu = await openMenu(page);
+  const target = SECTIONS[SECTIONS.length - 1];
+  await menu.getByRole("link", { name: target.nav, exact: true }).click();
+
+  await expect(page).toHaveURL(new RegExp(`#${target.id}$`));
+  // Closing is the island's one enhancement; the anchor itself works without it.
+  await expect(menu).not.toHaveAttribute("open", "");
+  await expect(page.locator(`#${target.id}`)).toBeInViewport();
+});

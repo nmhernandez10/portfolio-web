@@ -6,13 +6,13 @@ import type { Profile } from "./types";
  * typography is data, not style: em dashes in periods, an en dash in "4–8" and
  * in bare year ranges, "·" in project kickers.
  *
- * Four deliberate departures from data.js, each locked in
- * todo/visual-correction/phase-vc1-content-and-contract.md:
+ * Four deliberate departures from data.js:
  *
  * - `fullName` and `site` are carried from the pre-rebrand model; phase 7's
  *   JSON-LD needs both and the design never rendered either.
  * - `github` and `resumes` are additions — the design omits GitHub and ships one
- *   résumé, and visual-correction/README.md decision 4 keeps all three.
+ *   résumé, while this site keeps the GitHub links and both résumés, with the
+ *   full-stack PDF as the primary one (AGENTS.md § Design source of truth).
  * - `phone` is omitted: the kit never renders it, and this repo carries no
  *   unused data.
  * - Projects carry no `index`. data.js stores "01"…"04", which is exactly the

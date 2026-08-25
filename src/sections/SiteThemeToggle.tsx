@@ -39,22 +39,10 @@ export function SiteThemeToggle() {
           // Site data blocked — the theme still applies for this session.
         }
       }}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        height: 30,
-        padding: "0 var(--space-3)",
-        background: "transparent",
-        color: "var(--text-meta)",
-        border: "1px solid var(--border-control)",
-        borderRadius: "var(--radius-pill)",
-        font: "var(--type-label)",
-        letterSpacing: "var(--tracking-label)",
-        textTransform: "uppercase",
-        cursor: "pointer",
-        whiteSpace: "nowrap",
-        transition: "var(--transition-control)",
-      }}
+      /* The bar's small control is defined once in global.css and shared with
+         the narrow-mode menu summary, so the two pills cannot drift. Legal
+         where the kit's own components are not: this is site chrome. */
+      className="site-nav__control"
     >
       {dark ? "Light" : "Dark"}
     </button>

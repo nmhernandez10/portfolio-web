@@ -27,7 +27,20 @@ import SectionIntro from "./SectionIntro.astro";
       </div>
     </div>
     <div>
-      {profile.skills.map((group) => <SkillGroup {...group} />)}
+      {
+        /* The same label-rail fold as ExperienceItem, through the same shared
+           pair — SkillGroup's own grid is inline (SkillGroup.tsx) and carries
+           its own defaults, hence the different fallbacks. */
+        profile.skills.map((group) => (
+          <SkillGroup
+            {...group}
+            style={{
+              gridTemplateColumns: "var(--rail-cols, minmax(130px, 170px) 1fr)",
+              gap: "var(--rail-gap, var(--space-5))",
+            }}
+          />
+        ))
+      }
     </div>
   </div>
 </Section>

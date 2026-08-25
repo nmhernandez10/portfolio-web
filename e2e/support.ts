@@ -20,3 +20,24 @@ export async function openDrawer(page: Page, title: string): Promise<Locator> {
   await expect(page.getByRole("dialog")).toHaveCount(1);
   return card;
 }
+
+/**
+ * Open the narrow-mode nav disclosure, once its JS enhancement is attached.
+ *
+ * <details> opens on its own with no JS at all, so the barrier is not about the
+ * panel appearing — it is about closing. SiteNavMenu adds exactly one thing on
+ * mount, the close-on-navigate listener, and marks that with data-enhanced; a
+ * click on a panel link landing before it navigates with the menu still open.
+ * Both menu tests wait here so neither can forget it.
+ *
+ * Addressed by class because Playwright's role engine does not map <summary>.
+ * The browser's own tree is correct — Chromium reports the toggle with the
+ * visible label and an expanded state — so only the locator is affected.
+ */
+export async function openMenu(page: Page): Promise<Locator> {
+  const menu = page.locator(".site-nav__menu");
+  await expect(menu).toHaveAttribute("data-enhanced", "");
+  await page.locator(".site-nav__summary").click();
+  await expect(menu).toHaveAttribute("open", "");
+  return menu;
+}

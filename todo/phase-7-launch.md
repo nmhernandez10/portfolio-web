@@ -1,11 +1,12 @@
 # Phase 7 — Launch
 
-> **Amended 2026-08-24 for the design-skill replacement.** This phase now runs after
-> the `todo/visual-correction/` phases (VC0–VC5), which rebrand the site to the new
-> skill layout (`tokens/`, `components/`, `guidelines/`, `ui_kits/portfolio/`). All
-> design references below target the **new** skill; the old `design-system/` +
-> `prototype/` paths no longer exist. Where this doc and a VC doc disagree, the VC
-> docs win.
+> **Amended 2026-08-24 for the design-skill replacement.** The visual-correction
+> phases (VC0–VC5) rebranded the site to the new skill layout (`tokens/`,
+> `components/`, `guidelines/`, `ui_kits/portfolio/`) and completed on 2026-08-25;
+> their docs were removed then, the way the phase 0–6.2 docs were, and their full
+> record is in git history. Everything of theirs that was still open is carried into
+> task 0 below. All design references here target the **new** skill; the old
+> `design-system/` + `prototype/` paths no longer exist.
 
 ## Goal
 
@@ -13,12 +14,12 @@ SEO/meta complete, performance audited against budgets, hardening done, `nicolas
 
 ## Tasks
 
-### 0. Carried over from the removed phase docs (0–6.2)
+### 0. Carried over from the removed phase docs (0–6.2, and VC0–VC5)
 
-The implemented phase docs were removed on 2026-08-24 (their full record lives in git
-history); these are the items that were still open. Each carries a **when** tag — three
-groups must run **before** launch work starts, because the VC phases' PR-and-preview
-workflow depends on them.
+The implemented phase docs were removed on 2026-08-24, and the visual-correction docs
+on 2026-08-25 (their full record lives in git history); these are the items that were
+still open. Each carries a **when** tag — groups A–C must run **before** launch work
+starts, because they are dashboard prerequisites nothing in the repo can supply.
 
 **A. Git and GitHub — when: at VC0.** `main` is on GitHub at `64f539a` and `dev` is the
 default branch (verified 2026-08-24 with `git ls-remote origin`; remote `HEAD` tracks
@@ -73,6 +74,35 @@ survives restart, system-dark first visit lands dark; reveal — content never h
 without JS, animations run once only, the fallback timer reveals everything if the
 observer dies, print preview never blank, reduced motion instant.
 
+**F. Carried over from the visual-correction phases — when: as tagged:**
+
+- **Static kit components have no hover state — when: task 6's `/kit` parity pass.**
+  The kit computes hover in `useState` and writes the result inline, which no
+  stylesheet can override without `!important`, so on `/` only the three islands react
+  — the hero CTAs, project cards, portrait desaturation and `TextLink` underline wipes
+  are inert. This predates the rebrand and shipped as parity, not a regression; the
+  reference PNGs are a rest-state comparison. Fixing it means the kit reading state
+  through custom properties and shipping a `:hover` stylesheet, which contradicts
+  `AGENTS.md`'s "the UI kit styles itself inline and is never forked" across seven
+  components — hence a parity-pass decision, not a bug.
+- **`/kit`'s drawer specimen carries `aria-modal="true"` while nothing about it is
+  modal — when: task 6.** The specimen renders the panel open and static, and the role
+  group is derived from `open`, so assistive tech honouring the attribute may confine
+  its virtual cursor to the specimen. Removing it needs a new prop on a component whose
+  whole point is that it needs none.
+- **`/kit` still scrolls 7px sideways at 320 — when: task 6.** VC5 folded the page's
+  own `.grid.two` / `.grid.stats`, which clears every width down to 360. What is left at
+  320 is two kit specimens whose own inline values exceed the 272px content box: the hero
+  status `Tag` (300px, `white-space: nowrap`) and `ExperienceItem`'s `minmax(150px, 200px)`
+  rail, which reads no `--rail-cols` because a specimen shows the component's default and
+  not the site's call site. `/` is clean at every width; the arithmetic is recorded above
+  the fold in `kit.astro`.
+- **`theme-color` is keyed to `prefers-color-scheme`, not `data-theme` — when: task 1.**
+  `BaseLayout.astro` ships both metas against the two `--paper` values, which is
+  correct as far as it goes; the open part is that a visitor who toggles against their
+  system preference gets a mismatched chrome tint. Decide there whether the metas
+  should follow the attribute instead.
+
 ### 1. SEO and meta
 
 - Canonical `https://nicolasmateo.dev/`; full OG + Twitter card set (title, description in brand voice, `og:image`).
@@ -124,7 +154,7 @@ Parity checklist; every box must pass before deleting anything:
 - [ ] **`docs/brand.md` written**: condensed from the skill `readme.md` + `guidelines/*.card.html` — voice rules (incl. banned words), visual laws (clay frequency, hairlines, radii ladder, surface alternation), the **no-icons iconography law**, the dark-theme mechanism (`[data-theme="dark"]`, semantic aliases), the token digest, and the interaction contracts (theme / reveal / scroll-spy / drawer). This is the post-skill design reference.
 - [ ] `CLAUDE.md`/`AGENTS.md` design pointers updated to `docs/brand.md` (skill paths removed).
 
-Then: `git rm -r .claude/skills/nicolas-mateo-design`. What remains of `todo/` (this doc, `README.md`, `visual-correction/`) is kept; mark all statuses Done. The phase 0–6.2 docs were removed on 2026-08-24 — their record, like everything deleted here, lives in git history.
+Then: `git rm -r .claude/skills/nicolas-mateo-design`. What remains of `todo/` (this doc and `README.md`) is kept; mark all statuses Done. The phase 0–6.2 docs were removed on 2026-08-24 and the VC0–VC5 docs on 2026-08-25 — their record, like everything deleted here, lives in git history.
 
 ### 7. Go live
 

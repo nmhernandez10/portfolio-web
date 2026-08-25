@@ -20,7 +20,25 @@ const portraitImage = await getImage({
   <div class="hero__grid">
     <div class="hero__copy">
       <div class="hero__tags">
-        <Tag tone="moss" dot>{COPY.hero.status}</Tag>
+        {
+          /* Tag writes white-space: nowrap inline (Tag.tsx), and this one
+            measures 300px — wider than the 272px content box at 320. Its own
+            style prop is the only lever, and it needs no media query: with room
+            the pill never wraps, and min-height pins the single-line box at the
+            kit's exact 26px, so nothing above the breakpoint moves. */
+        }
+        <Tag
+          tone="moss"
+          dot
+          style={{
+            whiteSpace: "normal",
+            height: "auto",
+            minHeight: 26,
+            paddingBlock: 4,
+          }}
+        >
+          {COPY.hero.status}
+        </Tag>
         <Tag tone="outline">{profile.location}</Tag>
       </div>
       <h1 class="hero__name">{profile.name}</h1>

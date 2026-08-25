@@ -8,7 +8,7 @@ Implementation runs phase by phase from `todo/`. Before any work: read `todo/REA
 
 ## Stack
 
-Astro 7 (latest, decided 2026-08-19, superseding the original "Astro 5" note), `@astrojs/react` (React 19), TypeScript strict, pnpm (via corepack), Node 24. Fonts are self-hosted through fontsource, which registers every family with a `Variable` suffix: `Newsreader Variable` (normal + `wght-italic.css`), `Instrument Sans Variable`, `JetBrains Mono Variable`. Space Grotesk left with the old system in VC3. No ESLint — `astro check` + `tsc --noEmit` + Prettier is the whole quality toolchain. Path alias `@/*` → `src/*`.
+Astro 7 (latest, decided 2026-08-19, superseding the original "Astro 5" note), `@astrojs/react` (React 19), TypeScript strict, pnpm (via corepack), Node 24. Fonts are self-hosted through fontsource — `@fontsource-variable/newsreader`, `@fontsource-variable/instrument-sans` and `@fontsource-variable/jetbrains-mono` — which registers every family with a `Variable` suffix: `Newsreader Variable` (normal + `wght-italic.css`), `Instrument Sans Variable`, `JetBrains Mono Variable`. Space Grotesk left with the old system in VC3. No ESLint — `astro check` + `tsc --noEmit` + Prettier is the whole quality toolchain. Path alias `@/*` → `src/*`.
 
 Note: pnpm's `minimumReleaseAge` supply-chain policy (24h) is active on this machine. If an install rejects fresh releases, resolve with `pnpm clean --lockfile && pnpm install` (age-aware resolution) — do not disable the policy.
 
@@ -30,6 +30,7 @@ src/
   sections/*.astro         one component per page block (+ the .tsx islands)
                            islands: SiteNav, ContactForm, WorkGrid (VC4)
   sections/SiteThemeToggle.tsx  the icon-free toggle; site chrome, not kit inventory
+  sections/SiteNavMenu.tsx      the narrow-mode <details> nav; site chrome as well
   layouts/BaseLayout.astro head, fonts, theme script, reveal script
   layouts/ThemeScript.astro  the shared pre-paint theme script
   pages/index.astro  kit.astro  404.astro (phase 7)
@@ -47,11 +48,11 @@ docs/brand.md              phase 7: brand laws migrated from the skill
 
 - Dependencies run one way: `pages → layouts → sections → {ui, content} → styles`. `src/ui/` never imports `src/content/`; `src/content/` holds data only — no React, no styling, no imports from `src/ui/`.
 - `functions/` is the delivery layer outside `src/`. It may import `src/content` contract modules (data only) by **relative** path — the Pages Functions bundler follows relative imports repo-wide but resolves no aliases, so `@/content` cannot appear there — and never `src/ui`, `src/sections` or styles. Since 2026-08-23 `functions/` shares the root TypeScript program, which **does** define the `@/*` path, so an alias import there now typechecks and fails only at runtime: this rule is convention, not compiler-enforced. `pnpm test:e2e` is what catches it. Nothing in `src/` ever imports from `functions/`. Import the `content/contact` subpath, not the `@/content` barrel: the barrel re-exports the whole of `profile.ts`, and keeping the contract's only door a subpath is what makes it structurally impossible for the résumé to reach the browser bundle.
-- `src/sections/` is `.astro`. A section file is `.tsx` only if it is, or becomes, a hydrated island — three of them: `SiteNav.tsx` (VC3, `client:load`) renders the kit `NavBar` and hosts both the theme toggle (plain React, since an island cannot hydrate inside another) and the résumé action through `NavBar`'s `action` prop; `ContactForm.tsx` (`client:visible`); `WorkGrid.tsx` (VC4, `client:visible`) owns the project cards and the drawer. This keeps every section free to host an island without restructuring, and makes shipping JS by accident impossible.
-- The UI kit styles itself inline and is never forked. Section layout lives in `src/styles/sections.css` behind class hooks, so VC5 can add media queries without `!important`.
+- `src/sections/` is `.astro`. A section file is `.tsx` only if it is, or becomes, a hydrated island — three of them: `SiteNav.tsx` (`client:load`) renders the kit `NavBar` and hosts the theme toggle, the résumé action and the narrow-mode `SiteNavMenu` disclosure through `NavBar`'s `action` prop — all three plain React, since an island cannot hydrate inside another; `ContactForm.tsx` (`client:visible`); `WorkGrid.tsx` (VC4, `client:visible`) owns the project cards and the drawer. This keeps every section free to host an island without restructuring, and makes shipping JS by accident impossible.
+- The UI kit styles itself inline and is never forked. Section layout lives in `src/styles/sections.css` behind class hooks, which is what lets the narrow-mode media query fold the page without one `!important`.
 - **The drawer is a viewport-level layer, so `WorkGrid` portals it to `document.body`** rather than rendering it in place: `.reveal` puts a `transform` on `.section__inner` until a block has revealed, which would otherwise make the section the containing block for the drawer's `position: fixed` scrim and panel. The portal is the call site's decision, which is what lets `/kit` frame the same component inside `.drawer-frame`; `react-dom/server` cannot render portals, hence the island's mount flag. `<html>` carries `scrollbar-gutter: stable` for the same feature — the drawer locks body scroll, and without a reserved gutter the page shifts sideways behind the scrim.
-- Breakpoints live in `src/styles/global.css`, below the `@import` block and in descending order. **VC5 measures and documents them**: the kit defines desktop only (1280, zero media queries), and the new header — 15px brand, four 12px mono links, the theme pill and the résumé button — measures differently from the old one, so the boundary is re-derived there with its arithmetic recorded, not inherited. One narrow-mode boundary; a second, smaller step only if measurement demands it. What is fixed regardless: `global.css` is last in the cascade, so equal-specificity rules beat `sections.css` and the order between the two blocks is load-bearing; media queries group against base class hooks, not both modifiers; and where the kit sets a property inline, a **token override** is the only lever — `--section-y`, `--gutter`, never `!important` and never an edit inside `tokens/`.
-- A class hook always sits on a section-owned element, never on a kit component: Astro deletes `class` on framework components and the kit's frozen props have no `className`. Kit components take their own `style` prop instead (as the skill's component JSX does). This applies to **hiding** as much as to layout — the kit writes `display` inline, so a stylesheet `display: none` aimed at a kit component loses. Wrap it — VC5's narrow mode, which hides one of the two nav presentations per side of the breakpoint, is where this bites.
+- Breakpoints live in `src/styles/global.css`, below the `@import` block and in descending order. **There is exactly one: `width < 900px`**, measured against a real build and documented there with its arithmetic. The header is not what sets it — measured, the bar needs 691px on one line and hard-overflows at 616, so it is only a floor; 900 is where the hero copy column falls under ~41ch and a project card under 392px. Below 691 the brand wraps to two lines and the bar stays 63px, because two 15px lines measure the same as its 30px control row — which is what keeps `--nav-h` and `scroll-padding-top` honest. No second, smaller step: the stats survive 2-up to 320 (86px min-content against 120px available). Fixed regardless: `global.css` is last in the cascade, so equal-specificity rules beat `sections.css` and the order between the two blocks is load-bearing; media queries group against base class hooks, not both modifiers; and where the kit sets a property inline, the lever is a **custom property**, never `!important` and never an edit inside `tokens/` — either one the kit already reads (`--section-y`, `--gutter`), or, where it wrote a literal, one the call site injects through the component's own `style` prop with the kit's own value as the fallback (`--rail-cols` / `--rail-gap`, which fold `ExperienceItem` and `SkillGroup` from one `:root` declaration). That fallback is mandatory: an undefined `var()` is invalid at computed-value time and would collapse the grid.
+- A class hook always sits on a section-owned element, never on a kit component: Astro deletes `class` on framework components and the kit's frozen props have no `className`. Kit components take their own `style` prop instead (as the skill's component JSX does). This applies to **hiding** as much as to layout — where a kit component writes `display` inline, a stylesheet `display: none` aimed at it loses, so it has to be wrapped. Narrow mode hides one of the two nav presentations per side of the breakpoint and needs both routes: `NavBar`'s item anchors set no inline `display`, so `.site-nav > div > a` reaches them directly, while `Button` does set one, so the résumé action is hidden through a `.site-nav__resume` wrapper. The couplings that selector depends on are recorded above it in `global.css`.
 - **One design system, and the kit stays sealed.** `src/ui/` reaches it only through `var(--token)`: it imports nothing from `src/content`, `src/sections` or `src/styles`, and `src/ui/internal.ts` (its shared hooks and style constants) is not re-exported from the barrel. `grep -rn "oklch(" src/ui` stays empty — colour is referenced through custom properties or not at all. Both pages load `global.css`; the parallel `src/kit/` + `src/styles/redesign/` era ended in VC3.
 - **A hydrated island may import only import-free content leaves** — `@/content/sections` and `@/content/contact`, both of which import nothing. Never the `@/content` barrel and never `@/content/profile`: the barrel re-exports the whole résumé, and `src/content/index.ts` records that keeping it out of the browser bundle is structural, not a matter of tree-shaking. Anything an island needs from `profile` crosses as a serialized prop from the `.astro` layer (`SiteNav` takes `brand` and `resumeHref` this way). A smoke test walks the page's transitive `/_astro/*.js` graph and fails if a profile-only string appears in it.
 - **In-page navigation is CSS.** `global.css` gives `<html>` `scroll-padding-top: var(--nav-h)` (63px — `NavBar`'s `--space-4` padding twice, its 30px sm-control row, and its 1px hairline) and `scroll-behavior: smooth`, with a `prefers-reduced-motion` override to `auto`. `NavBar` is therefore left to render plain anchors — no `onNavigate` — so every in-page link lands correctly with or without JS and the URL hash follows the section. `SiteNav` owns scroll-spy and nothing else.
@@ -81,17 +82,30 @@ accessibility — it is not chasing coverage.
   JS off, opening, the three ways of closing, focus restored to the card), the
   nav behaviours VC3 shipped (`aria-current` scroll-spy, the scrolled hairline)
   and the contact form's two visible outcomes.
-  The viewport sweep and the mobile-menu tests are narrowed to >= 1280 behind two
-  `TODO(VC5): restore` markers — the design defines desktop only until VC5.
+  The viewport sweep runs the full ladder — 1440 down to 320, both sides of the
+  900px boundary — and asserts three things a step: no page overflow, no header
+  overflow, and the bar still measuring `--nav-h`. The third is the real guard:
+  the brand is meant to wrap to two lines at the narrow end, and a third line
+  would move every in-page anchor by silently breaking `scroll-padding-top`.
+  Two more cover the narrow nav: the disclosure carries every destination the
+  bar drops, neither presentation is reachable beside the other, and it closes
+  behind a navigation.
   The endpoint's method and origin gates are covered because phase 6.1
   hand-wrote them: Astro's `ALL` dispatch supplied the `405` and its origin-check
   middleware the `403`, and both left with the adapter.
 - `e2e/a11y.spec.ts` — axe over `/` light, `/` dark, `/` with the drawer open in
-  both themes, and `/kit`; zero violations.
-- `e2e/support.ts` — not a spec. `openDrawer()` waits for `aria-haspopup` before
-  it clicks a card, because `WorkGrid` is `client:visible` and a click landing
-  before hydration follows the card's `href` to hidden markup instead. Both specs
-  open the drawer, and neither should be able to forget the barrier.
+  both themes, `/` narrow with the mobile menu open, and `/kit`; zero
+  violations. The narrow scan exists because every other one runs at the 1280
+  project default, where the mobile nav is `display: none` and so is never
+  really scanned.
+- `e2e/support.ts` — not a spec, two helpers. `openDrawer()` waits for
+  `aria-haspopup` before it clicks a card, because `WorkGrid` is
+  `client:visible` and a click landing before hydration follows the card's
+  `href` to hidden markup instead. `openMenu()` waits for `data-enhanced` for
+  the mirror-image reason: the disclosure opens with no JS at all, but the
+  close-on-navigate listener is the island's, so a click landing before it
+  navigates with the menu still open. Both specs use both, and neither should be
+  able to forget a barrier.
 - Specs import from `src/content/` rather than restating ids, paths or topics,
   so a manifest change fails a test instead of drifting past a stale copy.
 - axe scans run under `prefers-reduced-motion: reduce`. Without it `reveal.ts`
@@ -164,7 +178,16 @@ Secrets are credentials, vars are configuration. Three keys, all consumed by `fu
 
 ## Design source of truth (until phase 7 replaces it with docs/brand.md)
 
-The skill governs every visual and behavioural number. Where the repo deliberately departs from it, the departure is recorded in `todo/visual-correction/README.md` § Locked decisions — nowhere else.
+The skill governs every visual and behavioural number. Where the repo deliberately departs from it, the departure is recorded here — this file is the only record; the `todo/visual-correction/` phase docs that carried it were removed once the rebrand finished, and their full history is in git.
+
+Four departures stand, all agreed with the user:
+
+1. **Both themes ship**, on the skill's own `[data-theme="dark"]` mechanism, with an icon-free site-owned toggle — the new kit defines no `ThemeToggle`.
+2. **The project drawer ships as an island**, with the accessibility the kit prototype lacks (Escape, focus trap and restore, `role="dialog"`, scroll lock).
+3. **The contact contract is name / email / message** (+ honeypot); the design's topic select is dropped.
+4. **Three things the design omits are kept**: the scroll-reveal animation, the GitHub links, and **both résumés — the full-stack PDF is the primary one** (nav action, hero CTA, footer link), with the backend PDF as a single extra footer link. The contact section lists no résumés, per the design.
+
+Two working rules come with them: **copy has a single source** — every string, including the ones the kit hardcodes in its own JSX, lives in `src/content`, and section files render data rather than carrying prose — and **kit APIs are frozen, kit internals are not**: props, defaults and behaviour follow the `.d.ts` contracts exactly, but where the kit source repeats itself the port may extract a shared internal helper with byte-identical rendered output.
 
 - `.claude/skills/nicolas-mateo-design/readme.md` — master spec: foundations, voice, iconography, component inventory
 - `.claude/skills/nicolas-mateo-design/tokens/*.css` — token values; light `:root` plus the `[data-theme="dark"]` override
