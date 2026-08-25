@@ -1,4 +1,4 @@
-import { metaLabel } from "../internal";
+import { metaLabel, metaText } from "../internal";
 
 /** A single figure with a mono caption. Use in rows of three or four. */
 export interface StatBlockProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -43,9 +43,7 @@ export function StatBlock({
       <span style={metaLabel}>{label}</span>
       {note ? (
         /* Words, so --text-meta rather than the skill's --ink-4 (2.06). */
-        <span style={{ font: "var(--type-meta)", color: "var(--text-meta)" }}>
-          {note}
-        </span>
+        <span style={metaText}>{note}</span>
       ) : null}
     </div>
   );

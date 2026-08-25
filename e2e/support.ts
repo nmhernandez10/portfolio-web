@@ -2,6 +2,30 @@ import { expect } from "@playwright/test";
 import type { Locator, Page } from "@playwright/test";
 
 /**
+ * Index into a fixture array, or fail loudly.
+ *
+ * Specs address specific entries — the second project, the last section — and a
+ * default does not fail, it quietly changes what is being asserted. The drawer
+ * is the case that shows it: `toContainText(project.detail[0] ?? "")` is a
+ * substring check against the empty string, so it passes against a drawer that
+ * rendered nothing at all. Throwing here fails at the fixture instead, naming
+ * what was missing. Nothing in e2e/ takes a default for a missing index.
+ */
+export function requiredAt<T>(
+  items: readonly T[],
+  index: number,
+  what: string,
+): T {
+  const item = items[index];
+  if (!item) {
+    throw new Error(
+      `${what}: no entry at index ${index} (length ${items.length}).`,
+    );
+  }
+  return item;
+}
+
+/**
  * Open the project drawer from its card, and wait for the island to be live
  * first. WorkGrid is client:visible: scrolling the card into view arms the
  * hydration observer, but nothing waits for React to attach the handler, and a

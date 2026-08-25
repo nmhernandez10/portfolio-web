@@ -48,7 +48,10 @@ export function SiteNav({ brand, resumeHref }: Props) {
   useEffect(() => {
     const onScroll = () => {
       const y = window.scrollY + SPY_OFFSET;
-      let current = ITEMS[0].id;
+      // The same expression as the hydration-parity default above: SECTIONS is
+      // a tuple, so its first entry is known to exist, where ITEMS[0] — mapped,
+      // and therefore a plain array — is not.
+      let current: string = SECTIONS[0].id;
       for (const item of ITEMS) {
         const el = document.getElementById(item.id);
         if (el && el.offsetTop <= y) current = item.id;

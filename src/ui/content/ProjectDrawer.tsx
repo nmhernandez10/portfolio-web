@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "../core/Button";
 import { Tag } from "../core/Tag";
-import { monoLabel } from "../internal";
+import { metaText, monoLabel } from "../internal";
 
 /**
  * Everything inside the panel that can hold focus: today the close button and
@@ -98,8 +98,14 @@ export function ProjectDrawer({
       const next = event.shiftKey
         ? nodes[(at <= 0 ? nodes.length : at) - 1]
         : nodes[(at + 1) % nodes.length];
-      next.focus();
-      event.preventDefault();
+      // nodes is non-empty and both branches index inside it, so this cannot
+      // miss. Guarding rather than asserting keeps the failure mode honest: if
+      // it ever did, Tab falls through to the browser instead of throwing
+      // inside a keydown handler.
+      if (next) {
+        next.focus();
+        event.preventDefault();
+      }
     };
 
     document.addEventListener("keydown", onKeyDown);
@@ -203,14 +209,7 @@ export function ProjectDrawer({
                   gap: "var(--space-2)",
                 }}
               >
-                <span
-                  style={{
-                    font: "var(--type-meta)",
-                    color: "var(--text-meta)",
-                  }}
-                >
-                  {p.kicker}
-                </span>
+                <span style={metaText}>{p.kicker}</span>
                 <h2
                   id={titleId}
                   style={{
@@ -280,11 +279,7 @@ export function ProjectDrawer({
                 ))}
               </div>
               {/* Words, so --text-meta rather than the skill's --ink-4 (2.06). */}
-              <span
-                style={{ font: "var(--type-meta)", color: "var(--text-meta)" }}
-              >
-                {p.meta}
-              </span>
+              <span style={metaText}>{p.meta}</span>
             </div>
           </>
         ) : null}

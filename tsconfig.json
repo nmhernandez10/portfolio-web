@@ -1,10 +1,16 @@
 {
-  "extends": "astro/tsconfigs/strict",
+  "extends": "astro/tsconfigs/strictest",
   "include": [".astro/types.d.ts", "**/*"],
   // functions/ is in this program too: the Pages Function is typed against the
   // DOM lib like the rest of the repo, so it needs no project of its own.
   "exclude": ["dist"],
   "compilerOptions": {
+    // The one member of strictest this repo does not take: the kit's optional
+    // props are declared `?: string`, and the islands that forward them would
+    // each have to spread conditionally to pass `string | undefined`. Churn at
+    // every call site for no runtime guarantee. See docs/decisions.md.
+    "exactOptionalPropertyTypes": false,
+
     // no baseUrl: TS 6 deprecates it (TS5101); paths already resolve relative to this file
     "paths": {
       "@/*": ["./src/*"]

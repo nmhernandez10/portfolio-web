@@ -184,7 +184,8 @@ export const onRequest = async ({
   // parsed value decides both the gate below and how the body is read, so they
   // cannot disagree about what arrived.
   const contentType = request.headers.get("content-type") ?? "";
-  const mediaType = contentType.split(";")[0].trim().toLowerCase();
+  // split() always yields at least one element; the ?? "" is for the type.
+  const mediaType = (contentType.split(";")[0] ?? "").trim().toLowerCase();
 
   // CSRF gate, hand-held. A browser can post the form content types cross-site
   // without a preflight, so they must carry a same-origin Origin. Browsers send

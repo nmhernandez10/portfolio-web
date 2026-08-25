@@ -1,4 +1,4 @@
-import { monoLabel, tagPill } from "../internal";
+import { metaText, monoLabel, tagPill } from "../internal";
 
 /**
  * One role in the experience list: period rail on the left, content on the
@@ -58,11 +58,7 @@ export function ExperienceItem({
         >
           {period}
         </span>
-        {location ? (
-          <span style={{ font: "var(--type-meta)", color: "var(--text-meta)" }}>
-            {location}
-          </span>
-        ) : null}
+        {location ? <span style={metaText}>{location}</span> : null}
       </div>
 
       <div

@@ -77,6 +77,10 @@ export interface SectionMeta extends SectionEntry {
 export function sectionMeta(id: SectionId): SectionMeta {
   const position = ENTRIES.findIndex((entry) => entry.id === id);
   const entry = ENTRIES[position];
+  // SectionId is derived from SECTIONS, so a miss is unreachable through the
+  // type. The manifest is still data: a throw names the id, where spreading
+  // undefined would render a section with no title and no ordinal.
+  if (!entry) throw new Error(`No section in the manifest with id "${id}".`);
   return { ...entry, index: twoDigit(position + 1) };
 }
 

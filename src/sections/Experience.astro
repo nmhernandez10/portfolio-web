@@ -2,9 +2,11 @@
 import { ExperienceItem } from "@/ui";
 import { profile } from "@/content";
 import Section from "./Section.astro";
+import SectionIntro from "./SectionIntro.astro";
 ---
 
-<Section id="experience" surface="sunk" intro>
+<Section id="experience" surface="sunk">
+  <SectionIntro id="experience" />
   {
     /* Every field of ExperienceEntry is an ExperienceItem prop — the content
        model was written against the kit's contract, so no mapping layer. Each

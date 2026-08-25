@@ -7,7 +7,7 @@ import {
   CONTACT_SENT_VALUE,
 } from "../src/content/contact";
 import { THEME_COLOR } from "../src/scripts/theme";
-import { openDrawer, openMenu } from "./support";
+import { openDrawer, openMenu, requiredAt } from "./support";
 
 /**
  * Few and load-bearing, per the phase brief: the static page, the islands'
@@ -49,13 +49,19 @@ test("each block renders its own content", async ({ page }) => {
   }
 
   await expect(
-    page.getByText(profile.projects[0].title, { exact: true }),
+    page.getByText(requiredAt(profile.projects, 0, "projects").title, {
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(
-    page.getByText(profile.experience[0].role, { exact: true }),
+    page.getByText(requiredAt(profile.experience, 0, "experience").role, {
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(
-    page.getByText(profile.education[0].degree, { exact: true }),
+    page.getByText(requiredAt(profile.education, 0, "education").degree, {
+      exact: true,
+    }),
   ).toBeVisible();
   // Composed in Contact.astro from two sources: sections.ts cannot import the
   // city, so the assertion joins them the same way the section does.
@@ -147,7 +153,7 @@ test("both resumes are served, and every link points at the right one", async ({
 const CHUNK = /\/_astro\/[A-Za-z0-9._-]+\.js/g;
 
 test("profile data never reaches a client bundle", async ({ request }) => {
-  const canary = profile.education[0].school;
+  const canary = requiredAt(profile.education, 0, "education").school;
   const html = await (await request.get("/")).text();
 
   const queue = [...new Set(html.match(CHUNK) ?? [])];
@@ -269,7 +275,7 @@ test("a project card opens the drawer on its own detail", async ({ page }) => {
   await page.goto("/");
   // The second card, not the first: opening the first would pass just as well
   // against a grid wired to a hardcoded project.
-  const project = profile.projects[1];
+  const project = requiredAt(profile.projects, 1, "projects");
   const card = await openDrawer(page, project.title);
 
   // It is a real link at its own detail block, which is what a click landing
@@ -278,14 +284,14 @@ test("a project card opens the drawer on its own detail", async ({ page }) => {
 
   const drawer = page.getByRole("dialog");
   await expect(drawer).toContainText(project.title);
-  await expect(drawer).toContainText(project.detail[0]);
+  await expect(drawer).toContainText(requiredAt(project.detail, 0, "detail"));
 });
 
 test("the drawer closes three ways and hands focus back each time", async ({
   page,
 }) => {
   await page.goto("/");
-  const title = profile.projects[1].title;
+  const title = requiredAt(profile.projects, 1, "projects").title;
   const drawer = page.getByRole("dialog");
 
   const shutters = [
@@ -470,7 +476,7 @@ test("the mobile menu navigates and closes behind itself", async ({ page }) => {
   await page.goto("/");
 
   const menu = await openMenu(page);
-  const target = SECTIONS[SECTIONS.length - 1];
+  const target = requiredAt(SECTIONS, SECTIONS.length - 1, "SECTIONS");
   await menu.getByRole("link", { name: target.nav, exact: true }).click();
 
   await expect(page).toHaveURL(new RegExp(`#${target.id}$`));
