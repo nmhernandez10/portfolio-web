@@ -134,6 +134,14 @@ export const COPY = {
   drawer: {
     close: "Close ✕",
   },
+  notFound: {
+    /** The <title> word; the page composes the rest, as index.astro does. */
+    title: "Not found",
+    /** A section statement in every respect but where it sits. */
+    statement: "Nothing at this address.",
+    description: "The page you asked for does not exist.",
+    home: "Back to the homepage",
+  },
   footer: {
     /** Rendered before profile.name. */
     copyright: "© 2026",

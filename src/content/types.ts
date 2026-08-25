@@ -61,17 +61,21 @@ export interface EducationEntry {
 export interface Profile {
   /** The rendered name — the brand mark is this, set in type. */
   name: string;
-  /** Legal name. Rendered nowhere; phase 7's JSON-LD needs it. */
+  /** Legal name. Rendered nowhere; the Person JSON-LD carries it. */
   fullName: string;
+  /** Rendered nowhere either; the JSON-LD carries it because the domain does. */
+  alternateName: string;
   /** Positioning label for the hero and <title> — not a timeline job title. */
   role: string;
+  /** "City, Country" — the contact rail renders it, the JSON-LD splits it. */
   location: string;
   email: string;
-  site: string;
   github: string;
   linkedin: string;
   /** The hero paragraph under the role. */
   lead: string;
+  /** The <meta name="description"> line, which `lead` is far too long to be. */
+  metaDescription: string;
   /** URL-safe copies in public/. The full-stack one is the primary link. */
   resumes: { fullStack: string; backend: string };
   stats: Stat[];

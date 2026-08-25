@@ -1,16 +1,15 @@
 /* The site's stylesheet, in four layers. The order below is load-bearing:
 
-   1. tokens/       the design system, copied byte-verbatim from the skill and
-                    imported in its own styles.css order — base.css last,
-                    because it consumes tokens from every other file.
+   1. tokens/       the design vocabulary — base.css last, because it consumes
+                    tokens from every other file. Nothing below may edit it:
+                    corrections belong in the site layer, where the cascade
+                    already puts them. See docs/brand.md.
    2. sections.css  page layout, one block per page section.
    3. the site layer (everything below the imports) — the adaptation the repo
                     owes the system, plus utilities the system has no opinion
                     on. It comes last so that at equal specificity it wins over
-                    sections.css; nothing here may edit tokens/, which stays
-                    verbatim for the parity diff phase 7 runs.
+                    sections.css.
    4. theme-scoped contrast corrections, light before dark. */
-@import url("./tokens/fonts.css");
 @import url("./tokens/colors.css");
 @import url("./tokens/typography.css");
 @import url("./tokens/spacing.css");
@@ -20,9 +19,11 @@
 @import url("./sections.css");
 
 :root {
-  /* Fontsource registers every variable family under a "Variable" suffix, so
-     the skill's first stack entry never matches. The fallbacks are the
-     skill's. */
+  /* Fonts are self-hosted through the @fontsource-variable packages imported in
+     BaseLayout.astro, so no font is ever fetched from a third-party origin and
+     `grep -r "fonts.googleapis" dist/` stays empty. Fontsource registers every
+     variable family under a "Variable" suffix, so the vocabulary's first stack
+     entry never matches; the fallbacks below are its own. */
   --font-display: "Newsreader Variable", "Iowan Old Style", Georgia, serif;
   --font-sans:
     "Instrument Sans Variable", "Helvetica Neue", Helvetica, Arial, sans-serif;

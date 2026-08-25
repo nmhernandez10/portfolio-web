@@ -1,5 +1,0 @@
-/* Fonts are self-hosted via @fontsource imports in src/layouts/BaseLayout.astro,
-   so no font is ever fetched from a third-party origin. This file stays in the
-   import chain to hold the slot the design system's styles.css gives it — the
-   skill's copy carries a Google Fonts @import that must never ship.
-   The registered family names carry a "Variable" suffix — see ../global.css. */

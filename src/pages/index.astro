@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { profile } from "@/content";
+import { personSchema } from "@/content/schema";
 import { SiteNav } from "@/sections/SiteNav";
 import Hero from "@/sections/Hero.astro";
 import Work from "@/sections/Work.astro";
@@ -11,12 +12,24 @@ import Footer from "@/sections/Footer.astro";
 
 const title = `${profile.name} — ${profile.role}`;
 
+// Serialized here, not in the slot below: the compiler renders slot content
+// from a closure that does not carry `Astro`, so an expression referencing it
+// there throws at build time.
+const personLd = JSON.stringify(personSchema(Astro.site));
+
 // brand and resumeHref are passed rather than imported by the island: profile.ts
 // carries the whole résumé, and only import-free content leaves may cross into a
 // hydrated bundle. See src/content/index.ts.
 ---
 
-<BaseLayout title={title} description={profile.lead}>
+<BaseLayout title={title} description={profile.metaDescription}>
+  <!-- is:inline is explicit: JSON-LD is data, not a module for Astro to bundle. -->
+  <script
+    is:inline
+    slot="head"
+    type="application/ld+json"
+    set:html={personLd}
+  />
   <SiteNav
     slot="header"
     client:load

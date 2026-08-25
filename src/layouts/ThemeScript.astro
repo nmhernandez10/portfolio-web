@@ -1,27 +1,38 @@
 ---
+import { THEME_COLOR, THEME_STORAGE_KEY } from "@/scripts/theme";
+
 // The pre-paint theme resolution, owned in one file so every layout resolves
 // the theme identically and no page can drift on the localStorage contract.
-// is:inline is emitted verbatim, so the rendered markup is identical to the
-// copies this replaced.
 //
-// The localStorage key is repeated in SiteThemeToggle because an is:inline
-// script cannot import.
+// The script is is:inline — it must run before first paint, and a bundled
+// module script is deferred. An inline script cannot import, so the contract's
+// values arrive through define:vars, which serializes them into the script as
+// constants: src/scripts/theme.ts stays their only owner while the two DOM
+// writes below are spelled out again. The toggle's setTheme() is the same pair.
+//
+// This never writes storage. Persisting the resolved theme on a first visit
+// would turn a system preference into an explicit choice the visitor never made.
 ---
 
-<script is:inline>
+<script is:inline define:vars={{ THEME_COLOR, THEME_STORAGE_KEY }}>
   // Resolves the theme before first paint; SiteThemeToggle adopts it after.
   (() => {
     let stored = null;
     try {
-      stored = localStorage.getItem("theme");
+      stored = localStorage.getItem(THEME_STORAGE_KEY);
     } catch {
       // Site data blocked — fall through to the system preference.
     }
-    document.documentElement.dataset.theme =
+    const theme =
       stored === "light" || stored === "dark"
         ? stored
         : window.matchMedia("(prefers-color-scheme: dark)").matches
           ? "dark"
           : "light";
+
+    document.documentElement.dataset.theme = theme;
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", THEME_COLOR[theme]);
   })();
 </script>

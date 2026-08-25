@@ -1,0 +1,69 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { COPY } from "@/content";
+import { TextLink } from "@/ui";
+
+// Cloudflare Pages serves index.html at status 200 for every unmatched path
+// when no 404.html exists, so this page is what makes a wrong URL fail honestly
+// instead of publishing the homepage at an unbounded set of addresses.
+//
+// Minimal by design: no nav island, no footer. Nothing here depends on JS —
+// the page is complete in static HTML — though BaseLayout still loads the
+// shared reveal module and the pre-paint theme script, as it does everywhere.
+//
+// The title is composed the way index.astro composes its own; the site's host
+// comes from astro.config.mjs, which owns the origin.
+const site = Astro.site;
+if (!site) {
+  throw new Error("astro.config.mjs must set `site`: the 404 title names it.");
+}
+---
+
+<BaseLayout
+  title={`${COPY.notFound.title} — ${site.host}`}
+  description={COPY.notFound.description}
+  noindex
+>
+  <section class="section notfound">
+    <div class="section__inner notfound__inner">
+      <h1 class="notfound__statement">{COPY.notFound.statement}</h1>
+      <p class="notfound__home">
+        <TextLink href="/" arrow>{COPY.notFound.home}</TextLink>
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Page-local, so it stays with the page: sections.css is one block per block
+     of the one page, and /kit already sets the precedent for scoped chrome.
+     The shell classes are the global ones; only the centring is new. No media
+     query — the single 900px boundary in global.css has nothing to fold here. */
+  .notfound {
+    display: flex;
+    min-height: 70vh;
+    align-items: center;
+  }
+  .notfound__inner {
+    /* width:100% is load-bearing: .notfound is a flex container, which makes the
+       inner a shrink-to-fit flex item, and its own margin-inline:auto would then
+       centre a narrow box instead of the 1080px column every other block uses.
+       The page reads left-aligned like the rest of the site, centred only
+       vertically. */
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    align-items: flex-start;
+  }
+  .notfound__statement {
+    font: var(--type-statement);
+    letter-spacing: var(--tracking-display);
+    color: var(--text-heading);
+    max-width: 18ch;
+  }
+  .notfound__home {
+    font: var(--type-lead);
+    color: var(--text-body);
+  }
+</style>

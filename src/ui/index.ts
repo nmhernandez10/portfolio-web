@@ -1,4 +1,4 @@
-// The design system, ported in-app from .claude/skills/nicolas-mateo-design.
+// The design system, ported in-app. Its reference is docs/brand.md.
 // Import from "@/ui" rather than reaching into the group folders; internal.ts
 // is the kit's private seam and is deliberately not re-exported.
 

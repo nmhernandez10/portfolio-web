@@ -6,6 +6,7 @@ import {
   CONTACT_SENT_PARAM,
   CONTACT_SENT_VALUE,
 } from "../src/content/contact";
+import { THEME_COLOR } from "../src/scripts/theme";
 import { openDrawer, openMenu } from "./support";
 
 /**
@@ -82,13 +83,20 @@ test("the theme toggle flips data-theme and survives a reload", async ({
 }) => {
   await page.goto("/");
   const html = page.locator("html");
+  const chrome = page.locator('meta[name="theme-color"]');
   await expect(html).toHaveAttribute("data-theme", "light");
+  // The browser chrome follows the chosen theme, not the system preference.
+  // One meta, written pre-paint by ThemeScript and on every toggle by
+  // setTheme(); both read their values from src/scripts/theme.ts.
+  await expect(chrome).toHaveAttribute("content", THEME_COLOR.light);
 
   await page.getByRole("button", { name: "Switch to dark theme" }).click();
   await expect(html).toHaveAttribute("data-theme", "dark");
+  await expect(chrome).toHaveAttribute("content", THEME_COLOR.dark);
 
   await page.reload();
   await expect(html).toHaveAttribute("data-theme", "dark");
+  await expect(chrome).toHaveAttribute("content", THEME_COLOR.dark);
 });
 
 test("both resumes are served, and every link points at the right one", async ({

@@ -2,11 +2,13 @@ dist
 .astro
 package-lock.json
 
-# design source of truth must stay byte-verbatim until its phase-7 deletion
+# local agent configuration, not repo source
 .claude
 
-# tokens are copied verbatim from the design system; formatting them would break
-# the `diff -r src/styles/tokens` parity check phase 7 runs before deleting the skill
+# The design vocabulary, kept as the ported artifact it is. The parity diff that
+# first justified this is gone with the skill, but the rule it protected is not:
+# tokens/ is not edited, and letting a formatter rewrite six files nothing may
+# touch would be churn against the one place the system's values live verbatim.
 src/styles/tokens
 
 # e2e artifacts
