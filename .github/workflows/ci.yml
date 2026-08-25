@@ -11,15 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm format:check
-      - run: pnpm check
-      - run: pnpm build
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run check
+      - run: npm run build
       # Structural guarantee, not a convenience: `wrangler pages dev` reads
       # .dev.vars and CI has none, so a placeholder makes "CI cannot send real
       # email" a property of the environment rather than of which code paths the
@@ -31,10 +30,11 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-      # pnpm's allowBuilds allowlist blocks Playwright's browser postinstall, so
-      # the download is explicit here and in the README.
-      - run: pnpm exec playwright install --with-deps chromium
-      # pnpm build above already produced dist/; call playwright directly so the
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      # Playwright ships no install script, so nothing fetches a browser as a
+      # side effect of `npm ci` — this step is the only thing that does, and
+      # --with-deps is what adds the OS-level libs.
+      - run: npx playwright install --with-deps chromium
+      # The build above already produced dist/; call playwright directly so the
       # test:e2e script's own build does not run a second time.
-      - run: pnpm exec playwright test
+      - run: npx playwright test
