@@ -1,7 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { COPY, SECTIONS } from "../src/content/sections";
+import { COPY, SECTIONS, twoDigit } from "../src/content/sections";
 import { profile } from "../src/content/profile";
-import { CONTACT_SENT_PARAM, CONTACT_SENT_VALUE } from "../src/content/contact";
+import {
+  CONTACT_ERRORS,
+  CONTACT_SENT_PARAM,
+  CONTACT_SENT_VALUE,
+} from "../src/content/contact";
+import { openDrawer } from "./support";
 
 /**
  * Few and load-bearing, per the phase brief: the static page, the islands'
@@ -216,6 +221,136 @@ test("a form-encoded post redirects instead of answering JSON", async ({
   expect(response.headers().location).toBe(
     `/?${CONTACT_SENT_PARAM}=${CONTACT_SENT_VALUE}#contact`,
   );
+});
+
+/**
+ * The drawer's copy has to be in the page without JS, and asserting it in the
+ * response body would prove nothing: Astro serializes the island's props into
+ * the HTML, so every detail line is there even with the static markup deleted.
+ * A context with JS off reads the markup itself, and proves in the same pass
+ * that nothing about it waits on hydration.
+ */
+test("every project's drawer copy is in the page before any JS runs", async ({
+  browser,
+  baseURL,
+}) => {
+  // A hand-made context inherits nothing from the config's `use`.
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    baseURL,
+  });
+  const page = await context.newPage();
+  await page.goto("/");
+
+  for (const [i, project] of profile.projects.entries()) {
+    const block = page.locator(`#project-${twoDigit(i + 1)}`);
+    await expect(block.locator("li")).toHaveCount(project.detail.length);
+    for (const line of project.detail) {
+      await expect(block).toContainText(line);
+    }
+  }
+
+  await context.close();
+});
+
+test("a project card opens the drawer on its own detail", async ({ page }) => {
+  await page.goto("/");
+  // The second card, not the first: opening the first would pass just as well
+  // against a grid wired to a hardcoded project.
+  const project = profile.projects[1];
+  const card = await openDrawer(page, project.title);
+
+  // It is a real link at its own detail block, which is what a click landing
+  // before hydration — or without JS at all — falls back to.
+  await expect(card).toHaveAttribute("href", `#project-${twoDigit(2)}`);
+
+  const drawer = page.getByRole("dialog");
+  await expect(drawer).toContainText(project.title);
+  await expect(drawer).toContainText(project.detail[0]);
+});
+
+test("the drawer closes three ways and hands focus back each time", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const title = profile.projects[1].title;
+  const drawer = page.getByRole("dialog");
+
+  const shutters = [
+    () => page.keyboard.press("Escape"),
+    // Top-left: the scrim covers the viewport (above the sticky bar), and the
+    // panel only its right-hand edge.
+    () => page.mouse.click(20, 20),
+    () => page.getByRole("button", { name: COPY.drawer.close }).click(),
+  ];
+
+  for (const shut of shutters) {
+    const card = await openDrawer(page, title);
+    await shut();
+    // Not toBeHidden: a closed panel is off-screen by transform, not hidden.
+    // It stops being a dialog at all, which is the assertion worth making.
+    await expect(drawer).toHaveCount(0);
+    await expect(card).toBeFocused();
+  }
+});
+
+test("the nav marks the section in view and grows a hairline once scrolled", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const nav = page.locator("nav");
+  const link = (id: string) => {
+    const section = SECTIONS.find((entry) => entry.id === id)!;
+    return nav.getByRole("link", { name: section.nav, exact: true });
+  };
+
+  // Scroll-spy starts on the first section to match the prerendered HTML, so
+  // the top of the page is where both states are visible at once.
+  await expect(link(SECTIONS[0].id)).toHaveAttribute("aria-current", "true");
+  await expect(link("about")).not.toHaveAttribute("aria-current", "true");
+  // The bar draws its hairline itself, painting it transparent until scrolled.
+  await expect(nav).toHaveCSS("border-bottom-color", "rgba(0, 0, 0, 0)");
+
+  await page.locator("#about").scrollIntoViewIfNeeded();
+  await expect(link("about")).toHaveAttribute("aria-current", "true");
+  await expect(nav).not.toHaveCSS("border-bottom-color", "rgba(0, 0, 0, 0)");
+});
+
+test("the contact form adopts the flag the no-JS redirect lands on", async ({
+  page,
+}) => {
+  await page.goto(`/?${CONTACT_SENT_PARAM}=${CONTACT_SENT_VALUE}#contact`);
+  await expect(page.getByText(COPY.form.success)).toBeVisible();
+});
+
+/**
+ * The one submit the suite drives through the browser. "nobody@example" passes
+ * the browser's own type="email" check and fails the endpoint's shape test, so
+ * the request returns 400 well short of send() — this suite still cannot reach
+ * Resend. It has to be a separate page from the test above: once the form has
+ * adopted the sent flag its submit button stays disabled.
+ */
+test("the contact form renders a field error inline", async ({ page }) => {
+  await page.goto("/#contact");
+  const email = page.getByLabel(COPY.form.email.label);
+
+  // ContactForm is client:visible, and a click landing before it hydrates
+  // posts the form natively instead of through fetch. The kit draws its focus
+  // ring from React state, so a ring is the island announcing itself — and a
+  // focus event arriving before hydration is simply lost, hence the retry.
+  await expect(async () => {
+    await email.blur();
+    await email.focus();
+    await expect(email).not.toHaveCSS("box-shadow", "none", { timeout: 250 });
+  }).toPass();
+
+  await page.getByLabel(COPY.form.name.label).fill("Test");
+  await email.fill("nobody@example");
+  await page.getByLabel(COPY.form.message.label).fill("Hello");
+  await page.getByRole("button", { name: COPY.form.submit }).click();
+
+  await expect(page.getByText(CONTACT_ERRORS.email)).toBeVisible();
+  await expect(email).toHaveAttribute("aria-invalid", "true");
 });
 
 /**

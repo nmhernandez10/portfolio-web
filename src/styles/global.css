@@ -52,6 +52,11 @@
 html {
   scroll-padding-top: var(--nav-h);
   scroll-behavior: smooth;
+  /* The drawer locks body scroll while it is open, and without a reserved
+     gutter the page jumps sideways by the scrollbar's width behind the scrim.
+     Site-wide but free: every page here already scrolls, so the gutter is
+     occupied at rest either way — stable only keeps it during the lock. */
+  scrollbar-gutter: stable;
 }
 @media (prefers-reduced-motion: reduce) {
   html {

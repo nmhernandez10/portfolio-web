@@ -1,6 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
+import { profile } from "../src/content/profile";
+import { openDrawer } from "./support";
 
 type AxeResults = Awaited<ReturnType<AxeBuilder["analyze"]>>;
 type AxeNode = AxeResults["violations"][number]["nodes"][number];
@@ -146,6 +148,25 @@ test("the page is clean in the dark theme", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await visit(page, "/");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expectClean(page, BRAND_DARK);
+});
+
+/**
+ * The drawer is the one part of / no other scan can reach: it renders nothing
+ * until a card is clicked. Both themes, because it brings its own surface —
+ * --surface-card behind --scrim — rather than the page's.
+ */
+test("the open drawer is clean in the light theme", async ({ page }) => {
+  await visit(page, "/");
+  await openDrawer(page, profile.projects[0].title);
+  await expectClean(page, BRAND_LIGHT);
+});
+
+test("the open drawer is clean in the dark theme", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  await visit(page, "/");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await openDrawer(page, profile.projects[0].title);
   await expectClean(page, BRAND_DARK);
 });
 

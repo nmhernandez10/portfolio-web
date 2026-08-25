@@ -1,25 +1,13 @@
 ---
-import { ProjectCard } from "@/ui";
-import { profile, twoDigit } from "@/content";
+import { profile } from "@/content";
 import Section from "./Section.astro";
+import { WorkGrid } from "./WorkGrid";
 ---
 
 <Section id="work" intro>
-  <div class="work__grid">
-    {
-      /* Spread deliberately avoided: Project carries `detail`, which belongs to
-         the drawer VC4 builds and is not a ProjectCard prop. The card's href is
-         the kit's own default for now — VC4 makes these drawer triggers. */
-      profile.projects.map((project, i) => (
-        <ProjectCard
-          index={twoDigit(i + 1)}
-          title={project.title}
-          kicker={project.kicker}
-          description={project.description}
-          tags={project.tags}
-          meta={project.meta}
-        />
-      ))
-    }
-  </div>
+  {
+    /* projects cross as a serialized prop: an island may not import profile.ts,
+       and the drawer needs `detail`, which no card prop carries. */
+  }
+  <WorkGrid client:visible projects={profile.projects} />
 </Section>

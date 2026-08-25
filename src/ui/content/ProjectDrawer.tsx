@@ -1,7 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "../core/Button";
 import { Tag } from "../core/Tag";
 import { monoLabel } from "../internal";
+
+/**
+ * Everything inside the panel that can hold focus: today the close button and
+ * the scrolling body, which carries a tabindex to be reachable at all.
+ */
+const FOCUSABLE =
+  'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
  * The subset of a project the drawer renders. Declared structurally rather
@@ -25,6 +32,10 @@ export interface DrawerProject {
  * system the skill ships without a .d.ts, so this contract is the repo's:
  * `closeLabel` is required and has no default, which is what keeps the one
  * string it renders in src/content rather than here.
+ *
+ * It is also the system's one modal, so the dialog behaviour the skill's
+ * prototype lacks lives here rather than at the call site — the panel element
+ * is this component's, and nothing outside can reach it.
  */
 export interface ProjectDrawerProps {
   /** The open project, or null when the drawer is closed. */
@@ -47,6 +58,70 @@ export function ProjectDrawer({
   }, [project]);
   const p = project || shown;
 
+  const titleId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // Escape must call the current onClose, but re-running the effect below on
+  // every parent render would re-capture the opener and steal focus back — so
+  // the callback travels by ref and the effect keys on `open` alone.
+  const closeRef = useRef(onClose);
+  useEffect(() => {
+    closeRef.current = onClose;
+  });
+
+  /* The modal contract, none of which the skill's prototype has: focus moves
+     in and comes back, Tab cannot leave, Escape closes, the page behind cannot
+     scroll. The rest of the document is deliberately not inerted — aria-modal
+     is the signal, and reaching out of this component to mutate nodes it does
+     not own would trade one gap for a larger one. */
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!open || !panel) return;
+
+    const opener = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    panel.focus();
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeRef.current();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const nodes = [...panel.querySelectorAll<HTMLElement>(FOCUSABLE)];
+      if (nodes.length === 0) return;
+      const at = nodes.indexOf(document.activeElement as HTMLElement);
+      // -1 is the panel itself (or focus lost); walking from there lands on
+      // either end, so a Shift+Tab out of the container wraps rather than
+      // escaping to the page behind the scrim.
+      const next = event.shiftKey
+        ? nodes[(at <= 0 ? nodes.length : at) - 1]
+        : nodes[(at + 1) % nodes.length];
+      next.focus();
+      event.preventDefault();
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+      opener?.focus();
+    };
+  }, [open]);
+
+  /* A dialog only while it is showing. The panel stays mounted so it can
+     slide, and before the first open it renders no title — an always-on
+     role="dialog" would be a nameless one on every page load, which is a
+     violation an axe scan is right to report. */
+  const dialog = open
+    ? ({
+        role: "dialog",
+        "aria-modal": true,
+        "aria-labelledby": titleId,
+      } as const)
+    : {};
+
   return (
     <>
       <div
@@ -61,7 +136,19 @@ export function ProjectDrawer({
           zIndex: 40,
         }}
       />
-      <aside
+      {/* A div, where the skill's prototype draws an <aside>: role="dialog" is
+          not an allowed role for <aside> (axe aria-allowed-role), and a modal
+          panel is no more a complementary landmark than it is a dialog while
+          closed. Same styles, same rendered box.
+
+          inert: the kit keeps the last project rendered so the panel does not
+          blank mid-slide, which otherwise leaves the close button and the body
+          tabbable off-screen once the drawer has been opened once. */}
+      <div
+        ref={panelRef}
+        {...dialog}
+        tabIndex={-1}
+        inert={!open}
         style={{
           position: "fixed",
           top: 0,
@@ -125,6 +212,7 @@ export function ProjectDrawer({
                   {p.kicker}
                 </span>
                 <h2
+                  id={titleId}
                   style={{
                     font: "var(--type-statement)",
                     letterSpacing: "var(--tracking-display)",
@@ -200,7 +288,7 @@ export function ProjectDrawer({
             </div>
           </>
         ) : null}
-      </aside>
+      </div>
     </>
   );
 }

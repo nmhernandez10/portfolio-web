@@ -103,6 +103,10 @@ export function NavBar({
             <a
               key={id}
               href={it.href || `#${id}`}
+              /* The active state is otherwise colour alone: assistive tech is
+                 told nothing, and nothing outside the component can read it.
+                 Derived from the `active` prop, so the contract is unchanged. */
+              aria-current={on ? "true" : undefined}
               onClick={(e) => {
                 if (onNavigate) {
                   e.preventDefault();
