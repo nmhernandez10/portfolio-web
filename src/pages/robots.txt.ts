@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { requireSite } from "../content/site";
 
 /**
  * robots.txt as a static endpoint rather than a file in public/, so the sitemap
@@ -9,15 +10,13 @@ import type { APIRoute } from "astro";
  * route — and they are not pages, so this never appears in the sitemap.
  */
 export const GET: APIRoute = ({ site }) => {
-  if (!site) {
-    throw new Error("astro.config.mjs must set `site`: robots.txt names it.");
-  }
+  const origin = requireSite(site, "robots.txt names the sitemap URL");
 
   const body = [
     "User-agent: *",
     "Allow: /",
     "",
-    `Sitemap: ${new URL("sitemap-index.xml", site)}`,
+    `Sitemap: ${new URL("sitemap-index.xml", origin)}`,
     "",
   ].join("\n");
 

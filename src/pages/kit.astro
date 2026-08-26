@@ -53,6 +53,23 @@ const [firstProject, secondProject] = profile.projects;
 const currentRole = profile.experience[0];
 const pastRole = profile.experience[1];
 const [firstStat, secondStat] = profile.stats;
+
+// The specimens below spread these into components whose props are required, so
+// the page states its own fixture requirement once rather than narrowing six
+// values at six call sites. Unreachable with the real content model; a build
+// error is the right answer if that ever stops being true.
+if (
+  !firstProject ||
+  !secondProject ||
+  !currentRole ||
+  !pastRole ||
+  !firstStat ||
+  !secondStat
+) {
+  throw new Error(
+    "/kit needs at least two projects, two roles and two stats in profile.ts",
+  );
+}
 ---
 
 <BaseLayout

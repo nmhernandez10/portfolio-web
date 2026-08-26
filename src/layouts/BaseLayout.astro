@@ -6,6 +6,7 @@ import "@fontsource-variable/jetbrains-mono";
 import "@/styles/global.css";
 import ThemeScript from "./ThemeScript.astro";
 import { THEME_COLOR } from "@/scripts/theme";
+import { requireSite } from "@/content/site";
 
 interface Props {
   title: string;
@@ -17,14 +18,11 @@ interface Props {
 const { title, description, noindex = false } = Astro.props;
 
 // astro.config.mjs sets `site`, and every absolute URL below derives from it —
-// the origin has one owner. Astro types it optional, so it is narrowed once
-// here rather than asserted at each use.
-const site = Astro.site;
-if (!site) {
-  throw new Error(
-    "astro.config.mjs must set `site`: canonical, OG and sitemap URLs derive from it.",
-  );
-}
+// the origin has one owner. requireSite is the narrowing every consumer shares.
+const site = requireSite(
+  Astro.site,
+  "canonical, OG and sitemap URLs derive from it",
+);
 
 const canonical = new URL(Astro.url.pathname, site);
 const ogImage = new URL("/og.png", site);

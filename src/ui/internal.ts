@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { CSSProperties } from "react";
 
-/* The kit's private seam: the four things the design skill's source repeats.
+/* The kit's private seam: the shared interaction helpers and repeated style
+   fragments the design skill's source writes out at every use.
    Not exported from index.ts — nothing outside src/ui/ may import it.
 
    Every style constant below is ordered so that each consumer, spreading it
@@ -40,6 +41,16 @@ export function useFocus() {
 export const monoLabel: CSSProperties = {
   font: "var(--type-label)",
   letterSpacing: "var(--tracking-label)",
+};
+
+/**
+ * The plain metadata line: kickers, locations, notes, the drawer's closing
+ * word. Six call sites across four components wrote these two declarations out;
+ * the order here is theirs, so every rendered style attribute is unchanged.
+ */
+export const metaText: CSSProperties = {
+  font: "var(--type-meta)",
+  color: "var(--text-meta)",
 };
 
 /** monoLabel's uppercase meta variant: field labels, captions, rule labels. */

@@ -2,6 +2,7 @@
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { COPY } from "@/content";
 import { TextLink } from "@/ui";
+import { requireSite } from "@/content/site";
 
 // Cloudflare Pages serves index.html at status 200 for every unmatched path
 // when no 404.html exists, so this page is what makes a wrong URL fail honestly
@@ -13,10 +14,7 @@ import { TextLink } from "@/ui";
 //
 // The title is composed the way index.astro composes its own; the site's host
 // comes from astro.config.mjs, which owns the origin.
-const site = Astro.site;
-if (!site) {
-  throw new Error("astro.config.mjs must set `site`: the 404 title names it.");
-}
+const site = requireSite(Astro.site, "the 404 title names it");
 ---
 
 <BaseLayout

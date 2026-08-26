@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { monoLabel, tagPill, useHover } from "../internal";
+import { metaText, monoLabel, tagPill, useHover } from "../internal";
 
 /**
  * A piece of work in the projects grid: index, title, one-paragraph
@@ -84,11 +84,7 @@ export function ProjectCard({
           gap: "var(--space-2)",
         }}
       >
-        {kicker ? (
-          <span style={{ font: "var(--type-meta)", color: "var(--text-meta)" }}>
-            {kicker}
-          </span>
-        ) : null}
+        {kicker ? <span style={metaText}>{kicker}</span> : null}
         <h3
           style={{
             font: "var(--type-h2)",
@@ -128,9 +124,7 @@ export function ProjectCard({
 
       {meta ? (
         /* Words, so --text-meta rather than the skill's --ink-4 (2.06). */
-        <span style={{ font: "var(--type-meta)", color: "var(--text-meta)" }}>
-          {meta}
-        </span>
+        <span style={metaText}>{meta}</span>
       ) : null}
     </a>
   );

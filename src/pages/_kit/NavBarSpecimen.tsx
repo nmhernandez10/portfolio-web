@@ -12,7 +12,7 @@ export interface NavBarSpecimenProps {
 /**
  * NavBar's `action` slot takes a React element, and an .astro template can only
  * produce Astro renderables — so the one composition on this page that nests a
- * component inside a prop is assembled here instead. VC3's SiteNav island fills
+ * component inside a prop is assembled here instead. The SiteNav island fills
  * the same slot with the theme toggle beside this button.
  */
 export function NavBarSpecimen({

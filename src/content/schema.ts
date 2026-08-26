@@ -1,4 +1,5 @@
 import { profile } from "./profile";
+import { requireSite } from "./site";
 
 /**
  * The Person JSON-LD, derived from the profile rather than restated beside it.
@@ -28,9 +29,7 @@ export interface PersonSchema {
 export function personSchema(site: URL | undefined): PersonSchema {
   // Narrowed here rather than at the call site: astro.config.mjs owns the
   // origin, and a page should not have to prove that before asking for schema.
-  if (!site) {
-    throw new Error("personSchema needs `site` from astro.config.mjs.");
-  }
+  const origin = requireSite(site, "the Person JSON-LD carries the url");
 
   // profile.location is one string because the contact rail renders it as one.
   // Structured data needs its two halves, so the split is validated: an edit to
@@ -50,7 +49,7 @@ export function personSchema(site: URL | undefined): PersonSchema {
     "@type": "Person",
     name: profile.fullName,
     alternateName: profile.alternateName,
-    url: site.href,
+    url: origin.href,
     jobTitle: profile.role,
     sameAs: [`https://${profile.github}`, `https://${profile.linkedin}`],
     address: {
